@@ -1,5 +1,10 @@
 import { Router, Request, Response } from 'express'
-import { createBooking } from '../controllers/book'
+import {
+    createBooking,
+    editBooking,
+    deleteBooking,
+    getBookings,
+} from '../controllers'
 
 export const router: Router = Router()
 
@@ -7,11 +12,12 @@ export const router: Router = Router()
 router.get('/', (req: Request, res: Response) => {
   res.send('hi there 👋')
 })
-// create a booking
-router.post('/book', createBooking)
+
 // view bookings
-router.get('/bookings')
+router.get('/bookings', getBookings)
+// create a booking
+router.post('/bookings', createBooking)
 // edit a booking
-router.patch('/edit')
+router.patch('/bookings', editBooking)
 // delete a booking
-router.patch('/delete')
+router.delete('/bookings', deleteBooking)
