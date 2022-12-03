@@ -5,7 +5,7 @@ export const router: Router = Router()
 
 // landing page
 router.get('/', (req: Request, res: Response) => {
-    res.send('hi there 👋')
+  res.send('hi there 👋')
 })
 // create a booking
 router.post('/book', createBooking)

@@ -18,6 +18,7 @@ model User {
 
 model Organisation {
   id        Int     @id @default(autoincrement())
+
   name     String
   description String @default("A NUSC organisation")
   userOrg UserOnOrg[]
