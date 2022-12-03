@@ -1,37 +1,27 @@
 {
-  "name": "usc-backend",
-  "version": "1.0.0",
-  "description": "USC backend ptototype",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npx tsc",
-    "start": "node dist/index.js",
-    "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^18.11.10",
-    "concurrently": "^7.6.0",
-    "nodemon": "^2.0.20",
-    "prisma": "^4.7.1",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.3"
-  },
-  "dependencies": {
-    "@prisma/client": "^4.7.1",
-    "@types/express": "^4.17.14",
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/usdevs/uscwebsite-hackathon-backend.git"
-  },
-  "keywords": [],
-  "bugs": {
-    "url": "https://github.com/usdevs/uscwebsite-hackathon-backend/issues"
-  },
-  "homepage": "https://github.com/usdevs/uscwebsite-hackathon-backend#readme"
+    "name": "usc-backend",
+    "version": "1.0.0",
+    "description": "USC backend ptototype",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "npx tsc --outDir ./dist",
+        "start": "node dist/index.js",
+        "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\""
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "concurrently": "^7.6.0",
+        "nodemon": "^2.0.20",
+        "prettier": "2.8.0",
+        "typescript": "^4.9.3"
+    },
+    "dependencies": {
+        "@types/express": "^4.17.14",
+        "@types/node": "^18.11.10",
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "prisma": "^4.7.1"
+    }
 }
