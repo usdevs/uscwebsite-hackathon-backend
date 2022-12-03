@@ -13,13 +13,40 @@ datasource db {
 model User {
   id    Int    @id @default(autoincrement())
   name  String
-  posts Post[]
+  userOrg UserOnOrg[]
 }
 
-model Post {
+model Organisation {
   id        Int     @id @default(autoincrement())
-  title     String
-  published Boolean @default(true)
-  authorId  Int
-  author    User    @relation(fields: [authorId], references: [id])
+  name     String
+  description String @default("A NUSC organisation")
+  userOrg UserOnOrg[]
+}
+
+model UserOnOrg {
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int // relation scalar field (used in the `@relation` attribute above)
+  org   Organisation @relation(fields: [orgId], references: [id])
+  orgId Int // relation scalar field (used in the `@relation` attribute above)
+  assignedAt DateTime @default(now())
+  bookings Booking[]
+  @@id([userId, orgId])
+}
+
+model Venue {
+  id    Int    @id @default(autoincrement())
+  name  String
+  booking Booking[]
+}
+
+model Booking {
+  id Int @id@default(autoincrement())
+  venue Venue @relation(fields: [venueId], references: [id])
+  venueId Int
+  bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
+  userId Int
+  orgId Int
+  start DateTime // start time of booking
+  end DateTime // end time of booking 
+  bookedAt DateTime @default(now())
 }
