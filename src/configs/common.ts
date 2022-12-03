@@ -1,6 +1,6 @@
 // Parses the string stored in env to number
 function parseEnvToInt(envVar: string | undefined, fallback: number): number {
-    return envVar ? Number(envVar) : fallback
+    return (envVar && Number(envVar)) || fallback
 }
 
 // Booking constraints
