@@ -7,7 +7,9 @@ const app: Express = express();
 const port = process.env.PORT;
 
 app.get('/', (req: Request, res: Response) => {
-  res.send('APIdfwreifh');
+  res.send({
+    'key':3
+  });
 });
 
 app.listen(port, () => {
