@@ -1,22 +1,12 @@
 import { PrismaClient } from '@prisma/client'
+import { Booking } from 'src/types'
 
 const prisma = new PrismaClient({})
 
-export default async function addBookingToPrisma(
-  venueId: number,
-  userId: number,
-  orgId: number,
-  start: Date,
-  end: Date
-) {
+/* Adds one booking */
+export default async function addBookingToPrisma(new_booking: Booking) {
   const result = await prisma.booking.create({
-    data: {
-      venueId: venueId,
-      userId: userId,
-      orgId: orgId,
-      start: start,
-      end: end,
-    },
+    data: new_booking,
   })
   return result
 }
