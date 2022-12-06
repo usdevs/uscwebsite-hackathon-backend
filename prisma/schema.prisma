@@ -1,5 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Appears that the relations need to be optional https://stackoverflow.com/questions/73000266/prisma-not-deleting-because-it-depends-on-nonexistent-record 
 
 generator client {
   provider = "prisma-client-js"

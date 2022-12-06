@@ -1,24 +1,28 @@
-import deleteBookingFromPrisma from '.'
 import { prismaMock } from '../../singleton'
+import deleteBookingFromPrisma from '.'
+import addBookingToPrisma from '../post'
+
+test('should fail to delete a Booking ', async () => {
+  prismaMock.booking.create.mockRejectedValue(
+    new Error('Record to be deleted does not exist')
+  )
+
+  await expect(deleteBookingFromPrisma(-1)).rejects.toEqual(expect.any(Error))
+})
 
 test('should delete a Booking ', async () => {
-  const deletedBooking = {
-    id: 4,
+  const booking = {
     venueId: 1,
     userId: 1,
     orgId: 1,
     start: new Date(2022, 12, 6, 20, 0),
     end: new Date(2022, 12, 6, 20, 0),
-    bookedAt: new Date(2022, 12, 5, 20, 0),
   }
 
-  prismaMock.booking.delete.mockResolvedValue(deletedBooking)
+  // create a booking and obtain its id
+  const result = await addBookingToPrisma(booking)
 
-  // Fails but succesfully inserts
-  await expect(deleteBookingFromPrisma(4)).resolves.toEqual({
-    id: 4,
-    venueId: 1,
-    userId: 1,
-    orgId: 1,
-  })
+  prismaMock.booking.delete.mockResolvedValue(result)
+
+  await expect(deleteBookingFromPrisma(result.id)).resolves.toEqual(result)
 })
