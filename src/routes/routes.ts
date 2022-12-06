@@ -15,3 +15,9 @@ router.get('/bookings')
 router.patch('/edit')
 // delete a booking
 router.patch('/delete')
+
+// testing login route
+router.post('/login', (_, res) => {
+  console.log('login post received')
+  res.send('thanks for trying to login')
+})
