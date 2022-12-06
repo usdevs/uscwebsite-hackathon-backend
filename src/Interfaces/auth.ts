@@ -1,8 +1,8 @@
 export interface TelegramAuth {
-  id: number
+  id: string
   first_name: string
   last_name: string
   username: string
-  auth_date: Date
+  auth_date: string
   hash: string
 }
