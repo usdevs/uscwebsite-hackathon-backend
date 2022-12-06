@@ -16,12 +16,6 @@
             <pre id="payload"><span>Nothing sent yet...</span></pre>
           </div>
         </div>
-        <div>
-          <h4>Received</h4>
-          <div style="outline: 1px solid silver; padding: 2em">
-            <pre id="received"><span>Nothing received yet...</span></pre>
-          </div>
-        </div>
       </div>
       <script
         async
@@ -35,7 +29,6 @@
       <script type="text/javascript">
         let output = document.getElementById('output')
         let sent = document.getElementById('payload')
-        let recevied = document.getElementById('received')
         function onTelegramAuth(user) {
           alert(
             'Logged in as ' +
@@ -60,15 +53,10 @@
             headers: headers,
           }
           fetch('http:\/\/localhost:3000/login', body)
-            .then((response) => response.json())
+            .then((response) => response.text())
             .then((data) => {
-              sent.innerHTML = JSON.stringify(payload, undefined, 4)
-              received.innerHTML = JSON.stringify(data, undefined, 4)
-              if (data.error) {
-                output.innerHTML += `<br /><strong>Error:</strong>${data.message}`
-              } else {
-                output.innerHTML += `<br /><strong>Response from login service</strong>: ${data.message}`
-              }
+              sent.innerHTML = JSON.stringify(user, undefined, 4)
+              output.innerHTML += `<br /><strong>Response from login service</strong>: ${data}`
             })
             .catch((error) => {
               output.innerHTML += '<br /><br />Error: ' + error
