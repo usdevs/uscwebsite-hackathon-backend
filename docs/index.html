@@ -6,6 +6,23 @@
         <h3>Sample Project</h3>
         <p>This is a cool project that does things</p>
       </div>
+      <div id="output" style="outline: 1px solid silver; padding: 2em">
+        <span>Output shows here...</span>
+      </div>
+      <div>
+        <div>
+          <h4>Sent</h4>
+          <div style="outline: 1px solid silver; padding: 2em">
+            <pre id="payload"><span>Nothing sent yet...</span></pre>
+          </div>
+        </div>
+        <div>
+          <h4>Received</h4>
+          <div style="outline: 1px solid silver; padding: 2em">
+            <pre id="received"><span>Nothing received yet...</span></pre>
+          </div>
+        </div>
+      </div>
       <script
         async
         src="https://telegram.org/js/telegram-widget.js?21"
@@ -16,6 +33,9 @@
         data-request-access="write"
       ></script>
       <script type="text/javascript">
+        let output = document.getElementById('output')
+        let sent = document.getElementById('payload')
+        let recevied = document.getElementById('received')
         function onTelegramAuth(user) {
           alert(
             'Logged in as ' +
@@ -28,8 +48,10 @@
               ')'
           )
 
-          const headers = new Headers()
-          headers.append('Content-Type', 'application/json')
+          const headers = {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          }
 
           const payload = user
           const body = {
@@ -37,7 +59,7 @@
             body: JSON.stringify(payload),
             headers: headers,
           }
-          fetch('https:\/\/localhost:3000/login', body)
+          fetch('http:\/\/localhost:3000/login', body)
             .then((response) => response.json())
             .then((data) => {
               sent.innerHTML = JSON.stringify(payload, undefined, 4)
@@ -45,7 +67,7 @@
               if (data.error) {
                 output.innerHTML += `<br /><strong>Error:</strong>${data.message}`
               } else {
-                output.innerHTML += `<br /><strong>Response from broker service</strong>: ${data.message}`
+                output.innerHTML += `<br /><strong>Response from login service</strong>: ${data.message}`
               }
             })
             .catch((error) => {
