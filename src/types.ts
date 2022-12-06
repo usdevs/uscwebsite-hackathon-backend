@@ -6,12 +6,3 @@ export type Booking = {
   start: Date
   end: Date
 }
-
-/* Information to update a booking */
-export type UpdatedBooking = {
-  userId?: number
-  orgId?: number
-  venueId?: number
-  start?: Date
-  end?: Date
-}
