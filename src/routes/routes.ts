@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { createBooking } from '../controllers/book'
+import { handleLogin } from '../controllers/login'
+import bodyParser from 'body-parser'
 
 export const router: Router = Router()
 
@@ -15,9 +17,5 @@ router.get('/bookings')
 router.patch('/edit')
 // delete a booking
 router.patch('/delete')
-
-// testing login route
-router.post('/login', (_, res) => {
-  console.log('login post received')
-  res.send('thanks for trying to login')
-})
+// login route
+router.post('/login', bodyParser.json(), handleLogin)
