@@ -10,6 +10,7 @@ test('should fail to delete a Booking ', async () => {
   await expect(deleteBookingFromPrisma(-1)).rejects.toEqual(expect.any(Error))
 })
 
+jest.setTimeout(30000)
 test('should delete a Booking ', async () => {
   const booking = {
     venueId: 1,
