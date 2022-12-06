@@ -12,9 +12,47 @@
         data-telegram-login="usdevs_bot"
         data-size="large"
         data-userpic="false"
-        data-auth-url="https://localhost:3000/login"
+        data-onauth="onTelegramAuth(user)"
         data-request-access="write"
       ></script>
+      <script type="text/javascript">
+        function onTelegramAuth(user) {
+          alert(
+            'Logged in as ' +
+              user.first_name +
+              ' ' +
+              user.last_name +
+              ' (' +
+              user.id +
+              (user.username ? ', @' + user.username : '') +
+              ')'
+          )
+
+          const headers = new Headers()
+          headers.append('Content-Type', 'application/json')
+
+          const payload = user
+          const body = {
+            method: 'POST',
+            body: JSON.stringify(payload),
+            headers: headers,
+          }
+          fetch('https:\/\/localhost:3000/login', body)
+            .then((response) => response.json())
+            .then((data) => {
+              sent.innerHTML = JSON.stringify(payload, undefined, 4)
+              received.innerHTML = JSON.stringify(data, undefined, 4)
+              if (data.error) {
+                output.innerHTML += `<br /><strong>Error:</strong>${data.message}`
+              } else {
+                output.innerHTML += `<br /><strong>Response from broker service</strong>: ${data.message}`
+              }
+            })
+            .catch((error) => {
+              output.innerHTML += '<br /><br />Error: ' + error
+            })
+        }
+      </script>
     </div>
   </body>
 </html>
