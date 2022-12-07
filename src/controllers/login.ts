@@ -4,7 +4,6 @@ import {
   checkSignature,
   generateToken,
 } from '../middlewares/auth'
-import { default as jwt } from 'jsonwebtoken'
 
 export async function handleLogin(req: Request, res: Response): Promise<void> {
   const userCredentials: TelegramAuth = req.body
