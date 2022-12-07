@@ -48,10 +48,7 @@ export async function authenticate(
 ) {
   try {
     const token = req.header('Authentication') || ''
-
-    console.log(token)
     const decoded = jwt.verify(token, SECRET_KEY)
-    console.log(decoded)
     next()
   } catch (err) {
     res.status(401).send('Wrong credentials!')
