@@ -18,6 +18,7 @@ model User {
   telegramUserName String 
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
+  deleted Boolean @default(false) // supports soft delete
 }
 
 model Organisation {
