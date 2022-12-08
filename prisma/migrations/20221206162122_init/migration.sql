@@ -1,20 +1,20 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "telegramId" TEXT,
+    "telegramUserName" TEXT NOT NULL,
+    "telegramDpUrl" TEXT,
 
-  - You are about to drop the `Post` table. If the table is not empty, all the data it contains will be lost.
-
-*/
--- DropForeignKey
-ALTER TABLE "Post" DROP CONSTRAINT "Post_authorId_fkey";
-
--- DropTable
-DROP TABLE "Post";
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Organisation" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL DEFAULT 'A NUSC organisation',
+    "verified" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Organisation_pkey" PRIMARY KEY ("id")
 );
