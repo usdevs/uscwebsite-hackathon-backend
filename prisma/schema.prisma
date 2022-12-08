@@ -37,6 +37,7 @@ model UserOnOrg {
   assignedAt DateTime @default(now())
   bookings Booking[]
   @@id([userId, orgId])
+  deleted Boolean @default(false) // supports soft delet
 }
 
 model Venue {
