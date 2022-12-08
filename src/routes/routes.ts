@@ -10,13 +10,13 @@ import { deleteBooking } from '../controllers/delete'
 export const router: Router = Router()
 
 // landing page
-router.get('/', authenticate, (req: Request, res: Response) => {
+router.get('/', (req: Request, res: Response) => {
   res.send('hi there 👋')
 })
 // create a booking
 router.post('/book', authenticate, createBooking)
 // view bookings
-router.get('/bookings', authenticate, getBookings)
+router.get('/bookings', getBookings)
 // edit a booking
 router.patch('/edit', authenticate, editBooking)
 // delete a booking
