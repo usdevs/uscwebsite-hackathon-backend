@@ -1,5 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Appears that the relations need to be optional https://stackoverflow.com/questions/73000266/prisma-not-deleting-because-it-depends-on-nonexistent-record 
 
 generator client {
   provider = "prisma-client-js"
@@ -17,11 +18,11 @@ model User {
   telegramUserName String 
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
+  deleted Boolean @default(false) // supports soft delete
 }
 
 model Organisation {
   id        Int     @id @default(autoincrement())
-
   name     String
   description String @default("A NUSC organisation")
   verified Boolean @default(false) // verified organisations have admin rights
@@ -36,6 +37,7 @@ model UserOnOrg {
   assignedAt DateTime @default(now())
   bookings Booking[]
   @@id([userId, orgId])
+  deleted Boolean @default(false) // supports soft delet
 }
 
 model Venue {
