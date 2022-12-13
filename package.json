@@ -10,7 +10,13 @@
     "dev": "concurrently \"npx tsc --watch\" \"nodemon -q dist/index.js\"",
     "lint": "eslint src/**/*.{js,ts,json}",
     "lint:fix": "eslint --fix 'src/**/*.{js,ts,json}'",
-    "format": "prettier --write 'src/**/*.{js,ts,md,json}' --config ./.prettierrc.json"
+    "format": "prettier --write 'src/**/*.{js,ts,md,json}' --config ./.prettierrc.json",
+    "migrate": "prisma migrate dev",
+    "deploy": "prisma migrate deploy && prisma generate",
+    "seed": "prisma db seed"
+  },
+  "prisma": {
+    "seed": "node src/seed.js"
   },
   "author": "",
   "license": "ISC",
