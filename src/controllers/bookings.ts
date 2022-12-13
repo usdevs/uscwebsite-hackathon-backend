@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from 'express'
-import { HttpCode, HttpError } from '../types/errors'
+import { HttpCode, HttpException } from '@exceptions/HttpException'
 
 export async function createBooking(
   req: Request,
@@ -13,7 +13,7 @@ export async function getBookings(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  next(new HttpError('bye!!!', HttpCode.NotFound))
+  next(new HttpException('hello', HttpCode.NotFound))
 }
 
 export async function editBooking(
