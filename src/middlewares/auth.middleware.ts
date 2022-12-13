@@ -1,17 +1,11 @@
 import { createHash, createHmac } from 'crypto'
-import { Response, Request, NextFunction } from 'express'
+import { Response, NextFunction } from 'express'
+import { RequestWithUser, TelegramAuth } from '@interfaces/auth.interface'
 import { default as jwt } from 'jsonwebtoken'
+import { HttpCode, HttpException } from '@exceptions/HttpException'
+import { PrismaClient } from '@prisma/client'
 
 const SECRET_KEY = process.env.SECRET_KEY || 'hello'
-
-export interface TelegramAuth {
-  id: string
-  first_name: string
-  last_name: string
-  username: string
-  auth_date: string
-  hash: string
-}
 
 // Checks signature according to the telegram login widget api
 export function checkSignature(
@@ -42,15 +36,26 @@ export function generateToken(payload: TelegramAuth): string {
 }
 
 export async function authenticate(
-  req: Request,
+  req: RequestWithUser,
   res: Response,
   next: NextFunction
 ) {
   try {
     const token = req.header('Authentication') || ''
-    const decoded = jwt.verify(token, SECRET_KEY)
+    const decoded = jwt.verify(token, SECRET_KEY) as TelegramAuth
+
+    const users = new PrismaClient().user
+    const findUser = await users.findUnique({
+      where: { telegramId: decoded.id },
+    })
+
+    if (!findUser) {
+      next(new HttpException('Wrong credentials', HttpCode.Unauthorized))
+      return
+    }
+    req.user = findUser
     next()
   } catch (err) {
-    res.status(401).send('Wrong credentials!')
+    next(new HttpException('Wrong credentials', HttpCode.Unauthorized))
   }
 }

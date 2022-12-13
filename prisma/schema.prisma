@@ -14,8 +14,8 @@ datasource db {
 model User {
   id    Int    @id @default(autoincrement())
   name  String
-  telegramId String? // null if never logged on
-  telegramUserName String 
+  telegramId String? @unique // null if never logged on
+  telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
   deleted Boolean @default(false) // supports soft delete

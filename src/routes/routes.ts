@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express'
 import { handleLogin } from '../controllers/login'
-import { authenticate } from '../middlewares/auth'
+import { authenticate } from '@middlewares/auth.middleware'
 import bodyParser from 'body-parser'
 import {
   getBookings,
