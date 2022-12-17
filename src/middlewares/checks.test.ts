@@ -93,39 +93,6 @@ describe('check start and end time', () => {
 
 describe('check booking privelege', () => {
   test('check succeeds, normal user', async () => {
-    await expect(
-      checkBookingPrivelege(
-        new Date(2021, 1, 2, 22, 30),
-        new Date(2021, 1, 2, 23, 0),
-        user
-      )
-    ).resolves.toEqual(true)
-  })
-
-  test('check succeeds, admin user', async () => {
-    await expect(
-      checkBookingPrivelege(
-        new Date(2021, 1, 2, 22, 30),
-        new Date(2021, 1, 3, 23, 0),
-        admin
-      )
-    ).resolves.toEqual(true)
-  })
-
-  test('check fails', async () => {
-    await expect(
-      checkBookingPrivelege(
-        new Date(2021, 1, 2, 22, 30),
-        new Date(2021, 1, 3, 23, 0),
-        user
-      )
-    ).resolves.toEqual(false)
-  })
-})
-
-describe('check conflicting booking', () => {
-  test('check succeeds', async () => {
-    // create a bookingpayload and add it to the database
     const booking: BookingPayload = {
       start: new Date(2021, 1, 2, 22, 30),
       end: new Date(2021, 1, 2, 23, 0),
@@ -134,25 +101,72 @@ describe('check conflicting booking', () => {
       venueId: venue.id,
     }
 
+    await expect(checkBookingPrivelege(booking)).resolves.toEqual(true)
+  })
+
+  test('check succeeds, admin user', async () => {
+    const booking: BookingPayload = {
+      start: new Date(2021, 1, 2, 22, 30),
+      end: new Date(2021, 1, 3, 23, 0),
+      userId: admin.id,
+      orgId: adminOrg.id,
+      venueId: venue.id,
+    }
+
+    await expect(checkBookingPrivelege(booking)).resolves.toEqual(true)
+  })
+
+  test('check fails', async () => {
+    const booking: BookingPayload = {
+      start: new Date(2021, 1, 2, 22, 30),
+      end: new Date(2021, 1, 3, 23, 0),
+      userId: user.id,
+      orgId: normalOrg.id,
+      venueId: venue.id,
+    }
+
+    await expect(checkBookingPrivelege(booking)).resolves.toEqual(false)
+  })
+})
+
+describe('check conflicting booking', () => {
+  // create a bookingpayload and add it to the database
+  const booking: BookingPayload = {
+    start: new Date(2021, 1, 2, 22, 30),
+    end: new Date(2021, 1, 2, 23, 0),
+    userId: user.id,
+    orgId: normalOrg.id,
+    venueId: venue.id,
+  }
+
+  const nonConflictingBooking: BookingPayload = {
+    start: new Date(2021, 1, 3, 21, 30),
+    end: new Date(2021, 1, 3, 23, 0),
+    venueId: venue.id,
+    userId: user.id,
+    orgId: normalOrg.id,
+  }
+
+  const conflictingBooking: BookingPayload = {
+    start: new Date(2021, 1, 2, 22, 30),
+    end: new Date(2021, 1, 2, 23, 0),
+    venueId: venue.id,
+    userId: user.id,
+    orgId: normalOrg.id,
+  }
+
+  test('check succeeds', async () => {
     await addBooking(booking)
 
     await expect(
-      checkConflictingBooking(
-        new Date(2021, 1, 3, 21, 30),
-        new Date(2021, 1, 3, 23, 0),
-        venue
-      )
+      checkConflictingBooking(nonConflictingBooking)
     ).resolves.toEqual(true)
   })
 
   test('check fails', async () => {
-    await expect(
-      checkConflictingBooking(
-        new Date(2021, 1, 2, 22, 30),
-        new Date(2021, 1, 2, 23, 0),
-        venue
-      )
-    ).resolves.toEqual(false)
+    await expect(checkConflictingBooking(conflictingBooking)).resolves.toEqual(
+      false
+    )
   })
 })
 

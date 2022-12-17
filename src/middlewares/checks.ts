@@ -78,21 +78,16 @@ export function checkStartEndTime(start: Date, end: Date): boolean {
 /**
  * Checks if the duration of the booking is within the booking privilege of the organisation
  *
- * @param start
- * @param end
- * @param user
+ * @param booking
  * @returns true if duration exceeds privilege
  */
-export async function checkBookingPrivelege(
-  start: Date,
-  end: Date,
-  user: User
-) {
+export async function checkBookingPrivelege(booking: BookingPayload) {
+  const { start, end, userId } = booking
   const userOnAdmin = await prisma.userOnOrg.findMany({
     where: {
       AND: [
         {
-          user: user,
+          userId: userId,
         },
         {
           org: {
@@ -118,15 +113,14 @@ export async function checkBookingPrivelege(
 /**
  * Checks that there does NOT exist conflicting booking in the database
  *
- * @param start
- * @param end
+ * @param booking
  * @returns true if there is no overlap
  */
 export async function checkConflictingBooking(
-  start: Date,
-  end: Date,
-  venue: Venue
+  booking: BookingPayload
 ): Promise<boolean> {
+  const { start, end, venueId } = booking
+
   function isOverlapping(start_A: Date, end_A: Date): boolean {
     const s =
       convertDateToMinutes(start_A) > convertDateToMinutes(start)
@@ -141,7 +135,7 @@ export async function checkConflictingBooking(
   const timeBookings: Array<Booking> = await prisma.booking.findMany({
     where: {
       end: { gt: start },
-      venue: venue,
+      venueId: venueId,
     },
   })
 
@@ -159,10 +153,7 @@ export async function checkConflictingBooking(
  * the stacking rule (admin bookings are exempted)
  * Stacking rule: the interval between the end of the latest earlier booking and the start of this booking must be greater than the gap
  *
- * @param org
- * @param start
- * @param end
- * @param venue
+ * @param booking
  * @returns true if no violation of stacking rule is found
  */
 export async function checkStackedBookings(booking: BookingPayload) {
