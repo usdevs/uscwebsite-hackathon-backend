@@ -1,12 +1,12 @@
-import { User, Organisation, Booking } from '@prisma/client'
+import { User, Organisation, Booking, Venue } from '@prisma/client'
+import { BookingPayload } from '../services/bookings'
 import {
-  ADMIN_ID,
   DURATION_PER_SLOT,
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
   MIN_SLOTS_PER_BOOKING,
-} from 'src/configs/common'
-import prisma from 'src/services/db'
+} from '../configs/common'
+import prisma from '../services/db'
 
 /**
  * Checks if user is in the organisation OR if the user is an Admin
@@ -19,6 +19,7 @@ export async function checkUserinOrg(
   user: User,
   organisation: Organisation
 ): Promise<boolean> {
+  // find all userOnOrg where user is in the organisation OR user is an admin
   const result = await prisma.userOnOrg.findMany({
     where: {
       OR: [
@@ -38,7 +39,9 @@ export async function checkUserinOrg(
               user: user,
             },
             {
-              orgId: ADMIN_ID,
+              org: {
+                verified: true,
+              },
             },
           ],
         },
@@ -46,6 +49,11 @@ export async function checkUserinOrg(
     },
   })
   return result.length > 0
+}
+
+/*Returns number of minutes*/
+function convertDateToMinutes(date: Date): number {
+  return date.getTime() / (1000 * 60)
 }
 
 /**
@@ -58,9 +66,12 @@ export async function checkUserinOrg(
  */
 export function checkStartEndTime(start: Date, end: Date): boolean {
   return (
-    (end.getMinutes() - start.getMinutes()) / DURATION_PER_SLOT >=
+    (convertDateToMinutes(end) - convertDateToMinutes(start)) /
+      DURATION_PER_SLOT >=
       MIN_SLOTS_PER_BOOKING &&
-    (end.getMinutes() - start.getMinutes()) % DURATION_PER_SLOT == 0
+    (convertDateToMinutes(end) - convertDateToMinutes(start)) %
+      DURATION_PER_SLOT ==
+      0
   )
 }
 
@@ -84,7 +95,9 @@ export async function checkBookingPrivelege(
           user: user,
         },
         {
-          orgId: ADMIN_ID,
+          org: {
+            verified: true,
+          },
         },
       ],
     },
@@ -96,7 +109,8 @@ export async function checkBookingPrivelege(
   } else {
     // check that that the booking exceeds the user's privilege
     const numberOfSlots =
-      (end.getMinutes() - start.getMinutes()) / DURATION_PER_SLOT
+      (convertDateToMinutes(end) - convertDateToMinutes(start)) /
+      DURATION_PER_SLOT
     return numberOfSlots <= MAX_SLOTS_PER_BOOKING
   }
 }
@@ -110,11 +124,16 @@ export async function checkBookingPrivelege(
  */
 export async function checkConflictingBooking(
   start: Date,
-  end: Date
+  end: Date,
+  venue: Venue
 ): Promise<boolean> {
   function isOverlapping(start_A: Date, end_A: Date): boolean {
-    const s = start_A.getMinutes() > start.getMinutes() ? start_A : start
-    const e = end_A.getMinutes() < end.getMinutes() ? end_A : end
+    const s =
+      convertDateToMinutes(start_A) > convertDateToMinutes(start)
+        ? start_A
+        : start
+    const e =
+      convertDateToMinutes(end_A) < convertDateToMinutes(end) ? end_A : end
     return s <= e
   }
 
@@ -122,6 +141,7 @@ export async function checkConflictingBooking(
   const timeBookings: Array<Booking> = await prisma.booking.findMany({
     where: {
       end: { gt: start },
+      venue: venue,
     },
   })
 
@@ -134,12 +154,38 @@ export async function checkConflictingBooking(
   return true
 }
 
-//  No stacking booking within bookings of the same org
-export async function checkStackedBookings(
-  org: Organisation,
-  start: Date,
-  end: Date
-) {
+/**
+ * Checks that there are no bookings by the same organisation on the same venue that violates
+ * the stacking rule (admin bookings are exempted)
+ * Stacking rule: the interval between the end of the latest earlier booking and the start of this booking must be greater than the gap
+ *
+ * @param org
+ * @param start
+ * @param end
+ * @param venue
+ * @returns true if no violation of stacking rule is found
+ */
+export async function checkStackedBookings(booking: BookingPayload) {
+  const { orgId, start, end, venueId } = booking
+  const isAdminOrg = await prisma.userOnOrg.findMany({
+    where: {
+      AND: [
+        {
+          orgId: orgId,
+        },
+        {
+          org: {
+            verified: true,
+          },
+        },
+      ],
+    },
+  })
+
+  if (isAdminOrg.length > 0) {
+    return true
+  }
+
   const latestEarlierBooking = await prisma.booking.findFirst({
     orderBy: [
       {
@@ -148,6 +194,8 @@ export async function checkStackedBookings(
     ],
     where: {
       end: { lt: start },
+      venueId: venueId,
+      orgId: orgId,
     },
   })
 
@@ -159,21 +207,25 @@ export async function checkStackedBookings(
     ],
     where: {
       start: { gt: end },
+      venueId: venueId,
+      orgId: orgId,
     },
   })
 
   // interval between the end of the latest earlier booking and the start of this booking must be greater than the gap
   const hasEarlierStackedBooking = latestEarlierBooking
-    ? (start.getMinutes() - latestEarlierBooking.end.getMinutes()) /
-        MIN_SLOTS_PER_BOOKING <
+    ? (convertDateToMinutes(start) -
+        convertDateToMinutes(latestEarlierBooking.end)) /
+        DURATION_PER_SLOT <=
       MIN_SLOTS_BETWEEN_BOOKINGS
-    : false
+    : true
   // interval between start of the earliest later booking and the end of this booking must be greater than the gap
   const hasLaterStackedBooking = earliestLaterBooking
-    ? (earliestLaterBooking.start.getMinutes() - end.getMinutes()) /
-        MIN_SLOTS_PER_BOOKING <
+    ? (convertDateToMinutes(earliestLaterBooking.start) -
+        convertDateToMinutes(end)) /
+        DURATION_PER_SLOT <=
       MIN_SLOTS_BETWEEN_BOOKINGS
-    : false
+    : true
 
-  return !(hasEarlierStackedBooking && hasLaterStackedBooking)
+  return hasEarlierStackedBooking && hasLaterStackedBooking
 }
