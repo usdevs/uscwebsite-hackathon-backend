@@ -59,6 +59,7 @@ function convertDateToMinutes(date: Date): number {
 /**
  * Checks that the user has selected at least the minimum number of slots
  * and that the interval selected is in multiples of the slot size
+ * and that the end time is a multiple of the slot size
  *
  * @param start
  * @param end
@@ -71,7 +72,8 @@ export function checkStartEndTime(start: Date, end: Date): boolean {
       MIN_SLOTS_PER_BOOKING &&
     (convertDateToMinutes(end) - convertDateToMinutes(start)) %
       DURATION_PER_SLOT ==
-      0
+      0 &&
+    convertDateToMinutes(end) % DURATION_PER_SLOT == 0
   )
 }
 

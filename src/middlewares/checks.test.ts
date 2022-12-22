@@ -89,6 +89,24 @@ describe('check start and end time', () => {
       )
     ).toEqual(false)
   })
+
+  test('check fails, duration is not a multiple of slot size', () => {
+    expect(
+      checkStartEndTime(
+        new Date(2021, 1, 2, 22, 30),
+        new Date(2021, 1, 2, 23, 1)
+      )
+    ).toEqual(false)
+  })
+
+  test('check fails, end or start is not a multiple of slot size', () => {
+    expect(
+      checkStartEndTime(
+        new Date(2021, 1, 2, 22, 31),
+        new Date(2021, 1, 2, 23, 1)
+      )
+    ).toEqual(false)
+  })
 })
 
 describe('check booking privelege', () => {
