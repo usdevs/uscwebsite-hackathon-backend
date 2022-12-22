@@ -78,14 +78,13 @@ export function checkStartEndTime(start: Date, end: Date): boolean {
 }
 
 /**
- * Checks if the duration of the booking is within the booking privilege of the organisation
+ * Checks if the user is an admin
  *
- * @param booking
- * @returns true if duration exceeds privilege
+ * @param userId
+ * @returns true if user is an admin
  */
-export async function checkBookingPrivelege(booking: BookingPayload) {
-  const { start, end, userId } = booking
-  const userOnAdmin = await prisma.userOnOrg.findMany({
+export async function checkIsUserAdmin(userId: number): Promise<boolean> {
+  const result = await prisma.userOnOrg.findMany({
     where: {
       AND: [
         {
@@ -99,8 +98,20 @@ export async function checkBookingPrivelege(booking: BookingPayload) {
       ],
     },
   })
+  return result.length > 0
+}
 
-  if (userOnAdmin.length > 0) {
+/**
+ * Checks if the duration of the booking is within the booking privilege of the organisation
+ *
+ * @param booking
+ * @returns true if duration exceeds privilege
+ */
+export async function checkBookingPrivelege(booking: BookingPayload) {
+  const { start, end, userId } = booking
+  const isUserAdmin = await checkIsUserAdmin(userId)
+
+  if (isUserAdmin) {
     // admins can make bookings of any length
     return true
   } else {
