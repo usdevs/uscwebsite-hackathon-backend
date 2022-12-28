@@ -51,6 +51,7 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "jsonwebtoken": "^8.5.1",
+    "nvm": "^0.0.4",
     "prisma": "^4.7.1"
   }
 }

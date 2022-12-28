@@ -20,3 +20,5 @@ export const MIN_SLOTS_BETWEEN_BOOKINGS: number = parseEnvToInt(
   process.env.MIN_SLOTS_BETWEEN_BOOKING,
   1
 )
+
+export const ADMIN_ID: number = parseEnvToInt(process.env.ADMIN_ID, 1)
