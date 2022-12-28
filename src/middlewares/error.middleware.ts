@@ -23,7 +23,7 @@ function errorHandler(
       'Oh no, this is embarrasing. We are having troubles my friend'
     )
   }
-  console.log(customError)
+  console.log(err)
 
   // we are not using the next function to prevent from triggering
   // the default error-handler. However, make sure you are sending a

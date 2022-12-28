@@ -1,17 +1,49 @@
-import { Response, Request } from 'express'
-import {
-  TelegramAuth,
-  checkSignature,
-  generateToken,
-} from '../middlewares/auth'
+import { Response, Request, NextFunction } from 'express'
+import { checkSignature, generateToken } from '@middlewares/auth.middleware'
+import { TelegramAuth } from '@interfaces/auth.interface'
+import { HttpCode, HttpException } from '@/exceptions/HttpException'
+import { PrismaClient, Prisma } from '@prisma/client'
 
-export async function handleLogin(req: Request, res: Response): Promise<void> {
+export async function handleLogin(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   const userCredentials: TelegramAuth = req.body
   if (!checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
-    res.status(401).send('Wrong credentials!')
+    next(new HttpException('Wrong credentials!', HttpCode.Unauthorized))
+    return
   }
 
   // TODO: update database tables
+  const users = new PrismaClient().user
+  try {
+    const updatedUsers = await users.updateMany({
+      where: {
+        OR: [
+          {
+            telegramId: String(userCredentials.id),
+          },
+          {
+            telegramId: null,
+            telegramUserName: userCredentials.username,
+          },
+        ],
+      },
+      data: {
+        name: `${userCredentials.first_name} ${userCredentials.last_name}`,
+        telegramId: String(userCredentials.id),
+        telegramUserName: userCredentials.username,
+      },
+    })
+
+    if (updatedUsers.count === 0) {
+      throw new HttpException('Not authorized!', HttpCode.Unauthorized)
+    }
+  } catch (error) {
+    next(error)
+    return
+  }
 
   const token = generateToken(userCredentials)
 
