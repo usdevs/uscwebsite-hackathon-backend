@@ -1,11 +1,13 @@
 import { Router, Request, Response } from 'express'
-import { createBooking } from '../controllers/book'
 import { handleLogin } from '../controllers/login'
 import { authenticate } from '../middlewares/auth'
 import bodyParser from 'body-parser'
-import { getBookings } from '../controllers/bookings'
-import { editBooking } from '../controllers/edit'
-import { deleteBooking } from '../controllers/delete'
+import {
+  getBookings,
+  createBooking,
+  editBooking,
+  deleteBooking,
+} from '../controllers/bookings'
 
 export const router: Router = Router()
 
