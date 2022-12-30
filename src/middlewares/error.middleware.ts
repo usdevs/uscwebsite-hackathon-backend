@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { HttpException } from '@exceptions/HttpException'
+import { HttpCode, HttpException } from '@exceptions/HttpException'
+import { ValidationError } from 'express-json-validator-middleware'
 
 /**
  * Custom error handler to standardize error objects returned to
@@ -18,12 +19,21 @@ function errorHandler(
 ) {
   let customError = err
 
-  if (!(err instanceof HttpException)) {
-    customError = new HttpException(
-      'Oh no, this is embarrasing. We are having troubles my friend'
-    )
+  switch (true) {
+    case err instanceof SyntaxError:
+      customError = new HttpException('Invalid JSON', HttpCode.BadRequest)
+      break
+    case err instanceof ValidationError:
+      customError = new HttpException(err.validationErrors, HttpCode.BadRequest)
+      break
+    case err instanceof HttpException:
+      break
+    default:
+      customError = new HttpException(
+        'Oh no, this is embarrasing. We are having troubles my friend'
+      )
+      console.log(err)
   }
-  console.log(err)
 
   // we are not using the next function to prevent from triggering
   // the default error-handler. However, make sure you are sending a

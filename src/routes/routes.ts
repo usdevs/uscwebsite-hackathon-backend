@@ -16,12 +16,12 @@ router.get('/', (req: Request, res: Response) => {
   res.send('hi there 👋')
 })
 // create a booking
-router.post('/book', authenticate, createBooking)
+router.post('/bookings', authenticate, createBooking)
 // view bookings
 router.get('/bookings', getBookings)
 // edit a booking
-router.patch('/edit', authenticate, editBooking)
+router.put('/bookings', authenticate, editBooking)
 // delete a booking
-router.patch('/delete', authenticate, deleteBooking)
+router.delete('/bookings', authenticate, deleteBooking)
 // login route
 router.post('/login', bodyParser.json(), handleLogin)
