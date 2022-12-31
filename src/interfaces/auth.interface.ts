@@ -39,3 +39,25 @@ export const telegramAuthSchema: AllowedSchema = {
     },
   },
 }
+
+export const bookingSchema: AllowedSchema = {
+  type: 'object',
+  required: ['venueId', 'orgId', 'userId', 'start', 'end'],
+  properties: {
+    venueId: {
+      type: 'number',
+    },
+    orgId: {
+      type: 'number',
+    },
+    userId: {
+      type: 'number',
+    },
+    start: {
+      type: 'string',
+    },
+    end: {
+      type: 'string',
+    },
+  },
+}
