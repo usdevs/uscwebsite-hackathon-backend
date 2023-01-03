@@ -1,5 +1,6 @@
 import { Response, Request, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
+import { getUserBookings } from '@services/bookings'
 
 export async function createBooking(
   req: Request,
@@ -13,7 +14,18 @@ export async function getBookings(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  next(new HttpException('hello', HttpCode.NotFound))
+  try {
+    const userId = req.query.userId as string | undefined
+
+    if (!userId) {
+      throw new HttpException('Query missing userId', HttpCode.BadRequest)
+    }
+
+    const bookings = getUserBookings(parseInt(userId))
+    res.json(bookings)
+  } catch (error) {
+    next(error)
+  }
 }
 
 export async function editBooking(
