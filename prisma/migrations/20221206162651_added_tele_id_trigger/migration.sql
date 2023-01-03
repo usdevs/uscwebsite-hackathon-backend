@@ -1,8 +1,9 @@
 /*
- Prevents updates on teleIDs where the teleID is not null
+ Prevents changes to teleIDs when the teleID is not null
  */
 CREATE
-OR REPLACE FUNCTION check_teleId() RETURNS TRIGGER AS $ $ BEGIN IF (OLD."telegramId" is NULL) THEN RETURN NEW;
+OR REPLACE FUNCTION check_teleId() RETURNS TRIGGER AS $$ BEGIN IF (OLD."telegramId" is NULL)
+OR (OLD."telegramId" = NEW."telegramId") THEN RETURN NEW;
 
 END IF;
 
@@ -10,7 +11,7 @@ RETURN NULL;
 
 END;
 
-$ $ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER update_telegramId BEFORE
 UPDATE
