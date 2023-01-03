@@ -10,16 +10,11 @@ export async function createBooking(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  try {
-    const user = req.user
-    const booking = BookingSchema.parse(req.body)
-    const bookingPayload = { ...booking, userId: user.id }
-    const inserted = await addBooking(bookingPayload)
-    res.status(200).json({ result: [inserted] })
-  } catch (err) {
-    console.log(err)
-    next(err)
-  }
+  const user = req.user
+  const booking = BookingSchema.parse(req.body)
+  const bookingPayload = { ...booking, userId: user.id }
+  const inserted = await addBooking(bookingPayload)
+  res.status(200).json({ result: [inserted] })
 }
 
 export async function getBookings(
