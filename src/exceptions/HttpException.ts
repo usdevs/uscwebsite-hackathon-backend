@@ -7,10 +7,10 @@ export enum HttpCode {
 
 export class HttpException {
   public status: HttpCode
-  public message: string
+  public message: any
 
   constructor(
-    message: string,
+    message: any,
     status: HttpCode = HttpCode.InternalServerError
   ) {
     this.status = status

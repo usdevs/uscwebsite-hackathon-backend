@@ -1,17 +1,21 @@
 import { Router, Request, Response } from 'express'
 import { handleLogin } from '../controllers/login'
 import { authenticate } from '@middlewares/auth.middleware'
-import { Validator } from 'express-json-validator-middleware'
 import {
   getBookings,
   createBooking,
   editBooking,
   deleteBooking,
 } from '../controllers/bookings'
-import { telegramAuthSchema } from '@interfaces/auth.interface'
 
 export const router: Router = Router()
-const { validate } = new Validator()
+
+// We need this as Express does not automatically bubble up errors thrown in handlers
+const asyncHandler = fn => (req: Request, res: Response, next: NextFunction) => {
+    return Promise
+        .resolve(fn(req, res, next))
+        .catch(next);
+}
 
 // landing page
 router.get('/', (req: Request, res: Response) => {
@@ -26,4 +30,4 @@ router.put('/bookings', authenticate, editBooking)
 // delete a booking
 router.delete('/bookings', authenticate, deleteBooking)
 // login route
-router.post('/login', validate({ body: telegramAuthSchema }), handleLogin)
+router.post('/login', asyncHandler(handleLogin))

@@ -1,63 +1,26 @@
 import { Request } from 'express'
 import { User } from '@prisma/client'
-import { AllowedSchema } from 'express-json-validator-middleware'
+import { z } from 'zod'
 
 export interface RequestWithUser extends Request {
   user: User
 }
 
-export interface TelegramAuth {
-  id: number
-  first_name: string
-  last_name: string
-  username: string
-  auth_date: string
-  hash: string
-}
+export const TelegramAuthSchema = z.object({
+  id: z.number(),
+  first_name: z.string(),
+  last_name: z.string(),
+  username: z.string(),
+  auth_date: z.string(),
+  hash: z.string(),
+})
 
-export const telegramAuthSchema: AllowedSchema = {
-  type: 'object',
-  required: ['id', 'first_name', 'last_name', 'username', 'auth_date', 'hash'],
-  properties: {
-    id: {
-      type: 'number',
-    },
-    first_name: {
-      type: 'string',
-    },
-    last_name: {
-      type: 'string',
-    },
-    username: {
-      type: 'string',
-    },
-    auth_date: {
-      type: 'string',
-    },
-    hash: {
-      type: 'string',
-    },
-  },
-}
+export type TelegramAuth = z.infer<typeof TelegramAuthSchema>
 
-export const bookingSchema: AllowedSchema = {
-  type: 'object',
-  required: ['venueId', 'orgId', 'userId', 'start', 'end'],
-  properties: {
-    venueId: {
-      type: 'number',
-    },
-    orgId: {
-      type: 'number',
-    },
-    userId: {
-      type: 'number',
-    },
-    start: {
-      type: 'string',
-    },
-    end: {
-      type: 'string',
-    },
-  },
-}
+export const BookingSchema = z.object({
+  venueId: z.number(),
+  orgId: z.number(),
+  userId: z.number(),
+  start: z.string(),
+  end: z.string(),
+})
