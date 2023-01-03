@@ -4,12 +4,15 @@ import { TelegramAuth } from '@interfaces/auth.interface'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
 import { PrismaClient, Prisma } from '@prisma/client'
 
+import { TelegramAuthSchema } from '@interfaces/auth.interface'
+
 export async function handleLogin(
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  const userCredentials: TelegramAuth = req.body
+  const userCredentials = TelegramAuthSchema.parse(req.body)
+
   if (!checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
     next(new HttpException('Wrong credentials!', HttpCode.Unauthorized))
     return
