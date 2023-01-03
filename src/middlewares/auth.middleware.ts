@@ -1,5 +1,5 @@
 import { createHash, createHmac } from 'crypto'
-import { Response, NextFunction } from 'express'
+import { Request, Response, NextFunction, RequestHandler } from 'express'
 import { RequestWithUser, TelegramAuth } from '@interfaces/auth.interface'
 import { default as jwt } from 'jsonwebtoken'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
@@ -35,8 +35,8 @@ export function generateToken(payload: TelegramAuth): string {
   })
 }
 
-export async function authenticate(
-  req: RequestWithUser,
+export async function requiresAuthentication(
+  req: Request,
   res: Response,
   next: NextFunction
 ) {
@@ -53,7 +53,7 @@ export async function authenticate(
       next(new HttpException('Wrong credentials', HttpCode.Unauthorized))
       return
     }
-    req.user = findUser
+    (req as RequestWithUser).user = findUser
     next()
   } catch (err) {
     next(new HttpException('Wrong credentials', HttpCode.Unauthorized))

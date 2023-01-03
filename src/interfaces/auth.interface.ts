@@ -16,11 +16,3 @@ export const TelegramAuthSchema = z.object({
 })
 
 export type TelegramAuth = z.infer<typeof TelegramAuthSchema>
-
-export const BookingSchema = z.object({
-  venueId: z.number(),
-  orgId: z.number(),
-  userId: z.number(),
-  start: z.string(),
-  end: z.string(),
-})

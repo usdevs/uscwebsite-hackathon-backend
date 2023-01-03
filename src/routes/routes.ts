@@ -1,6 +1,6 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, NextFunction, RequestHandler } from 'express'
 import { handleLogin } from '../controllers/login'
-import { authenticate } from '@middlewares/auth.middleware'
+import { requiresAuthentication } from '@middlewares/auth.middleware'
 import {
   getBookings,
   createBooking,
@@ -11,23 +11,19 @@ import {
 export const router: Router = Router()
 
 // We need this as Express does not automatically bubble up errors thrown in handlers
-const asyncHandler = fn => (req: Request, res: Response, next: NextFunction) => {
-    return Promise
-        .resolve(fn(req, res, next))
-        .catch(next);
-}
+const asyncHandler =
+  (fn: RequestHandler) => (req: Request, res: Response, next: NextFunction) => {
+    return Promise.resolve(fn(req, res, next)).catch(next)
+  }
 
-// landing page
-router.get('/', (req: Request, res: Response) => {
-  res.send('hi there 👋')
-})
+// login route
+router.post('/login', asyncHandler(handleLogin))
+
 // create a booking
-router.post('/bookings', authenticate, createBooking)
+router.post('/bookings', requiresAuthentication, createBooking)
 // view bookings
 router.get('/bookings', getBookings)
 // edit a booking
-router.put('/bookings', authenticate, editBooking)
+router.put('/bookings', requiresAuthentication, editBooking)
 // delete a booking
-router.delete('/bookings', authenticate, deleteBooking)
-// login route
-router.post('/login', asyncHandler(handleLogin))
+router.delete('/bookings', requiresAuthentication, deleteBooking)
