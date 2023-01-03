@@ -9,9 +9,10 @@ export interface RequestWithUser extends Request {
 export const TelegramAuthSchema = z.object({
   id: z.number(),
   first_name: z.string(),
-  last_name: z.string(),
+  last_name: z.string().optional(),
+  photo_url: z.string().optional(),
   username: z.string(),
-  auth_date: z.string(),
+  auth_date: z.number(),
   hash: z.string(),
 })
 

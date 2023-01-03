@@ -20,7 +20,7 @@ const asyncHandler =
 router.post('/login', asyncHandler(handleLogin))
 
 // create a booking
-router.post('/bookings', requiresAuthentication, createBooking)
+router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
 // view bookings
 router.get('/bookings', getBookings)
 // edit a booking

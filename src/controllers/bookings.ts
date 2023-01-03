@@ -2,17 +2,22 @@ import { Response, Request, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { Booking } from '@prisma/client'
 import { addBooking } from '@services/bookings'
+import { BookingSchema } from '@/interfaces/booking.interface'
+import { RequestWithUser } from '@/interfaces/auth.interface'
 
 export async function createBooking(
-  req: Request,
+  req: RequestWithUser,
   res: Response,
   next: NextFunction
 ): Promise<void> {
   try {
-    const booking = JSON.parse(req.body) as Booking
-    const inserted = await addBooking(booking)
+    const user = req.user
+    const booking = BookingSchema.parse(req.body)
+    const bookingPayload = { ...booking, userId: user.id }
+    const inserted = await addBooking(bookingPayload)
     res.status(200).json({ result: [inserted] })
   } catch (err) {
+    console.log(err)
     next(err)
   }
 }
