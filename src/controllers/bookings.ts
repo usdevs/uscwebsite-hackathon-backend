@@ -1,9 +1,10 @@
-import { Response, Request, NextFunction } from 'express'
+import { Response,, Request, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { Booking } from '@prisma/client'
 import { addBooking } from '@services/bookings'
 import { BookingSchema } from '@/interfaces/booking.interface'
 import { RequestWithUser } from '@/interfaces/auth.interface'
+import { getUserBookings } from '@services/bookings'
 
 export async function createBooking(
   req: RequestWithUser,
@@ -22,7 +23,18 @@ export async function getBookings(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  next(new HttpException('hello', HttpCode.NotFound))
+  try {
+    const userId = req.query.userId as string | undefined
+
+    if (!userId) {
+      throw new HttpException('Query missing userId', HttpCode.BadRequest)
+    }
+
+    const bookings = getUserBookings(parseInt(userId))
+    res.json(bookings)
+  } catch (error) {
+    next(error)
+  }
 }
 
 export async function editBooking(
