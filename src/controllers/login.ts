@@ -21,11 +21,11 @@ export async function handleLogin(
   // TODO: update database tables
   const users = new PrismaClient().user
   try {
-    const updatedUsers = await users.updateMany({
+    const matchingUsers = await users.findMany({
       where: {
         OR: [
           {
-            telegramId: String(userCredentials.id),
+            telegramId: userCredentials.id,
           },
           {
             telegramId: null,
@@ -33,15 +33,28 @@ export async function handleLogin(
           },
         ],
       },
-      data: {
-        name: `${userCredentials.first_name} ${userCredentials.last_name}`,
-        telegramId: String(userCredentials.id),
-        telegramUserName: userCredentials.username,
+      orderBy: {
+        telegramId: { sort: 'asc', nulls: 'last' },
       },
     })
-
-    if (updatedUsers.count === 0) {
+    if (matchingUsers.length === 0) {
       throw new HttpException('Not authorized!', HttpCode.Unauthorized)
+    } else {
+      // Delete all matching entries except for the first one
+      matchingUsers.forEach(async (user, index) => {
+        if (index !== 0) {
+          await users.delete({ where: { id: user.id } })
+        } else {
+          await users.update({
+            where: { id: user.id },
+            data: {
+              name: `${userCredentials.first_name} ${userCredentials.last_name}`,
+              telegramId: userCredentials.id,
+              telegramUserName: userCredentials.username,
+            },
+          })
+        }
+      })
     }
   } catch (error) {
     next(error)
