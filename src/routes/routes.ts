@@ -1,11 +1,17 @@
-import { Router, Request, Response, NextFunction, RequestHandler } from 'express'
+import {
+  Router,
+  Request,
+  Response,
+  NextFunction,
+  RequestHandler,
+} from 'express'
 import { handleLogin } from '../controllers/login'
 import { requiresAuthentication } from '@middlewares/auth.middleware'
 import {
   getBookings,
   createBooking,
   editBooking,
-  deleteBooking,
+  deleteBookingHandler,
 } from '../controllers/bookings'
 
 export const router: Router = Router()
@@ -20,10 +26,14 @@ const asyncHandler =
 router.post('/login', asyncHandler(handleLogin))
 
 // create a booking
-router.post('/bookings', requiresAuthentication, createBooking)
+router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
 // view bookings
 router.get('/bookings', getBookings)
 // edit a booking
 router.put('/bookings', requiresAuthentication, editBooking)
 // delete a booking
-router.delete('/bookings', requiresAuthentication, deleteBooking)
+router.delete(
+  '/bookings/:id',
+  requiresAuthentication,
+  asyncHandler(deleteBookingHandler)
+)

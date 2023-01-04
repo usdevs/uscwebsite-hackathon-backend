@@ -1,5 +1,12 @@
 import prisma from './db'
 import { Booking } from '@prisma/client'
+import { HttpCode, HttpException } from '@/exceptions/HttpException'
+import {
+  DURATION_PER_SLOT,
+  MIN_SLOTS_PER_BOOKING,
+  MAX_SLOTS_PER_BOOKING,
+  MIN_SLOTS_BETWEEN_BOOKINGS,
+} from '@/config/common'
 
 /* Retrieves all bookings */
 export async function getAllBookings(): Promise<Booking[]> {
@@ -18,6 +25,41 @@ export async function getUserBookings(
   return await prisma.booking.findMany({
     where: { userId: { equals: userId } },
   })
+}
+
+async function hasExistingConflicts(startTime: Date, endTime: Date) {
+  const conflicting = await prisma.booking.findMany({
+    where: {
+      start: {
+        lt: endTime,
+      },
+    },
+    orderBy: {
+      end: 'desc',
+    },
+  })
+
+  return conflicting.length > 0 && conflicting[0].end > startTime
+}
+
+async function isStackedBooking(orgId: number, startTime: Date) {
+  const lastOrgBooking = await prisma.booking.findFirst({
+    where: {
+      orgId: orgId,
+    },
+    orderBy: {
+      end: 'desc',
+    },
+  })
+
+  if (!lastOrgBooking) {
+    return false
+  }
+
+  return (
+    startTime.getTime() - lastOrgBooking.end.getTime() * 60 * 1000 <
+    MIN_SLOTS_BETWEEN_BOOKINGS * DURATION_PER_SLOT
+  )
 }
 
 /**
@@ -41,6 +83,60 @@ export type BookingPayload = Pick<
 
 /* Add a new booking */
 export async function addBooking(booking: BookingPayload): Promise<Booking> {
+  const venue = await prisma.venue.findFirst({ where: { id: booking.venueId } })
+  if (!venue) {
+    throw new HttpException(
+      `Could not find venue with id ${booking.venueId}`,
+      HttpCode.BadRequest
+    )
+  }
+  const userOnOrg = await prisma.userOnOrg.findFirst({
+    where: { userId: booking.userId, orgId: booking.orgId },
+  })
+  if (!userOnOrg) {
+    throw new HttpException(
+      `You are not a member of this organisation`,
+      HttpCode.BadRequest
+    )
+  }
+
+  // TODO: add admin check
+  if (
+    booking.end.getTime() - booking.start.getTime() >
+    DURATION_PER_SLOT * MAX_SLOTS_PER_BOOKING * 1000 * 60
+  ) {
+    throw new HttpException(
+      `Booking duration is too long, please change your booking request.`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (
+    booking.end.getTime() - booking.start.getTime() <
+    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
+  ) {
+    throw new HttpException(
+      `Booking duration is too short, please change your booking request.`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (await hasExistingConflicts(booking.start, booking.end)) {
+    throw new HttpException(
+      `There is already another booking within the same timeslot`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (await isStackedBooking(booking.orgId, booking.start)) {
+    throw new HttpException(
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      } minutes in between consecutive bookings`,
+      HttpCode.BadRequest
+    )
+  }
+
   return await prisma.booking.create({ data: booking })
 }
 
@@ -65,8 +161,27 @@ export async function updateBooking(
 
 /* Delete an existing booking */
 export async function deleteBooking(
-  bookingId: Booking['id']
+  bookingId: Booking['id'],
+  userId: Booking['userId']
 ): Promise<Booking> {
+  const bookingToDelete = await prisma.booking.findFirst({
+    where: {
+      id: bookingId,
+    },
+  })
+  if (!bookingToDelete) {
+    throw new HttpException(
+      `Could not find booking with id ${bookingId}`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (bookingToDelete.userId !== userId) {
+    throw new HttpException(
+      `You do not have permission to delete this booking`,
+      HttpCode.Forbidden
+    )
+  }
   return await prisma.booking.delete({
     where: {
       id: bookingId,

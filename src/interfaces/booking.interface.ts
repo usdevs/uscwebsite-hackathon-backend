@@ -1,18 +1,29 @@
+import { DURATION_PER_SLOT } from '@/config/common'
 import { z } from 'zod'
 
 export const BookingSchema = z
   .object({
     venueId: z.number(),
     orgId: z.number(),
-    userId: z.number(),
     start: z
-      .string()
-      .datetime()
+      .preprocess((arg) => {
+        if (typeof arg == 'string' || arg instanceof Date) {
+          const result =  new Date(arg)
+          result.setMinutes(result.getMinutes() - result.getMinutes() % DURATION_PER_SLOT, 0, 0)
+          return result
+        }
+      }, z.date())
       .refine((time) => {
-        return new Date(time) < new Date(Date.now())
+        return time.getTime() > Date.now()
       }, 'Booking start time must be after the current time.'),
-    end: z.string().datetime(),
+    end: z.preprocess((arg) => {
+      if (typeof arg == 'string' || arg instanceof Date) {
+          const result =  new Date(arg)
+          result.setMinutes(result.getMinutes() - result.getMinutes() % DURATION_PER_SLOT, 0, 0)
+          return result
+      }
+    }, z.date()),
   })
   .refine((obj) => {
-    return new Date(obj.start) > new Date(obj.end)
+    return obj.start.getTime() < obj.end.getTime()
   }, 'Booking end time must be after start time')

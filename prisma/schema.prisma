@@ -4,6 +4,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["orderByNulls"]
 }
 
 datasource db { 
@@ -14,7 +15,7 @@ datasource db {
 model User {
   id    Int    @id @default(autoincrement())
   name  String
-  telegramId Int? @unique // null if never logged on
+  telegramId Int? @unique
   telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
@@ -37,7 +38,7 @@ model UserOnOrg {
   assignedAt DateTime @default(now())
   bookings Booking[]
   @@id([userId, orgId])
-  deleted Boolean @default(false) // supports soft delet
+  deleted Boolean @default(false) // supports soft delete
 }
 
 model Venue {
