@@ -1,7 +1,12 @@
 import prisma from './db'
 import { Booking } from '@prisma/client'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
-import { DURATION_PER_SLOT, MIN_SLOTS_PER_BOOKING, MAX_SLOTS_PER_BOOKING, MIN_SLOTS_BETWEEN_BOOKINGS } from '@/config/common'
+import {
+  DURATION_PER_SLOT,
+  MIN_SLOTS_PER_BOOKING,
+  MAX_SLOTS_PER_BOOKING,
+  MIN_SLOTS_BETWEEN_BOOKINGS,
+} from '@/config/common'
 
 /* Retrieves all bookings */
 export async function getAllBookings(): Promise<Booking[]> {
@@ -48,11 +53,13 @@ async function isStackedBooking(orgId: number, startTime: Date) {
   })
 
   if (!lastOrgBooking) {
-    return true
+    return false
   }
 
-  return startTime.getTime() - lastOrgBooking.end.getTime() * 60 * 1000 < MIN_SLOTS_BETWEEN_BOOKINGS * DURATION_PER_SLOT
-
+  return (
+    startTime.getTime() - lastOrgBooking.end.getTime() * 60 * 1000 <
+    MIN_SLOTS_BETWEEN_BOOKINGS * DURATION_PER_SLOT
+  )
 }
 
 /**
@@ -105,8 +112,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   }
 
   if (
-    booking.start.getTime() - booking.start.getTime() < 
-    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60) {
+    booking.end.getTime() - booking.start.getTime() <
+    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
+  ) {
     throw new HttpException(
       `Booking duration is too short, please change your booking request.`,
       HttpCode.BadRequest
@@ -122,7 +130,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (await isStackedBooking(booking.orgId, booking.start)) {
     throw new HttpException(
-      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS} minutes in between consecutive bookings`,
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
   }
@@ -151,8 +161,27 @@ export async function updateBooking(
 
 /* Delete an existing booking */
 export async function deleteBooking(
-  bookingId: Booking['id']
+  bookingId: Booking['id'],
+  userId: Booking['userId']
 ): Promise<Booking> {
+  const bookingToDelete = await prisma.booking.findFirst({
+    where: {
+      id: bookingId,
+    },
+  })
+  if (!bookingToDelete) {
+    throw new HttpException(
+      `Could not find booking with id ${bookingId}`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (bookingToDelete.userId !== userId) {
+    throw new HttpException(
+      `You do not have permission to delete this booking`,
+      HttpCode.Forbidden
+    )
+  }
   return await prisma.booking.delete({
     where: {
       id: bookingId,

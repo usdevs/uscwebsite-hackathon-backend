@@ -1,10 +1,9 @@
-import { Response,, Request, NextFunction } from 'express'
+import { Response, Request, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { Booking } from '@prisma/client'
-import { addBooking } from '@services/bookings'
-import { BookingSchema } from '@/interfaces/booking.interface'
 import { RequestWithUser } from '@/interfaces/auth.interface'
-import { getUserBookings } from '@services/bookings'
+import { addBooking, getUserBookings, deleteBooking } from '@services/bookings'
+import { BookingSchema } from '@/interfaces/booking.interface'
 
 export async function createBooking(
   req: RequestWithUser,
@@ -45,9 +44,14 @@ export async function editBooking(
   res.send('edit booking!')
 }
 
-export async function deleteBooking(
-  req: Request,
+export async function deleteBookingHandler(
+  req: RequestWithUser,
   res: Response
 ): Promise<void> {
-  res.send('delete booking!')
+  const bookingId = parseInt(req.params['id'], 10)
+  if (Number.isNaN(bookingId)) {
+    throw new HttpException('Booking id not found', HttpCode.BadRequest)
+  }
+  const booking = await deleteBooking(bookingId, req.user.id)
+  res.json(booking)
 }
