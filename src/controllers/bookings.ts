@@ -1,4 +1,4 @@
-import { Response,, Request, NextFunction } from 'express'
+import { Response, Request, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { Booking } from '@prisma/client'
 import { addBooking } from '@services/bookings'
