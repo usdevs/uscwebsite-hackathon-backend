@@ -1,7 +1,13 @@
 import prisma from './db'
 import { Booking } from '@prisma/client'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
-import { DURATION_PER_SLOT, MIN_SLOTS_PER_BOOKING, MAX_SLOTS_PER_BOOKING, MIN_SLOTS_BETWEEN_BOOKINGS } from '@/config/common'
+import {
+  DURATION_PER_SLOT,
+  MIN_SLOTS_PER_BOOKING,
+  MAX_SLOTS_PER_BOOKING,
+  MIN_SLOTS_BETWEEN_BOOKINGS,
+} from '@/config/common'
+import { checkedStackedBookings, checkIsUserAdmin } from '@middlewares/checks'
 
 /* Retrieves all bookings */
 export async function getAllBookings(): Promise<Booking[]> {
@@ -35,24 +41,6 @@ async function hasExistingConflicts(startTime: Date, endTime: Date) {
   })
 
   return conflicting.length > 0 && conflicting[0].end > startTime
-}
-
-async function isStackedBooking(orgId: number, startTime: Date) {
-  const lastOrgBooking = await prisma.booking.findFirst({
-    where: {
-      orgId: orgId,
-    },
-    orderBy: {
-      end: 'desc',
-    },
-  })
-
-  if (!lastOrgBooking) {
-    return true
-  }
-
-  return startTime.getTime() - lastOrgBooking.end.getTime() * 60 * 1000 < MIN_SLOTS_BETWEEN_BOOKINGS * DURATION_PER_SLOT
-
 }
 
 /**
@@ -94,6 +82,10 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   }
 
   // TODO: add admin check
+  if (await checkIsUserAdmin(booking.userId)) {
+    return await prisma.booking.create({ data: booking })
+  }
+
   if (
     booking.end.getTime() - booking.start.getTime() >
     DURATION_PER_SLOT * MAX_SLOTS_PER_BOOKING * 1000 * 60
@@ -105,8 +97,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   }
 
   if (
-    booking.start.getTime() - booking.start.getTime() < 
-    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60) {
+    booking.start.getTime() - booking.start.getTime() <
+    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
+  ) {
     throw new HttpException(
       `Booking duration is too short, please change your booking request.`,
       HttpCode.BadRequest
@@ -120,9 +113,11 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  if (await isStackedBooking(booking.orgId, booking.start)) {
+  if (await checkedStackedBookings(booking)) {
     throw new HttpException(
-      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS} minutes in between consecutive bookings`,
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
   }
