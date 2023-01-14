@@ -18,6 +18,8 @@ model User {
   telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
+  displayImage DisplayImage? @relation(fields: [imageId], references: [id])
+  imageId String?
   deleted Boolean @default(false) // supports soft delete
 }
 
@@ -27,6 +29,8 @@ model Organisation {
   description String @default("A NUSC organisation")
   verified Boolean @default(false) // verified organisations have admin rights
   userOrg UserOnOrg[]
+  displayImage DisplayImage? @relation(fields: [imageId], references: [id])
+  imageId String?
 }
 
 model UserOnOrg {
@@ -56,4 +60,13 @@ model Booking {
   start DateTime // start time of booking
   end DateTime // end time of booking 
   bookedAt DateTime @default(now())
+}
+
+model DisplayImage {
+  id       String @default(cuid()) @id
+  publicId String @unique
+  format   String
+  version  String
+  users User[]
+  orgs Organisation[]
 }
