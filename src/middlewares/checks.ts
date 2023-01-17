@@ -68,11 +68,11 @@ function convertDateToMinutes(date: Date): number {
 export function checkStartEndTime(start: Date, end: Date): boolean {
   return (
     (convertDateToMinutes(end) - convertDateToMinutes(start)) /
-      DURATION_PER_SLOT >=
-      MIN_SLOTS_PER_BOOKING &&
+    DURATION_PER_SLOT >=
+    MIN_SLOTS_PER_BOOKING &&
     (convertDateToMinutes(end) - convertDateToMinutes(start)) %
-      DURATION_PER_SLOT ==
-      0 &&
+    DURATION_PER_SLOT ==
+    0 &&
     convertDateToMinutes(end) % DURATION_PER_SLOT == 0
   )
 }
@@ -132,33 +132,20 @@ export async function checkBookingPrivelege(booking: BookingPayload) {
 export async function checkConflictingBooking(
   booking: BookingPayload
 ): Promise<boolean> {
-  const { start, end, venueId } = booking
-
-  function isOverlapping(start_A: Date, end_A: Date): boolean {
-    const s =
-      convertDateToMinutes(start_A) > convertDateToMinutes(start)
-        ? start_A
-        : start
-    const e =
-      convertDateToMinutes(end_A) < convertDateToMinutes(end) ? end_A : end
-    return s <= e
-  }
-
-  // get all bookings that end after the start time
-  const timeBookings: Array<Booking> = await prisma.booking.findMany({
+  const startTime = booking.start
+  const endTime = booking.end
+  const conflicting = await prisma.booking.findMany({
     where: {
-      end: { gt: start },
-      venueId: venueId,
+      start: {
+        lt: endTime,
+      },
+    },
+    orderBy: {
+      end: 'desc',
     },
   })
 
-  // check every potential booking for overlap
-  for (var i = 0; i < timeBookings.length; i++) {
-    if (isOverlapping(timeBookings[i].start, timeBookings[i].end)) {
-      return false
-    }
-  }
-  return true
+  return conflicting.length > 0 && conflicting[0].end > startTime
 }
 
 /**
@@ -219,16 +206,16 @@ export async function checkStackedBookings(booking: BookingPayload) {
   // interval between the end of the latest earlier booking and the start of this booking must be greater than the gap
   const hasEarlierStackedBooking = latestEarlierBooking
     ? (convertDateToMinutes(start) -
-        convertDateToMinutes(latestEarlierBooking.end)) /
-        DURATION_PER_SLOT <=
-      MIN_SLOTS_BETWEEN_BOOKINGS
+      convertDateToMinutes(latestEarlierBooking.end)) /
+    DURATION_PER_SLOT <=
+    MIN_SLOTS_BETWEEN_BOOKINGS
     : true
   // interval between start of the earliest later booking and the end of this booking must be greater than the gap
   const hasLaterStackedBooking = earliestLaterBooking
     ? (convertDateToMinutes(earliestLaterBooking.start) -
-        convertDateToMinutes(end)) /
-        DURATION_PER_SLOT <=
-      MIN_SLOTS_BETWEEN_BOOKINGS
+      convertDateToMinutes(end)) /
+    DURATION_PER_SLOT <=
+    MIN_SLOTS_BETWEEN_BOOKINGS
     : true
 
   return hasEarlierStackedBooking && hasLaterStackedBooking
