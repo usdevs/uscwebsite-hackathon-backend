@@ -5,7 +5,7 @@ import {
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
   MIN_SLOTS_PER_BOOKING,
-} from '../configs/common'
+} from '../config/common'
 import prisma from '../services/db'
 
 /**

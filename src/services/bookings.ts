@@ -66,6 +66,13 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
+  if (await checkConflictingBooking(booking)) {
+    throw new HttpException(
+      `There is already another booking within the same timeslot`,
+      HttpCode.BadRequest
+    )
+  }
+
   if (await checkIsUserAdmin(booking.userId)) {
     return await prisma.booking.create({ data: booking })
   }
@@ -86,13 +93,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   ) {
     throw new HttpException(
       `Booking duration is too short, please change your booking request.`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (await checkConflictingBooking(booking)) {
-    throw new HttpException(
-      `There is already another booking within the same timeslot`,
       HttpCode.BadRequest
     )
   }
