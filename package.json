@@ -14,7 +14,8 @@
     "prisma:init": "prisma init",
     "prisma:migrate": "prisma migrate dev --preview-feature",
     "prisma:seed": "prisma db seed",
-    "prisma:generate": "prisma generate"
+    "prisma:generate": "prisma generate",
+    "prisma:reset": "prisma migrate reset"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

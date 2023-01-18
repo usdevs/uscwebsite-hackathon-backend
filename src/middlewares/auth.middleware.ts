@@ -41,7 +41,9 @@ export async function requiresAuthentication(
   next: NextFunction
 ) {
   try {
-    const token = req.header('Authentication') || ''
+    const authHeader = req.header('Authorization')
+    const token = authHeader && authHeader.split(' ')[1] || ''
+
     const decoded = jwt.verify(token, SECRET_KEY) as TelegramAuth
 
     const users = new PrismaClient().user
