@@ -42,7 +42,7 @@ export async function requiresAuthentication(
 ) {
   try {
     const authHeader = req.header('Authorization')
-    const token = authHeader && authHeader.split(' ')[1]
+    const token = authHeader && authHeader.split(' ')[1] || ''
 
     const decoded = jwt.verify(token, SECRET_KEY) as TelegramAuth
 

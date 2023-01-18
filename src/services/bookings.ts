@@ -7,6 +7,7 @@ import {
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
 } from '@/config/common'
+import { checkConflictingBooking, checkedStackedBookings, checkIsUserAdmin } from '@middlewares/checks'
 
 /* Retrieves all bookings */
 export async function getAllBookings(): Promise<Booking[]> {
@@ -25,41 +26,6 @@ export async function getUserBookings(
   return await prisma.booking.findMany({
     where: { userId: { equals: userId } },
   })
-}
-
-async function hasExistingConflicts(startTime: Date, endTime: Date) {
-  const conflicting = await prisma.booking.findMany({
-    where: {
-      start: {
-        lt: endTime,
-      },
-    },
-    orderBy: {
-      end: 'desc',
-    },
-  })
-
-  return conflicting.length > 0 && conflicting[0].end > startTime
-}
-
-async function isStackedBooking(orgId: number, startTime: Date) {
-  const lastOrgBooking = await prisma.booking.findFirst({
-    where: {
-      orgId: orgId,
-    },
-    orderBy: {
-      end: 'desc',
-    },
-  })
-
-  if (!lastOrgBooking) {
-    return false
-  }
-
-  return (
-    startTime.getTime() - lastOrgBooking.end.getTime() * 60 * 1000 <
-    MIN_SLOTS_BETWEEN_BOOKINGS * DURATION_PER_SLOT
-  )
 }
 
 /**
@@ -100,7 +66,17 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  // TODO: add admin check
+  if (await checkConflictingBooking(booking)) {
+    throw new HttpException(
+      `There is already another booking within the same timeslot`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (await checkIsUserAdmin(booking.userId)) {
+    return await prisma.booking.create({ data: booking })
+  }
+
   if (
     booking.end.getTime() - booking.start.getTime() >
     DURATION_PER_SLOT * MAX_SLOTS_PER_BOOKING * 1000 * 60
@@ -113,6 +89,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (
     booking.end.getTime() - booking.start.getTime() <
+
     DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
   ) {
     throw new HttpException(
@@ -121,17 +98,11 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  if (await hasExistingConflicts(booking.start, booking.end)) {
-    throw new HttpException(
-      `There is already another booking within the same timeslot`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (await isStackedBooking(booking.orgId, booking.start)) {
+  if (await checkedStackedBookings(booking)) {
     throw new HttpException(
       `Please leave a duration of at least ${
         DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
