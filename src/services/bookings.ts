@@ -88,7 +88,8 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   }
 
   if (
-    booking.start.getTime() - booking.start.getTime() <
+    booking.end.getTime() - booking.start.getTime() <
+
     DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
   ) {
     throw new HttpException(
@@ -99,7 +100,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (await checkedStackedBookings(booking)) {
     throw new HttpException(
-      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
@@ -129,8 +132,27 @@ export async function updateBooking(
 
 /* Delete an existing booking */
 export async function deleteBooking(
-  bookingId: Booking['id']
+  bookingId: Booking['id'],
+  userId: Booking['userId']
 ): Promise<Booking> {
+  const bookingToDelete = await prisma.booking.findFirst({
+    where: {
+      id: bookingId,
+    },
+  })
+  if (!bookingToDelete) {
+    throw new HttpException(
+      `Could not find booking with id ${bookingId}`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (bookingToDelete.userId !== userId) {
+    throw new HttpException(
+      `You do not have permission to delete this booking`,
+      HttpCode.Forbidden
+    )
+  }
   return await prisma.booking.delete({
     where: {
       id: bookingId,
