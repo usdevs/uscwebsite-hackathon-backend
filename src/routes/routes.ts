@@ -13,6 +13,7 @@ import {
   editBooking,
   deleteBookingHandler,
 } from '../controllers/bookings'
+import { getImage, postImage } from '@/controllers/image'
 
 export const router: Router = Router()
 
@@ -24,6 +25,11 @@ const asyncHandler =
 
 // login route
 router.post('/login', asyncHandler(handleLogin))
+
+// upsert an image
+router.post('/displayImages', requiresAuthentication, asyncHandler(postImage))
+// get an image
+router.get('/displayImages', requiresAuthentication, asyncHandler(getImage))
 
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))

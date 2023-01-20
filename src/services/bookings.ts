@@ -7,7 +7,11 @@ import {
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
 } from '@/config/common'
-import { checkConflictingBooking, checkedStackedBookings, checkIsUserAdmin } from '@middlewares/checks'
+import {
+  checkConflictingBooking,
+  checkStackedBookings,
+  checkIsUserAdmin,
+} from '@middlewares/checks'
 
 /* Retrieves all bookings */
 export async function getAllBookings(): Promise<Booking[]> {
@@ -89,7 +93,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (
     booking.end.getTime() - booking.start.getTime() <
-
     DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
   ) {
     throw new HttpException(
@@ -98,11 +101,10 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  if (await checkedStackedBookings(booking)) {
+  if (await checkStackedBookings(booking)) {
     throw new HttpException(
       `Please leave a duration of at least ${
         DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
-
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
