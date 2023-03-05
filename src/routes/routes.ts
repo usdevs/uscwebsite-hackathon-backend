@@ -13,6 +13,7 @@ import {
   editBooking,
   deleteBookingHandler,
 } from '../controllers/bookings'
+import { getOrgs } from '@/controllers/organisation'
 
 export const router: Router = Router()
 
@@ -24,6 +25,10 @@ const asyncHandler =
 
 // login route
 router.post('/login', asyncHandler(handleLogin))
+
+// get description of all Organisations
+// authentication not needed
+router.get('/orgs', asyncHandler(getOrgs))
 
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
