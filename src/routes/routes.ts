@@ -8,9 +8,10 @@ import {
 import { handleLogin } from '../controllers/login'
 import { requiresAuthentication } from '@middlewares/auth.middleware'
 import {
-  getBookings,
+  getAllBookingsController,
+  getUserBookingsController,
   createBooking,
-  editBooking,
+  editUserBooking,
   deleteBookingHandler,
 } from '../controllers/bookings'
 
@@ -24,13 +25,14 @@ const asyncHandler =
 
 // login route
 router.post('/login', asyncHandler(handleLogin))
-
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
+// view all bookings
+router.get('/bookings/all', getAllBookingsController)
 // view bookings
-router.get('/bookings', getBookings)
+router.get('/bookings', requiresAuthentication, getUserBookingsController)
 // edit a booking
-router.put('/bookings', requiresAuthentication, editBooking)
+router.put('/bookings', requiresAuthentication, editUserBooking)
 // delete a booking
 router.delete(
   '/bookings/:id',

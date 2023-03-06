@@ -10,8 +10,25 @@ import {
 import { checkConflictingBooking, checkedStackedBookings, checkIsUserAdmin } from '@middlewares/checks'
 
 /* Retrieves all bookings */
-export async function getAllBookings(): Promise<Booking[]> {
-  return await prisma.booking.findMany()
+export async function getAllBookings(start: Date, end: Date): Promise<Booking[]> {
+  return await prisma.booking.findMany({
+    where: {
+      OR: [
+        {
+          start: {
+            gte: start,
+            lte: end
+          },
+          end: {
+            gte: start,
+            lte: end
+          }
+        }
+      ]
+    },
+    orderBy: { start: 'asc' }
+  }
+  )
 }
 
 /**
@@ -100,8 +117,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (await checkedStackedBookings(booking)) {
     throw new HttpException(
-      `Please leave a duration of at least ${
-        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
 
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
