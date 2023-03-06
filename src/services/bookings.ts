@@ -24,7 +24,7 @@ export async function getUserBookings(
   userId: Booking['userId']
 ): Promise<Booking[]> {
   return await prisma.booking.findMany({
-    where: { userId: { equals: userId } },
+    where: { userId: userId },
   })
 }
 

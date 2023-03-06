@@ -28,8 +28,8 @@ router.post('/login', asyncHandler(handleLogin))
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
 // view bookings
-router.get('/bookings', getBookings)
+router.get('/bookings', asyncHandler(getBookings))
 // edit a booking
-router.put('/bookings', requiresAuthentication, editBooking)
+router.put('/bookings/:id', requiresAuthentication, asyncHandler(editBooking))
 // delete a booking
-router.delete('/bookings', requiresAuthentication, deleteBooking)
+router.delete('/bookings', requiresAuthentication, asyncHandler(deleteBooking))

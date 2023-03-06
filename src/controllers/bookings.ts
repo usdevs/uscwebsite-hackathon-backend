@@ -30,7 +30,7 @@ export async function getBookings(
       throw new HttpException('Query missing userId', HttpCode.BadRequest)
     }
 
-    const bookings = getUserBookings(parseInt(userId))
+    const bookings = await getUserBookings(parseInt(userId))
     res.json(bookings)
   } catch (error) {
     next(error)
@@ -42,6 +42,7 @@ export async function editBooking(
   res: Response,
   next: NextFunction
 ): Promise<void> {
+
   const bookingId = parseInt(req.params['id'], 10)
   if (Number.isNaN(bookingId)) {
     throw new HttpException('Booking id not found', HttpCode.BadRequest)
