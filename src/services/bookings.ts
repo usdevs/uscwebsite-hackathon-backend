@@ -7,7 +7,11 @@ import {
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
 } from '@/config/common'
-import { checkConflictingBooking, checkStackedBookings, checkIsUserAdmin } from '@middlewares/checks'
+import {
+  checkConflictingBooking,
+  checkStackedBookings,
+  checkIsUserAdmin,
+} from '@middlewares/checks'
 
 /* Retrieves all bookings */
 export async function getAllBookings(): Promise<Booking[]> {
@@ -89,7 +93,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (
     booking.end.getTime() - booking.start.getTime() <
-
     DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
   ) {
     throw new HttpException(
@@ -102,7 +105,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     throw new HttpException(
       `Please leave a duration of at least ${
         DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
-
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
@@ -125,8 +127,8 @@ export async function updateBooking(
 ): Promise<Booking> {
   const bookingToUpdate = await prisma.booking.findUnique({
     where: {
-      id: bookingId
-    }
+      id: bookingId,
+    },
   })
 
   if (!bookingToUpdate) {
@@ -134,11 +136,10 @@ export async function updateBooking(
       `Could not find booking with id ${bookingId}`,
       HttpCode.BadRequest
     )
-
   }
   if (bookingToUpdate.userId !== userId) {
     throw new HttpException(
-      `You do not have permission to delete this booking`,
+      `You do not have permission to edit this booking`,
       HttpCode.Forbidden
     )
   }
@@ -160,13 +161,12 @@ export async function updateBooking(
     )
   }
 
-
   if (await checkIsUserAdmin(userId)) {
     return await prisma.booking.update({
       where: {
         id: bookingId,
       },
-      data: updatedBooking
+      data: updatedBooking,
     })
   }
 
@@ -192,7 +192,8 @@ export async function updateBooking(
 
   if (await checkedStackedBookings(updatedBooking)) {
     throw new HttpException(
-      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
@@ -202,7 +203,7 @@ export async function updateBooking(
     where: {
       id: bookingId,
     },
-    data: updatedBooking
+    data: updatedBooking,
   })
 }
 
