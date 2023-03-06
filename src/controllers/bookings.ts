@@ -12,7 +12,7 @@ export async function createBooking(
 ): Promise<void> {
   const user = req.user
   const booking = BookingSchema.parse(req.body)
-  const bookingPayload = { ...booking, userId: user.id }
+  const bookingPayload = { ...booking, userId: user!.id }
   const inserted = await addBooking(bookingPayload)
   res.status(200).json({ result: [inserted] })
 }
@@ -29,7 +29,7 @@ export async function getBookings(
       throw new HttpException('Query missing userId', HttpCode.BadRequest)
     }
 
-    const bookings = getUserBookings(parseInt(userId))
+    const bookings = await getUserBookings(parseInt(userId))
     res.json(bookings)
   } catch (error) {
     next(error)
@@ -37,11 +37,20 @@ export async function getBookings(
 }
 
 export async function editBooking(
-  req: Request,
+  req: RequestWithUser,
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  res.send('edit booking!')
+
+  const bookingId = parseInt(req.params['id'], 10)
+  if (Number.isNaN(bookingId)) {
+    throw new HttpException('Booking id not found', HttpCode.BadRequest)
+  }
+  const userId = req.user!.id
+  const booking = BookingSchema.parse(req.body)
+  const bookingPayload = { ...booking, userId: userId }
+  const updatedBooking = await updateBooking(bookingId, bookingPayload, userId)
+  res.status(200).json({ result: [updatedBooking] })
 }
 
 export async function deleteBookingHandler(

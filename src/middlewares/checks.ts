@@ -130,7 +130,8 @@ export async function checkBookingPrivelege(booking: BookingPayload) {
  * @returns true if there is no overlap
  */
 export async function checkConflictingBooking(
-  booking: BookingPayload
+  booking: BookingPayload,
+  exclude?: number
 ): Promise<boolean> {
   const startTime = booking.start
   const endTime = booking.end
@@ -139,6 +140,7 @@ export async function checkConflictingBooking(
       start: {
         lt: endTime,
       },
+      id: typeof exclude !== undefined ? { not: exclude } : {}
     },
     orderBy: {
       end: 'desc',
