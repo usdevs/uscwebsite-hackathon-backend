@@ -29,7 +29,7 @@ export async function getBookings(
       throw new HttpException('Query missing userId', HttpCode.BadRequest)
     }
 
-    const bookings = getUserBookings(parseInt(userId))
+    const bookings = await getUserBookings(parseInt(userId))
     res.json(bookings)
   } catch (error) {
     next(error)

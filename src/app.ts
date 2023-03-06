@@ -12,7 +12,7 @@ const port = process.env.PORT
 app.use(express.json())
 app.use(
   cors({
-    origin: 'https://usdevs.github.io',
+    origin: ["https://usdevs.github.io", "http://localhost:3001"],
   })
 )
 app.use('/', router)
