@@ -1,89 +1,94 @@
 import { PrismaClient, Prisma } from '@prisma/client'
+import readXlsxFile from 'read-excel-file/node';
 
 const prisma = new PrismaClient()
+const excelFile = process.env.EXCEL_SEED_FILEPATH as string;
 
-const userData: Prisma.UserCreateInput[] = [
-  {
-    name: 'Alice',
-    telegramId: null,
-    telegramUserName: 'alice',
-    telegramDpUrl: null,
-  },
-  {
-    name: 'Bob',
-    telegramId: null,
-    telegramUserName: 'bob',
-    telegramDpUrl: null,
-  },
-  {
-    name: 'Charlie',
-    telegramId: null,
-    telegramUserName: 'charlie',
-    telegramDpUrl: null,
-  },
-]
+const organisationSheet = "Test Organisations"
+const userSheet = "Test Users"
+const venueSheet = "Venues"
 
-const venueData: Prisma.VenueCreateInput[] = [
-  {
-    name: 'Chatterbox'
-  },
-  {
-    name: 'CTPH',
-  },
-  {
-    name: 'Theme Room Red',
-  },
-  {
-    name: 'Theme Room Blue',
-  },
-]
+const organisationSchema = {
+  'id': { prop: 'id', type: Number, required: true },
+  'name': { prop: 'name', type: String, required: true },
+  'description': { prop: 'description', type: String },
+  'verified': { prop: 'verified', type: Boolean }
+}
 
-const organisationData: Prisma.OrganisationCreateInput[] = [
-  {
-    name: 'NUSC admin',
-    description: "hi i am admin",
-    verified: true
-  },
-  {
-    name: 'NUSChess',
-    description: 'We play Chess',
-    verified: false
-  },
-  {
-    name: 'Ianthe House',
-    description: 'purple house',
-    verified: false
-  },
-  {
-    name: 'nusc soccer',
-    description: 'we play soccer',
-    verified: false
-  },
-]
-
-// TODO: Change to checked create input
-const userOnOrgData: Prisma.UserOnOrgUncheckedCreateInput[] = [
-  // Alice is in NUSC admin
-  {
-    userId: 1,
-    orgId: 1
-  },
-  // Bob is in NUSChess
-  { 
-    userId: 2,
-    orgId: 2
+const userSchema = {
+  'id': { prop: 'id', type: Number, required: true },
+  'telegramUserName': { prop: 'telegramUserName', type: String, required: true },
+  'name': { prop: 'name', type: String, required: true },
+  'userOrg': {
+    prop: 'userOrg', type: {
+      'create': {
+        prop: 'create',
+        type: {
+          'org': {
+            prop: 'org',
+            type: {
+              'connect': {
+                prop: 'connect',
+                type: {
+                  'organisationId': {
+                    prop: 'id',
+                    type: Number,
+                    required: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   }
-]
+}
+
+const venueSchema = {
+  'id': { prop: 'id', type: Number, required: true },
+  'name': { prop: 'name', type: String, required: true }
+}
+
+const userData: Prisma.UserCreateInput[] = [];
+const organisationData: Prisma.OrganisationCreateInput[] = [];
+const venueData: Prisma.VenueCreateInput[] = [];
+
+
 
 async function main() {
+  await readXlsxFile(excelFile, { sheet: organisationSheet, schema: organisationSchema })
+    .then(({ rows, errors }) => {
+      if (errors.length !== 0) {
+        throw new Error(errors[0].error);
+      }
+      for (const row of rows) {
+        organisationData.push(row as Prisma.OrganisationCreateInput);
+      }
+    });
+
+  await readXlsxFile(excelFile, { sheet: userSheet, schema: userSchema })
+    .then(({ rows, errors }) => {
+      if (errors.length !== 0) {
+        throw new Error(errors[0].error);
+      }
+      for (const row of rows) {
+        userData.push(row as Prisma.UserCreateInput)
+      }
+    });
+
+  await readXlsxFile(excelFile, { sheet: venueSheet, schema: venueSchema })
+    .then(({ rows, errors }) => {
+      if (errors.length !== 0) {
+        throw new Error(errors[0].error);
+      }
+      for (const row of rows) {
+        venueData.push(row as Prisma.VenueCreateInput);
+      }
+    });
+
   console.log(`Start seeding ...`)
   console.log(`Start seeding users...`)
-  for (const u of userData) {
-    const user = await prisma.user.create({
-      data: u,
-    })
-    console.log(`Created user with id: ${user.id}`)
-  }
   console.log(`Start seeding venues...`)
   for (const u of venueData) {
     const venue = await prisma.venue.create({
@@ -98,12 +103,11 @@ async function main() {
     })
     console.log(`Created organisation with id: ${organisation.id}`)
   }
-  console.log(`Start seeding userOnOrg...`)
-  for (const u of userOnOrgData) {
-    const userOnOrg = await prisma.userOnOrg.create({
+  for (const u of userData) {
+    const user = await prisma.user.create({
       data: u,
     })
-    console.log(`Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`)
+    console.log(`Created user with id: ${user.id}`)
   }
   console.log(`Seeding finished.`)
 }
