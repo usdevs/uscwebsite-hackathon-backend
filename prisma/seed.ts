@@ -7,6 +7,7 @@ const excelFile = process.env.EXCEL_SEED_FILEPATH as string;
 const organisationSheet = "Test Organisations"
 const userSheet = "Test Users"
 const venueSheet = "Venues"
+const userOnOrgSheet = "Test UserOnOrg"
 
 const organisationSchema = {
   'id': { prop: 'id', type: Number, required: true },
@@ -19,30 +20,6 @@ const userSchema = {
   'id': { prop: 'id', type: Number, required: true },
   'telegramUserName': { prop: 'telegramUserName', type: String, required: true },
   'name': { prop: 'name', type: String, required: true },
-  'userOrg': {
-    prop: 'userOrg', type: {
-      'create': {
-        prop: 'create',
-        type: {
-          'org': {
-            prop: 'org',
-            type: {
-              'connect': {
-                prop: 'connect',
-                type: {
-                  'organisationId': {
-                    prop: 'id',
-                    type: Number,
-                    required: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
 }
 
 const venueSchema = {
@@ -50,9 +27,15 @@ const venueSchema = {
   'name': { prop: 'name', type: String, required: true }
 }
 
+const userOnOrgSchema = {
+  'userId': { prop: 'userId', type: Number, required: true },
+  'organisationId': { prop: 'orgId', type: Number, required: true }
+}
+
 const userData: Prisma.UserCreateInput[] = [];
 const organisationData: Prisma.OrganisationCreateInput[] = [];
 const venueData: Prisma.VenueCreateInput[] = [];
+const userOnOrgData: Prisma.UserOnOrgCreateInput[] = [];
 
 
 
@@ -87,6 +70,16 @@ async function main() {
       }
     });
 
+  await readXlsxFile(excelFile, { sheet: userOnOrgSheet, schema: userOnOrgSchema })
+    .then(({ rows, errors }) => {
+      if (errors.length !== 0) {
+        throw new Error(errors[0].error);
+      }
+      for (const row of rows) {
+        userOnOrgData.push(row as Prisma.UserOnOrgCreateInput);
+      }
+    });
+
   console.log(`Start seeding ...`)
   console.log(`Start seeding users...`)
   console.log(`Start seeding venues...`)
@@ -108,6 +101,14 @@ async function main() {
       data: u,
     })
     console.log(`Created user with id: ${user.id}`)
+  }
+
+  console.log(`Start seeding userOnOrg...`)
+  for (const u of userOnOrgData) {
+    const userOnOrg = await prisma.userOnOrg.create({
+      data: u,
+    })
+    console.log(`Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`)
   }
   console.log(`Seeding finished.`)
 }
