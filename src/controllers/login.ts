@@ -19,6 +19,7 @@ export async function handleLogin(
   }
 
   // TODO: update database tables
+  let userId = 0
   const users = new PrismaClient().user
   try {
     const matchingUsers = await users.findMany({
@@ -45,6 +46,8 @@ export async function handleLogin(
         if (index !== 0) {
           await users.delete({ where: { id: user.id } })
         } else {
+          userId = user.id
+
           await users.update({
             where: { id: user.id },
             data: {
@@ -61,7 +64,13 @@ export async function handleLogin(
     return
   }
 
-  const token = generateToken(userCredentials)
+  const userOrgs = await new PrismaClient().userOnOrg.findMany({
+    where: {
+      userId: userId,
+    },
+  })
 
-  res.status(200).send(token)
+  const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
+  const token = generateToken(userCredentials)
+  res.status(200).send({ token, orgIds })
 }

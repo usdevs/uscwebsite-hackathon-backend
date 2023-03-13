@@ -7,11 +7,32 @@ import {
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
 } from '@/config/common'
-import { checkConflictingBooking, checkedStackedBookings, checkIsUserAdmin } from '@middlewares/checks'
+import {
+  checkConflictingBooking,
+  checkStackedBookings,
+  checkIsUserAdmin,
+} from '@middlewares/checks'
 
 /* Retrieves all bookings */
-export async function getAllBookings(): Promise<Booking[]> {
-  return await prisma.booking.findMany()
+export async function getAllBookings(start: Date, end: Date): Promise<Booking[]> {
+  return await prisma.booking.findMany({
+    where: {
+      OR: [
+        {
+          start: {
+            gte: start,
+            lte: end
+          },
+          end: {
+            gte: start,
+            lte: end
+          }
+        }
+      ]
+    },
+    orderBy: { start: 'asc' }
+  }
+  )
 }
 
 /**
@@ -24,7 +45,7 @@ export async function getUserBookings(
   userId: Booking['userId']
 ): Promise<Booking[]> {
   return await prisma.booking.findMany({
-    where: { userId: { equals: userId } },
+    where: { userId: userId },
   })
 }
 
@@ -89,7 +110,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (
     booking.end.getTime() - booking.start.getTime() <
-
     DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
   ) {
     throw new HttpException(
@@ -98,11 +118,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  if (await checkedStackedBookings(booking)) {
+  if (await checkStackedBookings(booking)) {
     throw new HttpException(
-      `Please leave a duration of at least ${
-        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
-
+      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
@@ -120,8 +138,82 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
  */
 export async function updateBooking(
   bookingId: Booking['id'],
-  updatedBooking: Booking
+  updatedBooking: BookingPayload,
+  userId: Booking['userId']
 ): Promise<Booking> {
+  const bookingToUpdate = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+  })
+
+  if (!bookingToUpdate) {
+    throw new HttpException(
+      `Could not find booking with id ${bookingId}`,
+      HttpCode.BadRequest
+    )
+  }
+  if (bookingToUpdate.userId !== userId) {
+    throw new HttpException(
+      `You do not have permission to edit this booking`,
+      HttpCode.Forbidden
+    )
+  }
+
+  const userOnOrg = await prisma.userOnOrg.findFirst({
+    where: { userId: userId, orgId: updatedBooking.orgId },
+  })
+  if (!userOnOrg) {
+    throw new HttpException(
+      `You are not a member of this organisation`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (await checkConflictingBooking(updatedBooking, bookingId)) {
+    throw new HttpException(
+      `There is already another booking within the same timeslot`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (await checkIsUserAdmin(userId)) {
+    return await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: updatedBooking,
+    })
+  }
+
+  if (
+    updatedBooking.end.getTime() - updatedBooking.start.getTime() >
+    DURATION_PER_SLOT * MAX_SLOTS_PER_BOOKING * 1000 * 60
+  ) {
+    throw new HttpException(
+      `Booking duration is too long, please change your booking request.`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (
+    updatedBooking.start.getTime() - updatedBooking.start.getTime() <
+    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
+  ) {
+    throw new HttpException(
+      `Booking duration is too short, please change your booking request.`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (await checkedStackedBookings(updatedBooking)) {
+    throw new HttpException(
+      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      } minutes in between consecutive bookings`,
+      HttpCode.BadRequest
+    )
+  }
+
   return await prisma.booking.update({
     where: {
       id: bookingId,
