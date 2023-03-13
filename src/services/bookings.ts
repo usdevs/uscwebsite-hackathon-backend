@@ -14,8 +14,25 @@ import {
 } from '@middlewares/checks'
 
 /* Retrieves all bookings */
-export async function getAllBookings(): Promise<Booking[]> {
-  return await prisma.booking.findMany()
+export async function getAllBookings(start: Date, end: Date): Promise<Booking[]> {
+  return await prisma.booking.findMany({
+    where: {
+      OR: [
+        {
+          start: {
+            gte: start,
+            lte: end
+          },
+          end: {
+            gte: start,
+            lte: end
+          }
+        }
+      ]
+    },
+    orderBy: { start: 'asc' }
+  }
+  )
 }
 
 /**
