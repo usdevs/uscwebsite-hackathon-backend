@@ -18,7 +18,7 @@
     "prisma:reset": "prisma migrate reset"
   },
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node -r tsconfig-paths/register --transpile-only prisma/seed.ts"
   },
   "author": "",
   "license": "ISC",

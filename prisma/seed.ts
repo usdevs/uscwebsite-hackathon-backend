@@ -1,5 +1,6 @@
 import { PrismaClient, Prisma } from '@prisma/client'
 import readXlsxFile from 'read-excel-file/node';
+import { BookingPayload, addBooking } from '@/services/bookings';
 
 const prisma = new PrismaClient()
 const excelFile = process.env.EXCEL_SEED_FILEPATH as string;
@@ -34,9 +35,54 @@ const userOnOrgSchema = {
 
 const userData: Prisma.UserCreateInput[] = [];
 const organisationData: Prisma.OrganisationCreateInput[] = [];
-const venueData: Prisma.VenueCreateInput[] = [];
-const userOnOrgData: Prisma.UserOnOrgCreateInput[] = [];
+const venueData: Prisma.VenueUncheckedCreateInput[] = [];
+const userOnOrgData: Prisma.UserOnOrgUncheckedCreateInput[] = [];
 
+
+const maxSlots = parseEnvToInt('MAX_SLOTS_PER_BOOKING', 4)
+const minSlots = parseEnvToInt('MIN_SLOTS_PER_BOOKING', 1)
+const duration = parseEnvToInt('DURATION_PER_SLOT', 30)
+function parseEnvToInt(envVar: string | undefined, fallback: number): number {
+  return (envVar && Number(envVar)) || fallback
+}
+
+function generateBookingData(
+  userOnOrgData: Prisma.UserOnOrgUncheckedCreateInput[],
+  venueData: Prisma.VenueUncheckedCreateInput[],
+  size: Number
+) {
+
+  function getRandomDate(from: Date, to: Date) {
+    const fromTime = from.getTime();
+    const toTime = to.getTime();
+    const result = new Date(fromTime + Math.random() * (toTime - fromTime));
+    result.setMinutes(result.getMinutes() - result.getMinutes() % duration, 0, 0)
+    return result
+  }
+
+  const bookingData: BookingPayload[] = [];
+
+  const bookingDurationData = [...Array(maxSlots - minSlots + 1).keys()].map(i => (i + minSlots) * duration)
+
+  for (let i = 0; i < size; i++) {
+    const userOnOrg = userOnOrgData[Math.floor(Math.random() * userOnOrgData.length)]
+    const venue = venueData[Math.floor(Math.random() * venueData.length)]
+    const bookingDuration = bookingDurationData[Math.floor(Math.random() * bookingDurationData.length)]
+    const startDate = getRandomDate(new Date(Date.now() - 12096e5), new Date(Date.now() + 12096e5)) // Magic number because who cares
+
+    const booking = {
+      venueId: venue.id!,
+      userId: userOnOrg.userId,
+      orgId: userOnOrg.orgId,
+      start: startDate,
+      end: new Date(startDate.getTime() + bookingDuration * 60000) // more magicc
+    }
+
+    bookingData.push(booking)
+  }
+  return bookingData
+
+}
 
 
 async function main() {
@@ -76,9 +122,11 @@ async function main() {
         throw new Error(errors[0].error);
       }
       for (const row of rows) {
-        userOnOrgData.push(row as Prisma.UserOnOrgCreateInput);
+        userOnOrgData.push(row as Prisma.UserOnOrgUncheckedCreateInput);
       }
     });
+
+  const bookingData = generateBookingData(userOnOrgData, venueData, 20);
 
   console.log(`Start seeding ...`)
   console.log(`Start seeding users...`)
@@ -109,6 +157,17 @@ async function main() {
       data: u,
     })
     console.log(`Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`)
+  }
+  console.log(`Seeding finished.`)
+
+  console.log(`Start seeding bookings...`)
+  for (const u of bookingData) {
+    try {
+      const booking = await addBooking(u)
+      console.log(`Added booking of id ${booking.id} created by user of id ${booking.userId}`)
+    } catch (error) {
+      console.log(error)
+    }
   }
   console.log(`Seeding finished.`)
 }

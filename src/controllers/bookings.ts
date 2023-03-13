@@ -1,8 +1,7 @@
 import { Response, Request, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
-import { Booking } from '@prisma/client'
 import { RequestWithUser } from '@/interfaces/auth.interface'
-import { addBooking, getUserBookings, deleteBooking } from '@services/bookings'
+import { addBooking, getUserBookings, updateBooking, deleteBooking } from '@services/bookings'
 import { BookingSchema } from '@/interfaces/booking.interface'
 
 export async function createBooking(
