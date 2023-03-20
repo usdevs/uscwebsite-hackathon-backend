@@ -118,7 +118,8 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  if (await checkStackedBookings(booking)) {
+  if (!(await checkStackedBookings(booking))) {
+
     throw new HttpException(
       `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
       } minutes in between consecutive bookings`,
@@ -206,7 +207,7 @@ export async function updateBooking(
     )
   }
 
-  if (await checkedStackedBookings(updatedBooking)) {
+  if (!(await checkStackedBookings(updatedBooking))) {
     throw new HttpException(
       `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
       } minutes in between consecutive bookings`,
