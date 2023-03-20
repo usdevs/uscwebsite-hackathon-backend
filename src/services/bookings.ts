@@ -14,25 +14,27 @@ import {
 } from '@middlewares/checks'
 
 /* Retrieves all bookings */
-export async function getAllBookings(start: Date, end: Date): Promise<Booking[]> {
+export async function getAllBookings(
+  start: Date,
+  end: Date
+): Promise<Booking[]> {
   return await prisma.booking.findMany({
     where: {
       OR: [
         {
           start: {
             gte: start,
-            lte: end
+            lte: end,
           },
           end: {
             gte: start,
-            lte: end
-          }
-        }
-      ]
+            lte: end,
+          },
+        },
+      ],
     },
-    orderBy: { start: 'asc' }
-  }
-  )
+    orderBy: { start: 'asc' },
+  })
 }
 
 /**
@@ -118,10 +120,20 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  if (!(await checkStackedBookings(booking))) {
-
+  if (
+    booking.start.getTime() - new Date().getTime() >
+    14 * 24 * DURATION_PER_SLOT * 60 * 1000
+  ) {
     throw new HttpException(
-      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      `You can only book up to 14 days in advance`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (!(await checkStackedBookings(booking))) {
+    throw new HttpException(
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
@@ -209,7 +221,8 @@ export async function updateBooking(
 
   if (!(await checkStackedBookings(updatedBooking))) {
     throw new HttpException(
-      `Please leave a duration of at least ${DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
+      `Please leave a duration of at least ${
+        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
       } minutes in between consecutive bookings`,
       HttpCode.BadRequest
     )
