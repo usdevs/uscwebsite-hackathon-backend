@@ -8,9 +8,10 @@ import {
 import { handleLogin } from '../controllers/login'
 import { requiresAuthentication } from '@middlewares/auth.middleware'
 import {
-  getBookings,
+  getAllBookingsController,
+  getUserBookingsController,
   createBooking,
-  editBooking,
+  editUserBooking,
   deleteBookingHandler,
 } from '../controllers/bookings'
 import { getOrgs } from '@/controllers/organisation'
@@ -30,8 +31,11 @@ router.post('/login', asyncHandler(handleLogin))
 // authentication not needed
 router.get('/orgs', asyncHandler(getOrgs))
 
+
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
+// view all bookings
+router.get('/bookings/all', getAllBookingsController)
 // view bookings
 router.get('/bookings', asyncHandler(getBookings))
 // edit a booking
