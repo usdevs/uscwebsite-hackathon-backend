@@ -57,7 +57,9 @@ export async function requiresAuthentication(
     }
     (req as RequestWithUser).user = findUser
     next()
-  } catch (err) {
-    next(new HttpException('Wrong credentials', HttpCode.Unauthorized))
+  } catch (err: unknown) {
+    let httpResponse = "Wrong credentials"
+    if (err instanceof Error) httpResponse = err.name + " " + err.message
+    next(new HttpException(httpResponse, HttpCode.Unauthorized))
   }
 }

@@ -5,15 +5,15 @@ import {
   NextFunction,
   RequestHandler,
 } from 'express'
-import { handleLogin } from '../controllers/login'
+import { handleLogin } from '@controllers/login'
 import { requiresAuthentication } from '@middlewares/auth.middleware'
 import {
   getAllBookingsController,
   getUserBookingsController,
   createBooking,
-  editUserBooking,
+  editBooking,
   deleteBookingHandler,
-} from '../controllers/bookings'
+} from '@controllers/bookings'
 import { getOrgs } from '@/controllers/organisation'
 
 export const router: Router = Router()
@@ -37,7 +37,7 @@ router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
 // view all bookings
 router.get('/bookings/all', getAllBookingsController)
 // view bookings
-router.get('/bookings', asyncHandler(getBookings))
+router.get('/bookings', asyncHandler(getUserBookingsController))
 // edit a booking
 router.put('/bookings/:id', requiresAuthentication, asyncHandler(editBooking))
 // delete a booking

@@ -33,7 +33,7 @@ export async function getAllBookingsController(
     } else if (isNaN(end.getTime())) {
       throw new HttpException('Query end is not a valid date string', HttpCode.BadRequest)
     }
-    const bookings = getAllBookings(start, end)
+    const bookings = await getAllBookings(start, end)
     res.json(bookings)
   } catch (error) {
     next(error)
