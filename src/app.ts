@@ -12,7 +12,7 @@ const port = process.env.PORT
 app.use(express.json())
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "development" ? ["http://localhost:3001", "https://frontend.local.dev"]
+    origin: process.env.NODE_ENV === "development" ? ["http://localhost:3001", "https://frontend.local.dev", "https://usdevs.github.io"]
       : ["https://usdevs.github.io"]
   })
 )
