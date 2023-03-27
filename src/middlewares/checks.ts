@@ -209,14 +209,14 @@ export async function checkStackedBookings(booking: BookingPayload) {
   const hasEarlierStackedBooking = latestEarlierBooking
     ? (convertDateToMinutes(start) -
       convertDateToMinutes(latestEarlierBooking.end)) /
-    DURATION_PER_SLOT <=
+    DURATION_PER_SLOT >=
     MIN_SLOTS_BETWEEN_BOOKINGS
     : true
   // interval between start of the earliest later booking and the end of this booking must be greater than the gap
   const hasLaterStackedBooking = earliestLaterBooking
     ? (convertDateToMinutes(earliestLaterBooking.start) -
       convertDateToMinutes(end)) /
-    DURATION_PER_SLOT <=
+    DURATION_PER_SLOT >=
     MIN_SLOTS_BETWEEN_BOOKINGS
     : true
 
