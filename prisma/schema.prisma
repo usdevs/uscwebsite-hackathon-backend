@@ -49,6 +49,7 @@ model Venue {
 
 model Booking {
   id Int @id@default(autoincrement())
+  eventName String
   venue Venue @relation(fields: [venueId], references: [id])
   venueId Int
   bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
