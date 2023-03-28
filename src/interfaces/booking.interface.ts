@@ -5,6 +5,7 @@ export const BookingSchema = z
   .object({
     eventName: z.string(),
     venueId: z.number(),
+    bookedByName: z.string(),
     orgId: z.number(),
     start: z
       .preprocess((arg) => {

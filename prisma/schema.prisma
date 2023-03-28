@@ -53,6 +53,7 @@ model Booking {
   venue Venue @relation(fields: [venueId], references: [id])
   venueId Int
   bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
+  bookedByName String // saves the name of the user at the time of booking
   userId Int
   orgId Int
   start DateTime // start time of booking
