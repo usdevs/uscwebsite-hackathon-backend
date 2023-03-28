@@ -219,6 +219,16 @@ export async function updateBooking(
     )
   }
 
+  if (
+    updatedBooking.start.getTime() - new Date().getTime() >
+    14 * 24 * 60 * 60 * 1000
+  ) {
+    throw new HttpException(
+      `You can only book up to 14 days in advance`,
+      HttpCode.BadRequest
+    )
+  }
+
   if (!(await checkStackedBookings(updatedBooking))) {
     throw new HttpException(
       `Please leave a duration of at least ${
