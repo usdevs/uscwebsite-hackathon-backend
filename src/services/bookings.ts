@@ -122,7 +122,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (
     booking.start.getTime() - new Date().getTime() >
-    14 * 24 * DURATION_PER_SLOT * 60 * 1000
+    14 * 24 * 60 * 60 * 1000
   ) {
     throw new HttpException(
       `You can only book up to 14 days in advance`,

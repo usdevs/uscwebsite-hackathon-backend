@@ -108,7 +108,7 @@ export async function checkIsUserAdmin(userId: number): Promise<boolean> {
  * Checks if the duration of the booking is within the booking privilege of the organisation
  *
  * @param booking
- * @returns true if duration exceeds privilege
+ * @returns true if booking is legal
  */
 export async function checkBookingPrivelege(booking: BookingPayload) {
   const { start, end, userId } = booking
@@ -118,7 +118,7 @@ export async function checkBookingPrivelege(booking: BookingPayload) {
     // admins can make bookings of any length
     return true
   } else {
-    // check that that the booking exceeds the user's privilege
+    // check that that the booking does not exceeds the user's privilege
     const numberOfSlots =
       (convertDateToMinutes(end) - convertDateToMinutes(start)) /
       DURATION_PER_SLOT
