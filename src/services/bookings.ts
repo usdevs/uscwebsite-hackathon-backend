@@ -67,7 +67,7 @@ export async function getBookingById(
 
 export type BookingPayload = Pick<
   Booking,
-  'userId' | 'venueId' | 'orgId' | 'start' | 'end'
+  'eventName' | 'userId' | 'venueId' | 'orgId' | 'start' | 'end'
 >
 
 /* Add a new booking */
