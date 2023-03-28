@@ -68,12 +68,15 @@ function convertDateToMinutes(date: Date): number {
 export function checkStartEndTime(start: Date, end: Date): boolean {
   return (
     (convertDateToMinutes(end) - convertDateToMinutes(start)) /
-    DURATION_PER_SLOT >=
-    MIN_SLOTS_PER_BOOKING &&
+      DURATION_PER_SLOT >=
+      MIN_SLOTS_PER_BOOKING &&
     (convertDateToMinutes(end) - convertDateToMinutes(start)) %
-    DURATION_PER_SLOT ==
-    0 &&
-    convertDateToMinutes(end) % DURATION_PER_SLOT == 0
+      DURATION_PER_SLOT ==
+      0 &&
+    convertDateToMinutes(end) % DURATION_PER_SLOT == 0 &&
+    // check if current date is at most 14 days before start date
+    convertDateToMinutes(start) - convertDateToMinutes(new Date()) <=
+      14 * 24 * 60
   )
 }
 
@@ -140,7 +143,7 @@ export async function checkConflictingBooking(
       start: {
         lt: endTime,
       },
-      id: typeof exclude !== undefined ? { not: exclude } : {}
+      id: typeof exclude !== undefined ? { not: exclude } : {},
     },
     orderBy: {
       end: 'desc',
@@ -208,16 +211,16 @@ export async function checkStackedBookings(booking: BookingPayload) {
   // interval between the end of the latest earlier booking and the start of this booking must be greater than the gap
   const hasEarlierStackedBooking = latestEarlierBooking
     ? (convertDateToMinutes(start) -
-      convertDateToMinutes(latestEarlierBooking.end)) /
-    DURATION_PER_SLOT >=
-    MIN_SLOTS_BETWEEN_BOOKINGS
+        convertDateToMinutes(latestEarlierBooking.end)) /
+        DURATION_PER_SLOT >=
+      MIN_SLOTS_BETWEEN_BOOKINGS
     : true
   // interval between start of the earliest later booking and the end of this booking must be greater than the gap
   const hasLaterStackedBooking = earliestLaterBooking
     ? (convertDateToMinutes(earliestLaterBooking.start) -
-      convertDateToMinutes(end)) /
-    DURATION_PER_SLOT >=
-    MIN_SLOTS_BETWEEN_BOOKINGS
+        convertDateToMinutes(end)) /
+        DURATION_PER_SLOT >=
+      MIN_SLOTS_BETWEEN_BOOKINGS
     : true
 
   return hasEarlierStackedBooking && hasLaterStackedBooking
