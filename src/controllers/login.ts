@@ -72,5 +72,5 @@ export async function handleLogin(
 
   const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
   const token = generateToken(userCredentials)
-  res.status(200).send({ token, orgIds })
+  res.status(200).send({ userCredentials, token, orgIds })
 }
