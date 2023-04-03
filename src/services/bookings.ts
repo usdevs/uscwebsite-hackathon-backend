@@ -34,6 +34,11 @@ export async function getAllBookings(
       ],
     },
     orderBy: { start: 'asc' },
+    include: {
+      venue: true,
+      bookedByUser: true,
+      bookedBy: true,
+    },
   })
 }
 
@@ -62,6 +67,11 @@ export async function getBookingById(
 ): Promise<Booking> {
   return await prisma.booking.findFirstOrThrow({
     where: { id: { equals: bookingId } },
+    include: {
+      venue: true,
+      bookedByUser: true,
+      bookedBy: true,
+    },
   })
 }
 
