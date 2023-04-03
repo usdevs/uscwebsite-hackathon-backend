@@ -3,13 +3,18 @@ import { z } from 'zod'
 
 export const BookingSchema = z
   .object({
+    eventName: z.string(),
     venueId: z.number(),
     orgId: z.number(),
     start: z
       .preprocess((arg) => {
         if (typeof arg == 'string' || arg instanceof Date) {
-          const result =  new Date(arg)
-          result.setMinutes(result.getMinutes() - result.getMinutes() % DURATION_PER_SLOT, 0, 0)
+          const result = new Date(arg)
+          result.setMinutes(
+            result.getMinutes() - (result.getMinutes() % DURATION_PER_SLOT),
+            0,
+            0
+          )
           return result
         }
       }, z.date())
@@ -18,9 +23,13 @@ export const BookingSchema = z
       }, 'Booking start time must be after the current time.'),
     end: z.preprocess((arg) => {
       if (typeof arg == 'string' || arg instanceof Date) {
-          const result =  new Date(arg)
-          result.setMinutes(result.getMinutes() - result.getMinutes() % DURATION_PER_SLOT, 0, 0)
-          return result
+        const result = new Date(arg)
+        result.setMinutes(
+          result.getMinutes() - (result.getMinutes() % DURATION_PER_SLOT),
+          0,
+          0
+        )
+        return result
       }
     }, z.date()),
   })

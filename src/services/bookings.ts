@@ -34,6 +34,11 @@ export async function getAllBookings(
       ],
     },
     orderBy: { start: 'asc' },
+    include: {
+      venue: true,
+      bookedByUser: true,
+      bookedBy: true,
+    },
   })
 }
 
@@ -62,12 +67,17 @@ export async function getBookingById(
 ): Promise<Booking> {
   return await prisma.booking.findFirstOrThrow({
     where: { id: { equals: bookingId } },
+    include: {
+      venue: true,
+      bookedByUser: true,
+      bookedBy: true,
+    },
   })
 }
 
 export type BookingPayload = Pick<
   Booking,
-  'userId' | 'venueId' | 'orgId' | 'start' | 'end'
+  'eventName' | 'userId' | 'venueId' | 'orgId' | 'start' | 'end'
 >
 
 /* Add a new booking */
@@ -122,7 +132,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (
     booking.start.getTime() - new Date().getTime() >
-    14 * 24 * DURATION_PER_SLOT * 60 * 1000
+    14 * 24 * 60 * 60 * 1000
   ) {
     throw new HttpException(
       `You can only book up to 14 days in advance`,
@@ -215,6 +225,16 @@ export async function updateBooking(
   ) {
     throw new HttpException(
       `Booking duration is too short, please change your booking request.`,
+      HttpCode.BadRequest
+    )
+  }
+
+  if (
+    updatedBooking.start.getTime() - new Date().getTime() >
+    14 * 24 * 60 * 60 * 1000
+  ) {
+    throw new HttpException(
+      `You can only book up to 14 days in advance`,
       HttpCode.BadRequest
     )
   }
