@@ -127,10 +127,10 @@ export async function checkBookingPrivelege(booking: BookingPayload) {
 }
 
 /**
- * Checks that there does NOT exist conflicting booking in the database
+ * Checks that there exists conflicting booking in the database
  *
  * @param booking
- * @returns true if there is no overlap
+ * @returns true if there is overlap
  */
 export async function checkConflictingBooking(
   booking: BookingPayload,
@@ -144,6 +144,7 @@ export async function checkConflictingBooking(
         lt: endTime,
       },
       id: typeof exclude !== undefined ? { not: exclude } : {},
+      venueId: booking.venueId,
     },
     orderBy: {
       end: 'desc',
