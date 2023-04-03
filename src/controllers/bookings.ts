@@ -20,9 +20,6 @@ export async function createBooking(
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
 
-  const bookedByName = await getUserBookings(user.id)
-  // add bookedByName to booking
-  req.body.bookedByName = bookedByName
   const booking = BookingSchema.parse(req.body)
   const bookingPayload = { ...booking, userId: user!.id }
   const inserted = await addBooking(bookingPayload)
@@ -85,9 +82,6 @@ export async function editBooking(
     throw new HttpException('Booking id not found', HttpCode.BadRequest)
   }
   const userId = req.user!.id
-  const bookedByName = await getUserBookings(userId)
-  // add bookedByName to booking
-  req.body.bookedByName = bookedByName
   const booking = BookingSchema.parse(req.body)
   const bookingPayload = { ...booking, userId: userId }
   const updatedBooking = await updateBooking(bookingId, bookingPayload, userId)

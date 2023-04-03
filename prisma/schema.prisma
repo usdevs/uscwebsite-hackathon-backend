@@ -19,6 +19,7 @@ model User {
   telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
+  bookings Booking[]
   deleted Boolean @default(false) // supports soft delete
 }
 
@@ -53,7 +54,7 @@ model Booking {
   venue Venue @relation(fields: [venueId], references: [id])
   venueId Int
   bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
-  bookedByName String // saves the name of the user at the time of booking
+  bookedByUser User @relation(fields: [userId], references: [id]) 
   userId Int
   orgId Int
   start DateTime // start time of booking
