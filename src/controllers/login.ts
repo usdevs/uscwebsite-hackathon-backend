@@ -1,8 +1,7 @@
 import { Response, Request, NextFunction } from 'express'
 import { checkSignature, generateToken } from '@middlewares/auth.middleware'
-import { TelegramAuth } from '@interfaces/auth.interface'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
-import { PrismaClient, Prisma } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
 
@@ -42,7 +41,8 @@ export async function handleLogin(
       throw new HttpException('Not authorized!', HttpCode.Unauthorized)
     } else {
       // Delete all matching entries except for the first one
-      matchingUsers.forEach(async (user, index) => {
+      for (const user of matchingUsers) {
+        const index = matchingUsers.indexOf(user);
         if (index !== 0) {
           await users.delete({ where: { id: user.id } })
         } else {
@@ -57,7 +57,7 @@ export async function handleLogin(
             },
           })
         }
-      })
+      }
     }
   } catch (error) {
     next(error)
@@ -72,5 +72,5 @@ export async function handleLogin(
 
   const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
   const token = generateToken(userCredentials)
-  res.status(200).send({ userCredentials, token, orgIds })
+  res.status(200).send({ userCredentials, token, orgIds, userId })
 }
