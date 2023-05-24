@@ -75,7 +75,8 @@ function generateBookingData(
       userId: userOnOrg.userId,
       orgId: userOnOrg.orgId,
       start: startDate,
-      end: new Date(startDate.getTime() + bookingDuration * 60000) // more magicc
+      end: new Date(startDate.getTime() + bookingDuration * 60000), // more magicc
+      eventName: Math.random().toString(36).slice(2, 7),
     }
 
     bookingData.push(booking)
