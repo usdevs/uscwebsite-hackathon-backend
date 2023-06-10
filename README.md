@@ -21,15 +21,11 @@ $ docker compose up
 $ npm install
 $ npm run prisma:migrate
 $ npm run prisma:seed
-$ # update env files
-$ git checkout frontend
-$ npm install
-$ npm run prisma:reset
 ```
 
 #### .env file
 
-Add the .env file - get it from an existing person using the repo.
+Add the .env file - get it from an existing person using the repo. Be sure to configure the values appropriately.
 
 ## Usage
 

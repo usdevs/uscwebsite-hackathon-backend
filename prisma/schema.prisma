@@ -1,13 +1,13 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
-// Appears that the relations need to be optional https://stackoverflow.com/questions/73000266/prisma-not-deleting-because-it-depends-on-nonexistent-record 
+// Appears that the relations need to be optional https://stackoverflow.com/questions/73000266/prisma-not-deleting-because-it-depends-on-nonexistent-record
 
 generator client {
   provider = "prisma-client-js"
   previewFeatures = ["orderByNulls"]
 }
 
-datasource db { 
+datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
@@ -23,12 +23,23 @@ model User {
   deleted Boolean @default(false) // supports soft delete
 }
 
+enum IGCategory {
+  Sports
+  SocioCultural
+  Others
+  Inactive
+  Guips
+}
+
 model Organisation {
   id        Int     @id @default(autoincrement())
   name     String
   description String @default("A NUSC organisation")
   verified Boolean @default(false) // verified organisations have admin rights
   userOrg UserOnOrg[]
+  inviteLink String
+  slug String @unique
+  category IGCategory
 }
 
 model UserOnOrg {
@@ -54,10 +65,10 @@ model Booking {
   venue Venue @relation(fields: [venueId], references: [id])
   venueId Int
   bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
-  bookedByUser User @relation(fields: [userId], references: [id]) 
+  bookedByUser User @relation(fields: [userId], references: [id])
   userId Int
   orgId Int
   start DateTime // start time of booking
-  end DateTime // end time of booking 
+  end DateTime // end time of booking
   bookedAt DateTime @default(now())
 }
