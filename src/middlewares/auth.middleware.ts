@@ -1,5 +1,5 @@
 import { createHash, createHmac } from 'crypto'
-import { Request, Response, NextFunction, RequestHandler } from 'express'
+import { Request, Response, NextFunction } from 'express'
 import { RequestWithUser, TelegramAuth } from '@interfaces/auth.interface'
 import { default as jwt } from 'jsonwebtoken'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
@@ -52,7 +52,7 @@ export async function requiresAuthentication(
     })
 
     if (!findUser) {
-      next(new HttpException('Wrong credentials', HttpCode.Unauthorized))
+      next(new HttpException('Could not find user in database', HttpCode.Unauthorized))
       return
     }
     (req as RequestWithUser).user = findUser

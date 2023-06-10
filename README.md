@@ -27,6 +27,12 @@ $ npm run prisma:seed
 
 Add the .env file - get it from an existing person using the repo. Be sure to configure the values appropriately.
 
+### To migrate the DB after changes to the schema
+```bash
+$ npm run prisma:migrate
+$ # If you need to, you can update the seed file and run: npm run prisma:reset
+```
+
 ## Usage
 
 2. `docker-compose up -d` to start development database
