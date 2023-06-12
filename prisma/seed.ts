@@ -166,7 +166,14 @@ async function main() {
           verified: row.isOrganisationVerified === 1, category: row.organisationType,
           inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
           description: row.description,
-          slug: slugify(row.name)
+          slug: slugify(row.name, {
+              replacement: '-',
+              remove: /[*+~.()'"!:@]/g,
+              lower: true,
+              strict: true,
+              locale: 'en',
+              trim: true
+          })
         };
         organisationData.push(organisation);
 
