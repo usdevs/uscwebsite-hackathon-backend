@@ -166,7 +166,14 @@ async function main() {
           verified: row.isOrganisationVerified === 1, category: row.organisationType,
           inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
           description: row.description,
-          slug: slugify(row.name)
+          slug: slugify(row.name, {
+              replacement: '-',
+              remove: /[*+~.()'"!:@]/g,
+              lower: true,
+              strict: true,
+              locale: 'en',
+              trim: true
+          })
         };
         organisationData.push(organisation);
 
@@ -205,8 +212,6 @@ async function main() {
     await readUserOnOrg(getDevSheetName(userOnOrgSheet));
   }
 
-  const bookingData = generateBookingData(userOnOrgData, venueData, 20);
-
   console.log(`Start seeding ...`);
   console.log(`Start seeding venues...`);
   for (const u of venueData) {
@@ -239,13 +244,17 @@ async function main() {
   }
   console.log(`Seeding finished.`);
 
-  console.log(`Start seeding bookings...`);
-  for (const u of bookingData) {
-    try {
-      const booking = await addBooking(u);
-      console.log(`Added booking of id ${booking.id} created by user of id ${booking.userId}`);
-    } catch (error) {
-      console.log(error);
+  if (isDevEnv) {
+    const bookingData = generateBookingData(userOnOrgData, venueData, 20);
+
+    console.log(`Start seeding bookings...`);
+    for (const u of bookingData) {
+      try {
+        const booking = await addBooking(u);
+        console.log(`Added booking of id ${booking.id} created by user of id ${booking.userId}`);
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
   console.log(`Seeding finished.`);
