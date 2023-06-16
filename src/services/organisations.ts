@@ -1,8 +1,26 @@
 import prisma from './db'
-import { Organisation } from '@prisma/client'
-import { HttpCode, HttpException } from '@/exceptions/HttpException'
+import { Prisma } from "@prisma/client";
+
+type OrganisationsWithIGHeads = Prisma.OrganisationGetPayload<{
+  include: {
+    userOrg: {
+      include: {
+        user: true
+      }
+    }
+  };
+}>;
+
 
 /* Retrieves all organisations */
-export async function getAllOrgs(): Promise<Organisation[]> {
-  return await prisma.organisation.findMany()
+export async function getAllOrgs(): Promise<OrganisationsWithIGHeads[]> {
+  return prisma.organisation.findMany({
+    include: {
+      userOrg: {
+        include: {
+          user: true
+        }
+      }
+    }
+  });
 }

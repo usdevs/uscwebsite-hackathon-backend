@@ -13,7 +13,7 @@ export async function handleLogin(
   const userCredentials = TelegramAuthSchema.parse(req.body)
 
   if (!checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
-    next(new HttpException('Wrong credentials!', HttpCode.Unauthorized))
+    next(new HttpException('Failed to check user credentials against those obtained from the bot!', HttpCode.Unauthorized))
     return
   }
 
