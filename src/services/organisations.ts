@@ -1,5 +1,5 @@
 import prisma from './db'
-import { Prisma } from "@prisma/client";
+import { IGCategory, Prisma } from "@prisma/client";
 
 type OrganisationsWithIGHeads = Prisma.OrganisationGetPayload<{
   include: {
@@ -23,4 +23,8 @@ export async function getAllOrgs(): Promise<OrganisationsWithIGHeads[]> {
       }
     }
   });
+}
+
+export async function getAllOrgCategories(): Promise<any> {
+  return IGCategory;
 }

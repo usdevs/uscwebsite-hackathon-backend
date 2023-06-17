@@ -37,7 +37,11 @@ export async function getAllBookings(
     include: {
       venue: true,
       bookedByUser: true,
-      bookedBy: true,
+      bookedBy: {
+        include: {
+          org: true
+        }
+      },
     },
   })
 }
