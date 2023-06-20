@@ -49,6 +49,7 @@ model UserOnOrg {
   orgId Int // relation scalar field (used in the `@relation` attribute above)
   assignedAt DateTime @default(now())
   bookings Booking[]
+  isIGHead Boolean @default(false)
   @@id([userId, orgId])
   deleted Boolean @default(false) // supports soft delete
 }
