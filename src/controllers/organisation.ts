@@ -1,7 +1,5 @@
 import { Response, Request, NextFunction } from 'express'
-import { HttpCode, HttpException } from '@exceptions/HttpException'
-import { Organisation } from '@prisma/client'
-import { getAllOrgs } from '@/services/organisations'
+import { getAllOrgCategories, getAllOrgs } from "@/services/organisations";
 
 /**
  * Retrieves all organisation details
@@ -21,3 +19,17 @@ export async function getOrgs(
     next(error)
   }
 }
+
+export async function getOrgCategories(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const orgs = await getAllOrgCategories()
+    res.json(orgs)
+  } catch (error) {
+    next(error)
+  }
+}
+
