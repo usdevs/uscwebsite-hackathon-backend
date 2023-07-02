@@ -26,12 +26,13 @@ type MainSchemaType = {
   igHeadPreferredName?: string
   otherMembers?: string
   otherMembersTeleUsername?: string
+  isActive?: number
 }
 
 const mainSchema = {
   "id": { prop: "id", type: Number, required: true },
   "name": { prop: "name", type: String, required: true },
-  "description": { prop: "description", type: String, required: true },
+  "description": { prop: "description", type: String },
   "organisationType": {
     prop: "organisationType", type: String, oneOf: ["Sports", "SocioCultural", "Others",
       "Inactive",
@@ -44,7 +45,8 @@ const mainSchema = {
   "igHeadTeleUsername": { prop: "igHeadTeleUsername", type: String, required: true },
   "igHeadPreferredName": { prop: "igHeadPreferredName", type: String },
   "otherMembers": { prop: "otherMembers", type: String },
-  "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String }
+  "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String },
+  "isActive": { prop: "isActive", type: Number }
 };
 
 const userSchema = {
@@ -162,62 +164,71 @@ async function main() {
 
   let numOfUsers = userData.length + 1;
 
-  await readXlsxFile(excelFile, { sheet: mainSheet, schema: mainSchema })
-    .then(({ rows, errors }) => {
-      if (errors.length !== 0) {
-        throw new Error(errors[0].error);
-      }
-      const casted: MainSchemaType[] = rows as MainSchemaType[];
-
-      const addUserToUserTable = (userToAdd: Prisma.UserUncheckedCreateInput) => {
-        if (!userDataSet.has(userToAdd.name)) {
-          userDataSet.add(userToAdd.name);
-          userData.push(userToAdd);
-        } else {
-          const temp: Prisma.UserUncheckedCreateInput = userData.filter(u => userToAdd.name === u.name)[0];
-          userToAdd.id = temp.id;
+  const readMain = async (mainSheetName: string) => {
+    return await readXlsxFile(excelFile, { sheet: mainSheetName, schema: mainSchema })
+      .then(({ rows, errors }) => {
+        if (errors.length !== 0) {
+          throw new Error(errors[0].error);
         }
-      }
+        const casted: MainSchemaType[] = rows as MainSchemaType[];
 
-      for (const row of casted) {
-        const organisation: Prisma.OrganisationUncheckedCreateInput = {
-          id: row.id, name: row.name,
-          verified: row.isOrganisationVerified === 1, category: row.organisationType,
-          inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
-          description: row.description,
-          slug: slugify(row.name, {
+        const addUserToUserTable = (userToAdd: Prisma.UserUncheckedCreateInput) => {
+          if (!userDataSet.has(userToAdd.name)) {
+            userDataSet.add(userToAdd.name);
+            userData.push(userToAdd);
+          } else {
+            const temp: Prisma.UserUncheckedCreateInput = userData.filter(u => userToAdd.name === u.name)[0];
+            userToAdd.id = temp.id;
+          }
+        }
+
+        for (const row of casted) {
+          const organisation: Prisma.OrganisationUncheckedCreateInput = {
+            id: row.id, name: row.name,
+            verified: row.isOrganisationVerified === 1, category: row.organisationType,
+            inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
+            description: row.description,
+            slug: slugify(row.name, {
               replacement: '-',
               remove: /[*+~.()'"!:@]/g,
               lower: true,
               strict: true,
               locale: 'en',
               trim: true
-          })
-        };
-        organisationData.push(organisation);
+            }),
+            isActive: row.isActive === 1
+          };
+          organisationData.push(organisation);
 
-        const igHead: Prisma.UserUncheckedCreateInput = { name: row.igHeadFullName, telegramUserName: row.igHeadTeleUsername, id: numOfUsers++ };
-        addUserToUserTable(igHead);
+          const igHead: Prisma.UserUncheckedCreateInput = { name: row.igHeadFullName, telegramUserName: row.igHeadTeleUsername, id: numOfUsers++ };
+          addUserToUserTable(igHead);
 
-        const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: igHead.id || 0, orgId: row.id, isIGHead: true };
-        userOnOrgData.push(userOnOrg);
-
-        const otherUsersNames: string[] = row.otherMembers?.split(';') || []
-        const otherUsersTelegramUsernames: string[] = row.otherMembersTeleUsername?.split(';') || []
-        if (otherUsersTelegramUsernames.length !== otherUsersNames.length) {
-          throw new Error(`For ${organisation.name} Lengths of otherMembersTeleUsername and otherMembers do not add up`)
-        }
-        const otherUsers: Prisma.UserUncheckedCreateInput[] = otherUsersNames.map((otherUsersName, index) => {
-          return { name: otherUsersName, telegramUserName: otherUsersTelegramUsernames[index], id: numOfUsers++ }
-        })
-        for (const otherUser of otherUsers) {
-          addUserToUserTable(otherUser);
-
-          const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: otherUser.id || 0, orgId: row.id, isIGHead: true };
+          const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: igHead.id || 0, orgId: row.id, isIGHead: true };
           userOnOrgData.push(userOnOrg);
+
+          const otherUsersNames: string[] = row.otherMembers?.split(';') || []
+          const otherUsersTelegramUsernames: string[] = row.otherMembersTeleUsername?.split(';') || []
+          if (otherUsersTelegramUsernames.length !== otherUsersNames.length) {
+            throw new Error(`For ${organisation.name} Lengths of otherMembersTeleUsername and otherMembers do not add up`)
+          }
+          const otherUsers: Prisma.UserUncheckedCreateInput[] = otherUsersNames.map((otherUsersName, index) => {
+            return { name: otherUsersName, telegramUserName: otherUsersTelegramUsernames[index], id: numOfUsers++ }
+          })
+          for (const otherUser of otherUsers) {
+            addUserToUserTable(otherUser);
+
+            const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: otherUser.id || 0, orgId: row.id, isIGHead: true };
+            userOnOrgData.push(userOnOrg);
+          }
         }
-      }
-    });
+      });
+  }
+
+  await readMain(mainSheet)
+
+  if (isDevEnv) {
+    await readMain(getDevSheetName(mainSheet))
+  }
 
   const readUserOnOrg = async (sheetname: string) => await readXlsxFile(excelFile, {
     sheet: sheetname,

@@ -40,6 +40,7 @@ model Organisation {
   inviteLink String
   slug String @unique
   category IGCategory
+  isActive Boolean @default(true)
 }
 
 model UserOnOrg {
