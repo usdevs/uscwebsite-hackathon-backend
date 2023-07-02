@@ -1,7 +1,7 @@
-import { Response, Request, NextFunction } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import { checkSignature, generateToken } from '@middlewares/auth.middleware'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
-import { PrismaClient, Prisma } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
 
@@ -40,36 +40,38 @@ export async function handleLogin(
     orderBy: {
       telegramId: { sort: 'asc', nulls: 'last' },
     },
-  };
+  }
   try {
-    const matchingUsersPromise: Promise<Prisma.UserGetPayload<Prisma.UserFindManyArgs>[]> = users.findMany(args)
-    const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] = await matchingUsersPromise;
+    const matchingUsersPromise: Promise<
+      Prisma.UserGetPayload<Prisma.UserFindManyArgs>[]
+    > = users.findMany(args)
+    const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
+      await matchingUsersPromise
     if (matchingUsers.length === 0) {
       throw new HttpException('Not authorized!', HttpCode.Unauthorized)
+    } else if (matchingUsers.length > 1) {
+      throw new HttpException(
+        'Multiple entries for the same telegramId or the same telegramUserName detected!' +
+          ' Contact the DB admin to ensure there is only one.',
+        HttpCode.InternalServerError
+      )
     } else {
-      // Delete all matching entries except for the first one
-      for (const user of matchingUsers) {
-        const index = matchingUsers.indexOf(user)
-        if (index !== 0) {
-          await users.delete({ where: { id: user.id } })
-        } else {
-          userId = user.id
-          let name = `${userCredentials.first_name}`
-          // because last name is optional on Tele
-          if (userCredentials.last_name) {
-            name = name + `${userCredentials.last_name}`
-          }
-
-          await users.update({
-            where: { id: user.id },
-            data: {
-              name: name,
-              telegramId: userCredentials.id,
-              telegramUserName: userCredentials.username,
-            },
-          })
-        }
+      const user = matchingUsers[0]
+      userId = user.id
+      let name = `${userCredentials.first_name}`
+      // because last name is optional on Tele
+      if (userCredentials.last_name) {
+        name = name + `${userCredentials.last_name}`
       }
+
+      await users.update({
+        where: { id: user.id },
+        data: {
+          name: name,
+          telegramId: userCredentials.id,
+          telegramUserName: userCredentials.username,
+        },
+      })
     }
   } catch (error) {
     next(error)
