@@ -26,7 +26,7 @@ type MainSchemaType = {
   igHeadPreferredName?: string
   otherMembers?: string
   otherMembersTeleUsername?: string
-  isActive?: number
+  isInactive?: number
 }
 
 const mainSchema = {
@@ -46,7 +46,7 @@ const mainSchema = {
   "igHeadPreferredName": { prop: "igHeadPreferredName", type: String },
   "otherMembers": { prop: "otherMembers", type: String },
   "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String },
-  "isActive": { prop: "isActive", type: Number }
+  "isInactive": { prop: "isInactive", type: Number }
 };
 
 const userSchema = {
@@ -196,7 +196,7 @@ async function main() {
               locale: 'en',
               trim: true
             }),
-            isActive: row.isActive === 1
+            isInactive: row.isInactive === 1
           };
           organisationData.push(organisation);
 
