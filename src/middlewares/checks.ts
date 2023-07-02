@@ -1,11 +1,11 @@
-import { User, Organisation, Booking, Venue } from '@prisma/client'
-import { BookingPayload } from '../services/bookings'
+import { User, Organisation } from '@prisma/client'
+import { BookingPayload } from "@services/bookings"
 import {
   DURATION_PER_SLOT,
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
   MIN_SLOTS_PER_BOOKING,
-} from '../config/common'
+} from "@/config/common"
 import prisma from '../services/db'
 
 /**
@@ -130,6 +130,7 @@ export async function checkBookingPrivelege(booking: BookingPayload) {
  * Checks that there exists conflicting booking in the database
  *
  * @param booking
+ * @param exclude
  * @returns true if there is overlap
  */
 export async function checkConflictingBooking(
@@ -190,7 +191,7 @@ export async function checkStackedBookings(booking: BookingPayload) {
       },
     ],
     where: {
-      end: { lt: start },
+      end: { lte: start },
       venueId: venueId,
       orgId: orgId,
     },
@@ -203,7 +204,7 @@ export async function checkStackedBookings(booking: BookingPayload) {
       },
     ],
     where: {
-      start: { gt: end },
+      start: { gte: end },
       venueId: venueId,
       orgId: orgId,
     },
