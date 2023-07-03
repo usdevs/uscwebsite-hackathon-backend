@@ -24,12 +24,15 @@ type MainSchemaType = {
   inviteOrContactLink?: string
   igHeadTeleUsername: string
   igHeadPreferredName?: string
+  otherMembers?: string
+  otherMembersTeleUsername?: string
+  isInactive?: number
 }
 
 const mainSchema = {
   "id": { prop: "id", type: Number, required: true },
   "name": { prop: "name", type: String, required: true },
-  "description": { prop: "description", type: String, required: true },
+  "description": { prop: "description", type: String },
   "organisationType": {
     prop: "organisationType", type: String, oneOf: ["Sports", "SocioCultural", "Others",
       "Inactive",
@@ -40,7 +43,10 @@ const mainSchema = {
   "igHeadFullName": { prop: "igHeadFullName", type: String, required: true },
   "inviteOrContactLink": { prop: "inviteOrContactLink", type: String },
   "igHeadTeleUsername": { prop: "igHeadTeleUsername", type: String, required: true },
-  "igHeadPreferredName": { prop: "igHeadPreferredName", type: String }
+  "igHeadPreferredName": { prop: "igHeadPreferredName", type: String },
+  "otherMembers": { prop: "otherMembers", type: String },
+  "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String },
+  "isInactive": { prop: "isInactive", type: Number }
 };
 
 const userSchema = {
@@ -54,9 +60,16 @@ const venueSchema = {
   "name": { prop: "name", type: String, required: true }
 };
 
+type UserOnOrgSchemaType = {
+  userId: number,
+  orgId: number,
+  isIGHead: number
+}
+
 const userOnOrgSchema = {
   "userId": { prop: "userId", type: Number, required: true },
-  "organisationId": { prop: "orgId", type: Number, required: true }
+  "orgId": { prop: "orgId", type: Number, required: true },
+  "isIGHead": { prop: "isIGHead", type: Number, required: true }
 };
 
 const userData: Prisma.UserUncheckedCreateInput[] = [];
@@ -151,47 +164,71 @@ async function main() {
 
   let numOfUsers = userData.length + 1;
 
-  await readXlsxFile(excelFile, { sheet: mainSheet, schema: mainSchema })
-    .then(({ rows, errors }) => {
-      if (errors.length !== 0) {
-        throw new Error(errors[0].error);
-      }
-      const casted: MainSchemaType[] = rows as MainSchemaType[];
-      let user: Prisma.UserUncheckedCreateInput;
-      let organisation: Prisma.OrganisationUncheckedCreateInput;
-      let userOnOrg: Prisma.UserOnOrgUncheckedCreateInput;
-      for (const row of casted) {
-        organisation = {
-          id: row.id, name: row.name,
-          verified: row.isOrganisationVerified === 1, category: row.organisationType,
-          inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
-          description: row.description,
-          slug: slugify(row.name, {
+  const readMain = async (mainSheetName: string) => {
+    return await readXlsxFile(excelFile, { sheet: mainSheetName, schema: mainSchema })
+      .then(({ rows, errors }) => {
+        if (errors.length !== 0) {
+          throw new Error(errors[0].error);
+        }
+        const casted: MainSchemaType[] = rows as MainSchemaType[];
+
+        const addUserToUserTable = (userToAdd: Prisma.UserUncheckedCreateInput) => {
+          if (!userDataSet.has(userToAdd.name)) {
+            userDataSet.add(userToAdd.name);
+            userData.push(userToAdd);
+          } else {
+            const temp: Prisma.UserUncheckedCreateInput = userData.filter(u => userToAdd.name === u.name)[0];
+            userToAdd.id = temp.id;
+          }
+        }
+
+        for (const row of casted) {
+          const organisation: Prisma.OrganisationUncheckedCreateInput = {
+            id: row.id, name: row.name,
+            verified: row.isOrganisationVerified === 1, category: row.organisationType,
+            inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
+            description: row.description,
+            slug: slugify(row.name, {
               replacement: '-',
               remove: /[*+~.()'"!:@]/g,
               lower: true,
               strict: true,
               locale: 'en',
               trim: true
+            }),
+            isInactive: row.isInactive === 1
+          };
+          organisationData.push(organisation);
+
+          const igHead: Prisma.UserUncheckedCreateInput = { name: row.igHeadFullName, telegramUserName: row.igHeadTeleUsername, id: numOfUsers++ };
+          addUserToUserTable(igHead);
+
+          const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: igHead.id || 0, orgId: row.id, isIGHead: true };
+          userOnOrgData.push(userOnOrg);
+
+          const otherUsersNames: string[] = row.otherMembers?.split(';') || []
+          const otherUsersTelegramUsernames: string[] = row.otherMembersTeleUsername?.split(';') || []
+          if (otherUsersTelegramUsernames.length !== otherUsersNames.length) {
+            throw new Error(`For ${organisation.name} Lengths of otherMembersTeleUsername and otherMembers do not add up`)
+          }
+          const otherUsers: Prisma.UserUncheckedCreateInput[] = otherUsersNames.map((otherUsersName, index) => {
+            return { name: otherUsersName, telegramUserName: otherUsersTelegramUsernames[index], id: numOfUsers++ }
           })
-        };
-        organisationData.push(organisation);
+          for (const otherUser of otherUsers) {
+            addUserToUserTable(otherUser);
 
-        user = { name: row.igHeadFullName, telegramUserName: row.igHeadTeleUsername, id: numOfUsers };
-        if (!userDataSet.has(user.name)) {
-          userDataSet.add(user.name);
-          userData.push(user);
-        } else {
-          const temp: Prisma.UserUncheckedCreateInput = userData.filter(u => user.name === u.name)[0];
-          user.id = temp.id;
+            const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: otherUser.id || 0, orgId: row.id, isIGHead: true };
+            userOnOrgData.push(userOnOrg);
+          }
         }
+      });
+  }
 
-        userOnOrg = { userId: user.id || 0, orgId: row.id };
-        userOnOrgData.push(userOnOrg);
+  await readMain(mainSheet)
 
-        numOfUsers++;
-      }
-    });
+  if (isDevEnv) {
+    await readMain(getDevSheetName(mainSheet))
+  }
 
   const readUserOnOrg = async (sheetname: string) => await readXlsxFile(excelFile, {
     sheet: sheetname,
@@ -201,8 +238,14 @@ async function main() {
       if (errors.length !== 0) {
         throw new Error(errors[0].error);
       }
-      for (const row of rows) {
-        userOnOrgData.push(row as Prisma.UserOnOrgUncheckedCreateInput);
+      const casted: UserOnOrgSchemaType[] = rows as UserOnOrgSchemaType[];
+      let userOnOrg: Prisma.UserOnOrgUncheckedCreateInput;
+      for (const row of casted) {
+        userOnOrg = {
+          ...row,
+          isIGHead: row.isIGHead === 1
+        }
+        userOnOrgData.push(userOnOrg as Prisma.UserOnOrgUncheckedCreateInput);
       }
     });
 

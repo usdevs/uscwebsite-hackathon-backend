@@ -27,10 +27,7 @@ function errorHandler(
   } else if (err instanceof HttpException) {
     customError = err
   } else {
-    customError = new HttpException(
-      'Oh no, this is embarrasing. We are having troubles my friend'
-    )
-    // TODO: replace with logger
+    customError = new HttpException(err.message)
     console.log(err)
   }
 

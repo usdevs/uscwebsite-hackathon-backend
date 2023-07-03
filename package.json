@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "test": "jest --coverage",
-    "build": "tsc",
+    "build": "npm run prisma:generate && tsc",
     "start": "npm run build && node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js",
     "dev": "cross-env NODE_ENV=development nodemon",
     "lint": "eslint --ignore-path .gitignore src/**/*.{js,ts,json}",
