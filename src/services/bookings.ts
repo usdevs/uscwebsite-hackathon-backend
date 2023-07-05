@@ -18,7 +18,7 @@ export async function getAllBookings(
   start: Date,
   end: Date
 ): Promise<Booking[]> {
-  return await prisma.booking.findMany({
+  return prisma.booking.findMany({
     where: {
       OR: [
         {
@@ -43,7 +43,7 @@ export async function getAllBookings(
         }
       },
     },
-  })
+  });
 }
 
 /**
@@ -55,9 +55,9 @@ export async function getAllBookings(
 export async function getUserBookings(
   userId: Booking['userId']
 ): Promise<Booking[]> {
-  return await prisma.booking.findMany({
+  return prisma.booking.findMany({
     where: { userId: userId },
-  })
+  });
 }
 
 /**
@@ -69,14 +69,14 @@ export async function getUserBookings(
 export async function getBookingById(
   bookingId: Booking['id']
 ): Promise<Booking> {
-  return await prisma.booking.findFirstOrThrow({
+  return prisma.booking.findFirstOrThrow({
     where: { id: { equals: bookingId } },
     include: {
       venue: true,
       bookedByUser: true,
       bookedBy: true,
     },
-  })
+  });
 }
 
 export type BookingPayload = Pick<
@@ -111,7 +111,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   }
 
   if (await checkIsUserAdmin(booking.userId)) {
-    return await prisma.booking.create({ data: booking })
+    return prisma.booking.create({ data: booking });
   }
 
   if (
@@ -153,7 +153,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  return await prisma.booking.create({ data: booking })
+  return prisma.booking.create({ data: booking });
 }
 
 /**
@@ -161,6 +161,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
  *
  * @param bookingId booking id
  * @param updatedBooking updated booking
+ * @param userId
  * @returns updated booking
  */
 export async function updateBooking(
@@ -205,12 +206,12 @@ export async function updateBooking(
   }
 
   if (await checkIsUserAdmin(userId)) {
-    return await prisma.booking.update({
+    return prisma.booking.update({
       where: {
         id: bookingId,
       },
       data: updatedBooking,
-    })
+    });
   }
 
   if (
@@ -252,12 +253,12 @@ export async function updateBooking(
     )
   }
 
-  return await prisma.booking.update({
+  return prisma.booking.update({
     where: {
       id: bookingId,
     },
     data: updatedBooking,
-  })
+  });
 }
 
 /* Delete an existing booking */
@@ -283,9 +284,9 @@ export async function deleteBooking(
       HttpCode.Forbidden
     )
   }
-  return await prisma.booking.delete({
+  return prisma.booking.delete({
     where: {
       id: bookingId,
     },
-  })
+  });
 }

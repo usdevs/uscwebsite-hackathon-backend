@@ -148,9 +148,8 @@ async function main() {
 
   await readUsers(userSheet);
 
-  if (isDevEnv) {
-    await readUsers(getDevSheetName(userSheet));
-  }
+  // grand access to developers even on prod
+  await readUsers(getDevSheetName(userSheet));
 
   await readXlsxFile(excelFile, { sheet: venueSheet, schema: venueSchema })
     .then(({ rows, errors }) => {
@@ -251,9 +250,8 @@ async function main() {
 
   await readUserOnOrg(userOnOrgSheet);
 
-  if (isDevEnv) {
-    await readUserOnOrg(getDevSheetName(userOnOrgSheet));
-  }
+  // grand access to developers even on prod
+  await readUserOnOrg(getDevSheetName(userOnOrgSheet));
 
   console.log(`Start seeding ...`);
   console.log(`Start seeding venues...`);
