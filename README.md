@@ -33,6 +33,12 @@ $ npm run prisma:migrate
 $ # If you need to, you can update the seed file and run: npm run prisma:reset
 ```
 
+
+### To reseed the DB with new changes
+1. Change the DATABASE_URL in the .env file to the relevant DB that matches the frontend's .env file
+2. Change the value of PRISMA_SEED_ENVIRONMENT to DEV or PROD
+3. Run npm run prisma:reset
+
 ## Usage
 
 2. `docker-compose up -d` to start development database

@@ -27,6 +27,7 @@ type MainSchemaType = {
   otherMembers?: string
   otherMembersTeleUsername?: string
   isInactive?: number
+  isInvisible?: number
 }
 
 const mainSchema = {
@@ -46,7 +47,8 @@ const mainSchema = {
   "igHeadPreferredName": { prop: "igHeadPreferredName", type: String },
   "otherMembers": { prop: "otherMembers", type: String },
   "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String },
-  "isInactive": { prop: "isInactive", type: Number }
+  "isInactive": { prop: "isInactive", type: Number },
+  "isInvisible": { prop: "isInvisible", type: Number }
 };
 
 const userSchema = {
@@ -195,7 +197,8 @@ async function main() {
               locale: 'en',
               trim: true
             }),
-            isInactive: row.isInactive === 1
+            isInactive: row.isInactive === 1,
+            isInvisible: row.isInvisible === 1
           };
           organisationData.push(organisation);
 
@@ -286,7 +289,7 @@ async function main() {
   console.log(`Seeding finished.`);
 
   if (isDevEnv) {
-    const bookingData = generateBookingData(userOnOrgData, venueData, 20);
+    const bookingData = generateBookingData(userOnOrgData, venueData, 1000);
 
     console.log(`Start seeding bookings...`);
     for (const u of bookingData) {
