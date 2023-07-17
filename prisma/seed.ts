@@ -289,7 +289,8 @@ async function main() {
   console.log(`Seeding finished.`);
 
   if (isDevEnv) {
-    const bookingData = generateBookingData(userOnOrgData, venueData, 1000);
+    const NUMBER_OF_RANDOM_BOOKINGS = 1000
+    const bookingData = generateBookingData(userOnOrgData, venueData, NUMBER_OF_RANDOM_BOOKINGS);
 
     console.log(`Start seeding bookings...`);
     for (const u of bookingData) {

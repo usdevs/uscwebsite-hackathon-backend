@@ -27,7 +27,6 @@ enum IGCategory {
   Sports
   SocioCultural
   Others
-  Inactive
   Guips
 }
 
