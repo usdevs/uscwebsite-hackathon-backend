@@ -1,8 +1,7 @@
 import prisma from './db'
 import { IGCategory, Organisation, Prisma, UserOnOrg } from "@prisma/client";
 import { HttpCode, HttpException } from "@exceptions/HttpException";
-import { checkIsUserAdmin } from "@middlewares/checks";
-import { getSlugFromIgName } from "@/config/common";
+import { throwIfNotAdmin, getSlugFromIgName } from "@/config/common";
 
 type OrganisationsWithIGHeads = Prisma.OrganisationGetPayload<{
   include: {
@@ -43,12 +42,7 @@ export type OrganisationPayload = Pick<
 
 /* Add a new organisation */
 export async function addOrg(orgPayload: OrganisationPayload): Promise<Organisation> {
-  if (!(await checkIsUserAdmin(orgPayload.userId))) {
-    throw new HttpException(
-      `You are not an admin.`,
-      HttpCode.Forbidden
-    )
-  }
+  await throwIfNotAdmin(orgPayload.userId)
   const orgToAdd: Prisma.OrganisationCreateInput = {...orgPayload, slug: getSlugFromIgName(orgPayload.name)}
   return prisma.organisation.create({ data: orgToAdd });
 }
@@ -77,14 +71,14 @@ export async function updateOrg(
     )
   }
 
-  const isUserAdmin = await checkIsUserAdmin(orgPayload.userId)
+  await throwIfNotAdmin(orgPayload.userId)
 
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: { userId: orgPayload.userId, orgId: orgId },
   })
-  if (!userOnOrg || !isUserAdmin) {
+  if (!userOnOrg) {
     throw new HttpException(
-      `You are neither a member of this organisation nor an admin.`,
+      `You are neither a member of this organisation.`,
       HttpCode.Forbidden
     )
   }
@@ -103,19 +97,19 @@ export async function deleteOrg(
   orgId: Organisation['id'],
   userId: UserOnOrg['userId']
 ): Promise<Organisation> {
-  const bookingToDelete = await prisma.booking.findFirst({
+  const orgToDelete = await prisma.organisation.findFirst({
     where: {
       id: orgId,
     },
   })
-  if (!bookingToDelete) {
+  if (!orgToDelete) {
     throw new HttpException(
       `Could not find org with id ${orgId}`,
       HttpCode.BadRequest
     )
   }
 
-  const isUserAdmin = await checkIsUserAdmin(userId)
+  await throwIfNotAdmin(userId)
 
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: {
@@ -124,9 +118,9 @@ export async function deleteOrg(
     },
   })
 
-  if (!userOnOrg || !isUserAdmin) {
+  if (!userOnOrg) {
     throw new HttpException(
-      `You are neither a member of this organisation nor an admin.`,
+      `You are not a member of this organisation.`,
       HttpCode.Forbidden
     )
   }

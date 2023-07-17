@@ -22,7 +22,7 @@ import {
   getOrgs
 } from "@controllers/organisations";
 import { getVenues } from "@controllers/venues";
-import { getUsers } from "@controllers/users";
+import { createUser, deleteUserFromDb, editUser, getUsers } from "@controllers/users";
 
 export const router: Router = Router()
 
@@ -51,6 +51,12 @@ router.get('/venues', asyncHandler(getVenues))
 
 // get all users
 router.get('/venues', requiresAuthentication, asyncHandler(getUsers))
+// create a user
+router.post('/user', requiresAuthentication, asyncHandler(createUser))
+// edit a user
+router.put('/user/:id', requiresAuthentication, asyncHandler(editUser))
+// delete a user
+router.delete('/user/:id', requiresAuthentication, asyncHandler(deleteUserFromDb))
 
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))

@@ -1,5 +1,8 @@
 // Parses the string stored in env to number
 import slugify from "slugify";
+import { User } from "@prisma/client";
+import { checkIsUserAdmin } from "@middlewares/checks";
+import { HttpCode, HttpException } from "@exceptions/HttpException";
 
 function parseEnvToInt(envVar: string | undefined, fallback: number): number {
   return (envVar && Number(envVar)) || fallback
@@ -33,3 +36,12 @@ export const MIN_SLOTS_BETWEEN_BOOKINGS: number = parseEnvToInt(
   process.env.MIN_SLOTS_BETWEEN_BOOKING,
   1
 )
+
+export async function throwIfNotAdmin(userId: User["id"]) {
+  if (!(await checkIsUserAdmin(userId))) {
+    throw new HttpException(
+      `You are not an admin.`,
+      HttpCode.Forbidden
+    );
+  }
+}
