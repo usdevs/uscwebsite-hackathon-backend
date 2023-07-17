@@ -77,6 +77,8 @@ export async function deleteUser(
     )
   }
 
+  // the reason for this check is that we would want the website users to deliberately remove users from the orgs
+  // first, before deleting the user
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: {
       userId: userToDeleteId
@@ -90,6 +92,14 @@ export async function deleteUser(
   }
 
   await throwIfNotAdmin(adminUserId)
+
+  await prisma.booking.deleteMany({
+    where: {
+      bookedBy: {
+        userId: userToDeleteId
+      }
+    }
+  })
 
   return prisma.user.delete({
     where: {

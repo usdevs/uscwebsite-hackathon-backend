@@ -41,41 +41,36 @@ export async function handleLogin(
       telegramId: { sort: 'asc', nulls: 'last' },
     },
   }
-  try {
-    const matchingUsersPromise: Promise<
-      Prisma.UserGetPayload<Prisma.UserFindManyArgs>[]
-    > = users.findMany(args)
-    const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
-      await matchingUsersPromise
-    if (matchingUsers.length === 0) {
-      throw new HttpException('Not authorized!', HttpCode.Unauthorized)
-    } else if (matchingUsers.length > 1) {
-      throw new HttpException(
-        'Multiple entries for the same telegramId or the same telegramUserName detected!' +
-          ' Contact the DB admin to ensure there is only one.',
-        HttpCode.InternalServerError
-      )
-    } else {
-      const user = matchingUsers[0]
-      userId = user.id
-      let name = `${userCredentials.first_name}`
-      // because last name is optional on Tele
-      if (userCredentials.last_name) {
-        name = name + `${userCredentials.last_name}`
-      }
-
-      await users.update({
-        where: { id: user.id },
-        data: {
-          name: name,
-          telegramId: userCredentials.id,
-          telegramUserName: userCredentials.username,
-        },
-      })
+  const matchingUsersPromise: Promise<
+    Prisma.UserGetPayload<Prisma.UserFindManyArgs>[]
+  > = users.findMany(args)
+  const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
+    await matchingUsersPromise
+  if (matchingUsers.length === 0) {
+    throw new HttpException('Not authorized!', HttpCode.Unauthorized)
+  } else if (matchingUsers.length > 1) {
+    throw new HttpException(
+      'Multiple entries for the same telegramId or the same telegramUserName detected!' +
+        ' Contact the DB admin to ensure there is only one.',
+      HttpCode.InternalServerError
+    )
+  } else {
+    const user = matchingUsers[0]
+    userId = user.id
+    let name = `${userCredentials.first_name}`
+    // because last name is optional on Tele
+    if (userCredentials.last_name) {
+      name = name + `${userCredentials.last_name}`
     }
-  } catch (error) {
-    next(error)
-    return
+
+    await users.update({
+      where: { id: user.id },
+      data: {
+        name: name,
+        telegramId: userCredentials.id,
+        telegramUserName: userCredentials.username,
+      },
+    })
   }
 
   const userOrgs = await new PrismaClient().userOnOrg.findMany({

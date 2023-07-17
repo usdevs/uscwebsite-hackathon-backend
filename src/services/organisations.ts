@@ -35,16 +35,32 @@ type UserId = {
   userId: number
 }
 
+type OrgMembers = {
+  igHead: number
+  otherMembers: number[]
+}
+
 export type OrganisationPayload = Pick<
   Organisation,
   'name' | 'description' | 'verified' | 'inviteLink' | 'category' | 'isInvisible' | 'isInactive'
-> & UserId
+> & UserId & OrgMembers
 
 /* Add a new organisation */
 export async function addOrg(orgPayload: OrganisationPayload): Promise<Organisation> {
   await throwIfNotAdmin(orgPayload.userId)
   const orgToAdd: Prisma.OrganisationCreateInput = {...orgPayload, slug: getSlugFromIgName(orgPayload.name)}
-  return prisma.organisation.create({ data: orgToAdd });
+  const org = await prisma.organisation.create({ data: orgToAdd });
+  await prisma.userOnOrg.create({ data: {
+      userId: orgPayload.igHead,
+      orgId: org.id
+    }})
+  for (const orgMember of orgPayload.otherMembers) {
+    await prisma.userOnOrg.create({ data: {
+        userId: orgMember,
+        orgId: org.id
+      }})
+  }
+  return org
 }
 
 /**
@@ -84,12 +100,39 @@ export async function updateOrg(
   }
   const updatedOrg: Prisma.OrganisationUpdateInput = {...orgPayload, slug: getSlugFromIgName(orgPayload.name)}
 
-  return prisma.organisation.update({
+  const org = await prisma.organisation.update({
     where: {
       id: orgId,
     },
     data: updatedOrg,
   });
+  const igHead = {
+    userId: orgPayload.igHead,
+    orgId: org.id
+  }
+  const igHeadCompoundType: Prisma.UserOnOrgWhereUniqueInput = {
+    userId_orgId: igHead
+  }
+  await prisma.userOnOrg.upsert({
+    where: igHeadCompoundType,
+    create: igHead,
+    update: igHead
+  })
+  for (const orgMember of orgPayload.otherMembers) {
+    const member = {
+      userId: orgMember,
+      orgId: org.id
+    }
+    const igHeadCompoundType: Prisma.UserOnOrgWhereUniqueInput = {
+      userId_orgId: member
+    }
+    await prisma.userOnOrg.upsert({
+      where: igHeadCompoundType,
+      create: member,
+      update: member
+    })
+  }
+  return org
 }
 
 /* Delete an existing org */
@@ -124,6 +167,23 @@ export async function deleteOrg(
       HttpCode.Forbidden
     )
   }
+
+  // if someone wants to delete the entire organisation, we can assume they do not care about existing Bookings or
+  // UserOnOrgs
+  await prisma.booking.deleteMany({
+    where: {
+      bookedBy: {
+        orgId: orgId
+      }
+    }
+  })
+
+  await prisma.userOnOrg.deleteMany({
+    where: {
+      orgId: orgId
+    }
+  })
+
   return prisma.organisation.delete({
     where: {
       id: orgId,

@@ -10,4 +10,6 @@ export const OrganisationSchema = z
     category: z.nativeEnum(IGCategory),
     isInactive: z.boolean(),
     isInvisible: z.boolean(),
+    igHead: z.number(),
+    otherMembers: z.array(z.number())
   })
