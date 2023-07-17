@@ -1,6 +1,19 @@
 // Parses the string stored in env to number
+import slugify from "slugify";
+
 function parseEnvToInt(envVar: string | undefined, fallback: number): number {
   return (envVar && Number(envVar)) || fallback
+}
+
+export function getSlugFromIgName(igName: string): string {
+  return slugify(igName, {
+    replacement: '-',
+    remove: /[*+~.()'"!:@]/g,
+    lower: true,
+    strict: true,
+    locale: 'en',
+    trim: true
+  })
 }
 
 // Booking constraints

@@ -1,7 +1,7 @@
 import { PrismaClient, Prisma, IGCategory } from "@prisma/client";
 import readXlsxFile from "read-excel-file/node";
 import { BookingPayload, addBooking } from "@/services/bookings";
-import slugify from "slugify";
+import { getSlugFromIgName } from "@/config/common";
 
 const prisma = new PrismaClient();
 const excelFile = process.env.EXCEL_SEED_FILEPATH as string;
@@ -189,14 +189,7 @@ async function main() {
             verified: row.isOrganisationVerified === 1, category: row.organisationType,
             inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
             description: row.description,
-            slug: slugify(row.name, {
-              replacement: '-',
-              remove: /[*+~.()'"!:@]/g,
-              lower: true,
-              strict: true,
-              locale: 'en',
-              trim: true
-            }),
+            slug: getSlugFromIgName(row.name),
             isInactive: row.isInactive === 1,
             isInvisible: row.isInvisible === 1
           };

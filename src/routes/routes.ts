@@ -14,7 +14,13 @@ import {
   editBooking,
   deleteBookingHandler,
 } from '@controllers/bookings'
-import { getOrgCategories, getOrgs } from "@/controllers/organisation";
+import {
+  createOrganisation,
+  deleteOrganisation,
+  editOrganisation,
+  getOrgCategories,
+  getOrgs
+} from "@/controllers/organisation";
 import { getVenues } from "@controllers/venues";
 
 export const router: Router = Router()
@@ -32,6 +38,12 @@ router.post('/login', asyncHandler(handleLogin))
 // authentication not needed
 router.get('/orgs', asyncHandler(getOrgs))
 router.get('/orgs/categories', asyncHandler(getOrgCategories))
+// create an organisation
+router.post('/orgs', requiresAuthentication, asyncHandler(createOrganisation))
+// edit an organisation
+router.put('/orgs/:id', requiresAuthentication, asyncHandler(editOrganisation))
+// delete an organisation
+router.delete('/orgs/:id', requiresAuthentication, asyncHandler(deleteOrganisation))
 
 router.get('/venues', asyncHandler(getVenues))
 

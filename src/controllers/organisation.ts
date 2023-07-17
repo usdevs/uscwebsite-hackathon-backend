@@ -1,5 +1,8 @@
 import { Response, Request, NextFunction } from 'express'
-import { getAllOrgCategories, getAllOrgs } from "@/services/organisations";
+import { addOrg, deleteOrg, getAllOrgCategories, getAllOrgs, updateOrg } from "@/services/organisations";
+import { RequestWithUser } from "@interfaces/auth.interface";
+import { HttpCode, HttpException } from "@exceptions/HttpException";
+import { OrganisationSchema } from "@interfaces/organisation.interface";
 
 /**
  * Retrieves all organisation details
@@ -33,3 +36,53 @@ export async function getOrgCategories(
   }
 }
 
+export async function createOrganisation(
+  req: RequestWithUser,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const user = req.user
+  if (!user) {
+    throw new HttpException('Requires authentication', HttpCode.Unauthorized)
+  }
+
+  const org = OrganisationSchema.parse(req.body)
+  const orgPayload = { ...org, userId: user.id }
+  const inserted = await addOrg(orgPayload)
+  res.status(200).json({ result: [inserted] })
+}
+
+export async function editOrganisation(
+  req: RequestWithUser,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const orgId = parseInt(req.params['id'], 10)
+  if (Number.isNaN(orgId)) {
+    throw new HttpException('Org id not found', HttpCode.BadRequest)
+  }
+  const user = req.user
+  if (!user) {
+    throw new HttpException('Requires authentication', HttpCode.Unauthorized)
+  }
+  const userId = user.id
+  const booking = OrganisationSchema.parse(req.body)
+  const orgPayload = { ...booking, userId: userId }
+  const updatedOrg = await updateOrg(orgId, orgPayload)
+  res.status(200).json({ result: [updatedOrg] })
+}
+
+export async function deleteOrganisation(
+  req: RequestWithUser,
+  res: Response
+): Promise<void> {
+  const orgId = parseInt(req.params['id'], 10)
+  if (Number.isNaN(orgId)) {
+    throw new HttpException('Org id not found', HttpCode.BadRequest)
+  }
+  if (!req.user) {
+    throw new HttpException('Requires authentication', HttpCode.Unauthorized)
+  }
+  const org = await deleteOrg(orgId, req.user.id)
+  res.status(200).json(org)
+}
