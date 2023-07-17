@@ -20,8 +20,9 @@ import {
   editOrganisation,
   getOrgCategories,
   getOrgs
-} from "@/controllers/organisation";
+} from "@controllers/organisations";
 import { getVenues } from "@controllers/venues";
+import { getUsers } from "@controllers/users";
 
 export const router: Router = Router()
 
@@ -45,7 +46,11 @@ router.put('/orgs/:id', requiresAuthentication, asyncHandler(editOrganisation))
 // delete an organisation
 router.delete('/orgs/:id', requiresAuthentication, asyncHandler(deleteOrganisation))
 
+// get all venues
 router.get('/venues', asyncHandler(getVenues))
+
+// get all users
+router.get('/venues', requiresAuthentication, asyncHandler(getUsers))
 
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))

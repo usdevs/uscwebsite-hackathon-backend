@@ -38,8 +38,7 @@ export async function getOrgCategories(
 
 export async function createOrganisation(
   req: RequestWithUser,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> {
   const user = req.user
   if (!user) {
@@ -54,8 +53,7 @@ export async function createOrganisation(
 
 export async function editOrganisation(
   req: RequestWithUser,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> {
   const orgId = parseInt(req.params['id'], 10)
   if (Number.isNaN(orgId)) {

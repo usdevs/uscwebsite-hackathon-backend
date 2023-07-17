@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request } from 'express'
 import { User } from '@prisma/client'
 import { z } from 'zod'
 

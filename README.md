@@ -41,6 +41,6 @@ $ # If you need to, you can update the seed file and run: npm run prisma:reset
 
 ## Usage
 
-2. `docker-compose up -d` to start development database
-3. `npm run dev` to start development server
-4. `docker-compose down` to stop development database
+1. `docker-compose up -d` to start development database
+2. `npm run dev` to start development server
+3. `docker-compose down` to stop development database
