@@ -5,7 +5,7 @@ export const OrganisationSchema = z
   .object({
     name: z.string(),
     description: z.string(),
-    verified: z.boolean(),
+    isAdminOrg: z.boolean(),
     inviteLink: z.string(),
     category: z.nativeEnum(IGCategory),
     isInactive: z.boolean(),

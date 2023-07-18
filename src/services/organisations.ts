@@ -42,13 +42,14 @@ type OrgMembers = {
 
 export type OrganisationPayload = Pick<
   Organisation,
-  'name' | 'description' | 'verified' | 'inviteLink' | 'category' | 'isInvisible' | 'isInactive'
+  'name' | 'description' | 'isAdminOrg' | 'inviteLink' | 'category' | 'isInvisible' | 'isInactive'
 > & UserId & OrgMembers
 
 /* Add a new organisation */
 export async function addOrg(orgPayload: OrganisationPayload): Promise<Organisation> {
   await throwIfNotAdmin(orgPayload.userId)
-  const orgToAdd: Prisma.OrganisationCreateInput = {...orgPayload, slug: getSlugFromIgName(orgPayload.name)}
+  const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
+  const orgToAdd: Prisma.OrganisationCreateInput = {name, description, category, inviteLink, isAdminOrg, isInactive, isInvisible, slug: getSlugFromIgName(orgPayload.name)}
   const org = await prisma.organisation.create({ data: orgToAdd });
   await prisma.userOnOrg.create({ data: {
       userId: orgPayload.igHead,
@@ -87,8 +88,6 @@ export async function updateOrg(
     )
   }
 
-  await throwIfNotAdmin(orgPayload.userId)
-
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: { userId: orgPayload.userId, orgId: orgId },
   })
@@ -98,7 +97,8 @@ export async function updateOrg(
       HttpCode.Forbidden
     )
   }
-  const updatedOrg: Prisma.OrganisationUpdateInput = {...orgPayload, slug: getSlugFromIgName(orgPayload.name)}
+  const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
+  const updatedOrg: Prisma.OrganisationUpdateInput = {name, description, category, inviteLink, isAdminOrg, isInactive, isInvisible, slug: getSlugFromIgName(orgPayload.name)}
 
   const org = await prisma.organisation.update({
     where: {

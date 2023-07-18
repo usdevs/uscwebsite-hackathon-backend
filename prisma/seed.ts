@@ -19,7 +19,7 @@ type MainSchemaType = {
   description: string
   organisationType: IGCategory
   frequency?: string
-  isOrganisationVerified?: number
+  isAdminOrg?: number
   igHeadFullName: string
   inviteOrContactLink?: string
   igHeadTeleUsername: string
@@ -40,7 +40,7 @@ const mainSchema = {
       "Guips"], required: true
   },
   "frequency": { prop: "frequency", type: String },
-  "isOrganisationVerified": { prop: "isOrganisationVerified", type: Number },
+  "isAdminOrg": { prop: "isAdminOrg", type: Number },
   "igHeadFullName": { prop: "igHeadFullName", type: String, required: true },
   "inviteOrContactLink": { prop: "inviteOrContactLink", type: String },
   "igHeadTeleUsername": { prop: "igHeadTeleUsername", type: String, required: true },
@@ -186,7 +186,7 @@ async function main() {
         for (const row of casted) {
           const organisation: Prisma.OrganisationUncheckedCreateInput = {
             id: row.id, name: row.name,
-            verified: row.isOrganisationVerified === 1, category: row.organisationType,
+            isAdminOrg: row.isAdminOrg === 1, category: row.organisationType,
             inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
             description: row.description,
             slug: getSlugFromIgName(row.name),

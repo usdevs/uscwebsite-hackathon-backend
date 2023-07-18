@@ -34,7 +34,7 @@ model Organisation {
   id        Int     @id @default(autoincrement())
   name     String
   description String @default("A NUSC organisation")
-  verified Boolean @default(false) // verified organisations have admin rights
+  isAdminOrg Boolean @default(false)
   userOrg UserOnOrg[]
   inviteLink String
   slug String @unique

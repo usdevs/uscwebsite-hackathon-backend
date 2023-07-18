@@ -40,7 +40,7 @@ export async function checkUserinOrg(
             },
             {
               org: {
-                verified: true,
+                isAdminOrg: true,
               },
             },
           ],
@@ -95,7 +95,7 @@ export async function checkIsUserAdmin(userId: number): Promise<boolean> {
         },
         {
           org: {
-            verified: true,
+            isAdminOrg: true,
           },
         },
       ],
@@ -173,7 +173,7 @@ export async function checkStackedBookings(booking: BookingPayload) {
         },
         {
           org: {
-            verified: true,
+            isAdminOrg: true,
           },
         },
       ],

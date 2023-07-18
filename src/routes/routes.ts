@@ -39,18 +39,20 @@ router.post('/login', asyncHandler(handleLogin))
 // authentication not needed
 router.get('/orgs', asyncHandler(getOrgs))
 router.get('/orgs/categories', asyncHandler(getOrgCategories))
+
 // create an organisation
-router.post('/orgs', requiresAuthentication, asyncHandler(createOrganisation))
+router.post('/org', requiresAuthentication, asyncHandler(createOrganisation))
 // edit an organisation
-router.put('/orgs/:id', requiresAuthentication, asyncHandler(editOrganisation))
+router.put('/org/:id', requiresAuthentication, asyncHandler(editOrganisation))
 // delete an organisation
-router.delete('/orgs/:id', requiresAuthentication, asyncHandler(deleteOrganisation))
+router.delete('/org/:id', requiresAuthentication, asyncHandler(deleteOrganisation))
 
 // get all venues
 router.get('/venues', asyncHandler(getVenues))
 
 // get all users
-router.get('/venues', requiresAuthentication, asyncHandler(getUsers))
+router.get('/users', requiresAuthentication, asyncHandler(getUsers))
+
 // create a user
 router.post('/user', requiresAuthentication, asyncHandler(createUser))
 // edit a user

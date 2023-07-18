@@ -41,7 +41,7 @@ export function generateRandomOrganisation(): Organisation {
     id: generateRandomTableId(),
     name: faker.company.name(),
     description: faker.lorem.paragraph(),
-    verified: false,
+    isAdminOrg: false,
   }
 }
 
@@ -50,7 +50,7 @@ export function generateRandomAdminOrganisation(): Organisation {
     id: generateRandomTableId(),
     name: faker.company.name(),
     description: faker.lorem.paragraph(),
-    verified: true,
+    isAdminOrg: true,
   }
 }
 
