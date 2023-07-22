@@ -77,9 +77,19 @@ export async function handleLogin(
     where: {
       userId: userId,
     },
+    include: {
+      org: {
+        select: {
+          isAdminOrg: true
+        }
+      }
+    }
   })
 
   const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
+  const isAdminUser: boolean = userOrgs.reduce((isAdmin, currentOrg) => {
+    return isAdmin || currentOrg.org.isAdminOrg
+  }, false)
   const token = generateToken(userCredentials)
-  res.status(200).send({ userCredentials, token, orgIds, userId })
+  res.status(200).send({ userCredentials, token, orgIds, userId, isAdminUser })
 }
