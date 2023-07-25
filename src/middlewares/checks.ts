@@ -6,7 +6,7 @@ import {
   MIN_SLOTS_BETWEEN_BOOKINGS,
   MIN_SLOTS_PER_BOOKING,
 } from "@/config/common"
-import prisma from '../services/db'
+import { prisma } from '../../db'
 
 /**
  * Checks if user is in the organisation OR if the user is an Admin

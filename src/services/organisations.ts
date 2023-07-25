@@ -1,4 +1,4 @@
-import prisma from './db'
+import { prisma } from '../../db'
 import { IGCategory, Organisation, Prisma, UserOnOrg } from "@prisma/client";
 import { HttpCode, HttpException } from "@exceptions/HttpException";
 import { throwIfNotAdmin, getSlugFromIgName } from "@/config/common";

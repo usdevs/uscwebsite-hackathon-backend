@@ -1,9 +1,9 @@
-import { PrismaClient, Prisma, IGCategory, Venue, User, UserOnOrg } from "@prisma/client";
+import { Prisma, IGCategory, Venue, User, UserOnOrg } from "@prisma/client";
 import readXlsxFile from "read-excel-file/node";
 import { BookingPayload, addBooking } from "@/services/bookings";
 import { getSlugFromIgName } from "@/config/common";
+import { prisma } from '../db'
 
-const prisma = new PrismaClient();
 const excelFile = process.env.EXCEL_SEED_FILEPATH as string;
 
 const mainSheet = "Organisations and IG Heads";

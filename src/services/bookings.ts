@@ -1,4 +1,4 @@
-import prisma from './db'
+import { prisma } from '../../db'
 import { Booking } from '@prisma/client'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
 import {

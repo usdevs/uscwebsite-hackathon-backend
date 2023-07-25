@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express'
 import { RequestWithUser, TelegramAuth } from '@interfaces/auth.interface'
 import { default as jwt } from 'jsonwebtoken'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '../../db'
 
 const SECRET_KEY = process.env.SECRET_KEY || 'hello'
 
@@ -46,7 +46,7 @@ export async function requiresAuthentication(
 
     const decoded = jwt.verify(token, SECRET_KEY) as TelegramAuth
 
-    const users = new PrismaClient().user
+    const users = prisma.user
     const findUser = await users.findUnique({
       where: { telegramId: decoded.id },
     })

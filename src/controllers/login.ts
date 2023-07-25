@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from 'express'
 import { checkSignature, generateToken } from '@middlewares/auth.middleware'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
+import { prisma } from '../../db'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
 
@@ -24,7 +25,7 @@ export async function handleLogin(
 
   // TODO: update database tables
   let userId = 0
-  const users = new PrismaClient().user
+  const users = prisma.user
   const args: Prisma.UserFindManyArgs = {
     where: {
       OR: [
@@ -73,7 +74,7 @@ export async function handleLogin(
     })
   }
 
-  const userOrgs = await new PrismaClient().userOnOrg.findMany({
+  const userOrgs = await prisma.userOnOrg.findMany({
     where: {
       userId: userId,
     },

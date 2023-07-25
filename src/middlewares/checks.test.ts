@@ -1,10 +1,10 @@
-import { User, Organisation, UserOnOrg, Booking, Venue } from '@prisma/client'
+import { User, Organisation, UserOnOrg, Venue } from '@prisma/client'
 import {
   DURATION_PER_SLOT,
   MIN_SLOTS_BETWEEN_BOOKINGS,
 } from '../configs/common'
 import { addBooking, BookingPayload } from '../services/bookings'
-import prisma from '../services/db'
+import  { prisma } from '../../db'
 
 import {
   generateRandomAdminOrganisation,
