@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from 'express'
-import { addOrg, deleteOrg, getAllOrgCategories, getAllOrgs, updateOrg } from "@/services/organisations";
+import { deleteOrg, getAllOrgCategories, getAllOrgs, updateOrg } from "@/services/organisations";
 import { RequestWithUser } from "@interfaces/auth.interface";
 import { HttpCode, HttpException } from "@exceptions/HttpException";
 import { OrganisationSchema } from "@interfaces/organisation.interface";
@@ -36,28 +36,13 @@ export async function getOrgCategories(
   }
 }
 
-export async function createOrganisation(
-  req: RequestWithUser,
-  res: Response
-): Promise<void> {
-  const user = req.user
-  if (!user) {
-    throw new HttpException('Requires authentication', HttpCode.Unauthorized)
-  }
-
-  const org = OrganisationSchema.parse(req.body)
-  const orgPayload = { ...org, userId: user.id }
-  const inserted = await addOrg(orgPayload)
-  res.status(200).json({ result: [inserted] })
-}
-
 export async function editOrganisation(
   req: RequestWithUser,
   res: Response
 ): Promise<void> {
   const orgId = parseInt(req.params['id'], 10)
   if (Number.isNaN(orgId)) {
-    throw new HttpException('Org id not found', HttpCode.BadRequest)
+    throw new HttpException('Org id not valid', HttpCode.BadRequest)
   }
   const user = req.user
   if (!user) {

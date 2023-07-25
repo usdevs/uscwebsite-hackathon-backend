@@ -52,7 +52,7 @@ export async function requiresAuthentication(
     })
 
     if (!findUser) {
-      next(new HttpException('Could not find user in database', HttpCode.Unauthorized))
+      next(new HttpException('Could not find user\'s telegramId in database, is the telegramId registered?', HttpCode.Unauthorized))
       return
     }
     (req as RequestWithUser).user = findUser

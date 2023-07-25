@@ -15,7 +15,6 @@ import {
   deleteBookingHandler,
 } from '@controllers/bookings'
 import {
-  createOrganisation,
   deleteOrganisation,
   editOrganisation,
   getOrgCategories,
@@ -40,9 +39,7 @@ router.post('/login', asyncHandler(handleLogin))
 router.get('/orgs', asyncHandler(getOrgs))
 router.get('/orgs/categories', asyncHandler(getOrgCategories))
 
-// create an organisation
-router.post('/org', requiresAuthentication, asyncHandler(createOrganisation))
-// edit an organisation
+// create or edit an organisation
 router.put('/org/:id', requiresAuthentication, asyncHandler(editOrganisation))
 // delete an organisation
 router.delete('/org/:id', requiresAuthentication, asyncHandler(deleteOrganisation))
