@@ -65,10 +65,9 @@ model Booking {
   id Int @id@default(autoincrement())
   eventName String
   venue Venue @relation(fields: [venueId], references: [id])
-  //todo remove venueId, we already have the venue
   venueId Int
   bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
-  //todo remove the following 3 fields, is useless if we already have the userOnOrg
+  //todo remove the following field, is useless if we already have the userOnOrg
   bookedByUser User @relation(fields: [userId], references: [id])
   userId Int
   orgId Int

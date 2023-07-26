@@ -1,6 +1,7 @@
 import { prisma } from '../../db'
 import { IGCategory, Organisation, Prisma, UserOnOrg } from "@prisma/client";
 import { HttpCode, HttpException } from "@exceptions/HttpException";
+import { checkIsUserAdmin } from "@middlewares/checks";
 import { throwIfNotAdmin, getSlugFromIgName } from "@/config/common";
 
 type OrganisationsWithIGHeads = Prisma.OrganisationGetPayload<{
@@ -56,50 +57,63 @@ export async function updateOrg(
   orgId: Organisation['id'],
   orgPayload: OrganisationPayload,
 ): Promise<Organisation> {
-  await throwIfNotAdmin(orgPayload.userId)
-  const orgToUpdate = await prisma.organisation.findUnique({
-    where: {
-      id: orgId,
-    },
-  })
-
-  if (!orgToUpdate) {
-    throw new HttpException(
-      `Could not find org with id ${orgId}`,
-      HttpCode.BadRequest
-    )
+  let oldSlug: string = ''; // no org would have an empty slug, so it's fine to use this in order to signify that
+  // the org does not exist and that it should be created
+  if (orgId === -1) {
+    await throwIfNotAdmin(orgPayload.userId)
+  }
+  else {
+    const orgToUpdate = await prisma.organisation.findUnique({
+      where: {
+        id: orgId,
+      },
+    })
+    if (!orgToUpdate) {
+      throw new HttpException(
+        `Could not find org with id ${orgId}`,
+        HttpCode.BadRequest
+      )
+    }
+    if (!await checkIsUserAdmin(orgPayload.userId))  {
+      const userOnOrg = await prisma.userOnOrg.findFirst({
+        where: { userId: orgPayload.userId, orgId: orgId },
+      })
+      if (!userOnOrg) {
+        throw new HttpException(
+          `You are neither a member of this organisation.`,
+          HttpCode.Forbidden
+        )
+      }
+    }
+    oldSlug = orgToUpdate.slug
   }
 
-  const existingOrg = await prisma.organisation.findFirst()
-
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: orgPayload.userId, orgId: orgId },
-  })
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are neither a member of this organisation.`,
-      HttpCode.Forbidden
-    )
-  }
   const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
-  const generatedSlug: string = getSlugFromIgName(orgPayload.name) || existingOrg?.slug || ''
+  const generatedSlug: string = getSlugFromIgName(orgPayload.name)
   const updatedOrg: Prisma.OrganisationCreateInput = {name, description, category, inviteLink, isAdminOrg, isInactive, isInvisible, slug: generatedSlug}
 
   const org: Organisation = await prisma.organisation.upsert({
     where: {
-      slug: generatedSlug,
+      slug: oldSlug,
     },
     create: updatedOrg,
     update: updatedOrg,
   });
-  // deleting removed useronorg
-  await prisma.userOnOrg.deleteMany({
-    where: {
-      NOT: {
-        userId: { in: [...orgPayload.otherMembers, orgPayload.igHead] }
+  if (orgId !== -1) {
+    // deleting removed useronorg
+    await prisma.userOnOrg.deleteMany({
+      where: {
+        NOT: {
+          userId: { in: [...orgPayload.otherMembers, orgPayload.igHead] }
+        },
+        orgId
       }
-    }
-  })
+    })
+  }
+  // todo there is the case where we promote an existing member to be the IG Head - then in this case, we must
+  //  update the isIGHead field only instead of creating a new UserOnOrg --> then if existing IG head is demoted,
+  //  also check for his existence and then demote him
+  // todo we also have onUpdate: Cascade
   // add IG head first
   const igHead = {
     userId: orgPayload.igHead,
@@ -110,8 +124,8 @@ export async function updateOrg(
   }
   await prisma.userOnOrg.upsert({
     where: igHeadCompoundType,
-    create: igHead,
-    update: igHead
+    create: {...igHead, isIGHead: true},
+    update: {...igHead, isIGHead: true}
   })
   // add the others
   for (const orgMember of orgPayload.otherMembers) {
@@ -124,8 +138,8 @@ export async function updateOrg(
     }
     await prisma.userOnOrg.upsert({
       where: igHeadCompoundType,
-      create: member,
-      update: member
+      create: {...member, isIGHead: false},
+      update: {...member, isIGHead: false}
     })
   }
   return org
@@ -166,6 +180,7 @@ export async function deleteOrg(
 
   // if someone wants to delete the entire organisation, we can assume they do not care about existing Bookings or
   // UserOnOrgs
+  // todo change to use onDelete: Cascade
   await prisma.booking.deleteMany({
     where: {
       bookedBy: {
