@@ -19,7 +19,6 @@ model User {
   telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
-  bookings Booking[]
   deleted Boolean @default(false) // supports soft delete
 }
 
@@ -44,9 +43,9 @@ model Organisation {
 }
 
 model UserOnOrg {
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int // relation scalar field (used in the `@relation` attribute above)
-  org   Organisation @relation(fields: [orgId], references: [id])
+  org   Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId Int // relation scalar field (used in the `@relation` attribute above)
   assignedAt DateTime @default(now())
   bookings Booking[]
@@ -64,11 +63,9 @@ model Venue {
 model Booking {
   id Int @id@default(autoincrement())
   eventName String
-  venue Venue @relation(fields: [venueId], references: [id])
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
   venueId Int
-  bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
-  //todo remove the following field, is useless if we already have the userOnOrg
-  bookedByUser User @relation(fields: [userId], references: [id])
+  bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId], onDelete: Cascade)
   userId Int
   orgId Int
   start DateTime // start time of booking

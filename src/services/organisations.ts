@@ -178,23 +178,7 @@ export async function deleteOrg(
     )
   }
 
-  // if someone wants to delete the entire organisation, we can assume they do not care about existing Bookings or
-  // UserOnOrgs
-  // todo change to use onDelete: Cascade
-  await prisma.booking.deleteMany({
-    where: {
-      bookedBy: {
-        orgId: orgId
-      }
-    }
-  })
-
-  await prisma.userOnOrg.deleteMany({
-    where: {
-      orgId: orgId
-    }
-  })
-
+  // due to onDelete: Cascade, any existing Bookings or UserOnOrgs will also get deleted
   return prisma.organisation.delete({
     where: {
       id: orgId,

@@ -36,7 +36,6 @@ export async function getAllBookings(
     orderBy: { start: 'asc' },
     include: {
       venue: true,
-      bookedByUser: true,
       bookedBy: {
         include: {
           org: true
@@ -73,7 +72,6 @@ export async function getBookingById(
     where: { id: { equals: bookingId } },
     include: {
       venue: true,
-      bookedByUser: true,
       bookedBy: true,
     },
   });

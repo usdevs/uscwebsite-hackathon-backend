@@ -8,18 +8,14 @@ export async function getAllUsers(): Promise<Prisma.UserGetPayload<Prisma.UserAr
   return prisma.user.findMany();
 }
 
-type AdminUserId = {
-  adminUserId: number
-}
-
 export type UserPayload = Pick<
   User,
-  'name' | 'telegramUserName'
-> & AdminUserId
+  'name' | 'telegramUserName' | 'telegramId'
+>
 
 /* Add a new user */
-export async function addUser(userPayload: UserPayload): Promise<User> {
-  await throwIfNotAdmin(userPayload.adminUserId);
+export async function addUser(userPayload: UserPayload, adminUserId: number): Promise<User> {
+  await throwIfNotAdmin(adminUserId);
   const userToAdd: Prisma.UserCreateInput = {...userPayload}
   return prisma.user.create({ data: userToAdd });
 }
@@ -29,18 +25,21 @@ export async function addUser(userPayload: UserPayload): Promise<User> {
  *
  * @param userId
  * @param userPayload
+ * @param adminUserId
  * @returns updated user
  */
 export async function updateUser(
   userId: User['id'],
   userPayload: UserPayload,
+  adminUserId: number
 ): Promise<User> {
+  await throwIfNotAdmin(adminUserId)
+
   const userToUpdate = await prisma.user.findUnique({
     where: {
       id: userId,
     },
   })
-
   if (!userToUpdate) {
     throw new HttpException(
       `Could not find user with id ${userId}`,
@@ -48,10 +47,7 @@ export async function updateUser(
     )
   }
 
-  await throwIfNotAdmin(userPayload.adminUserId)
-
   const updatedUser: Prisma.UserUpdateInput = {...userPayload}
-
   return prisma.user.update({
     where: {
       id: userId,
@@ -65,6 +61,7 @@ export async function deleteUser(
   userToDeleteId: User['id'],
   adminUserId: User['id']
 ): Promise<User> {
+  await throwIfNotAdmin(adminUserId)
   const userToDelete = await prisma.user.findFirst({
     where: {
       id: userToDeleteId,
@@ -90,16 +87,6 @@ export async function deleteUser(
       HttpCode.BadRequest
     )
   }
-
-  await throwIfNotAdmin(adminUserId)
-
-  await prisma.booking.deleteMany({
-    where: {
-      bookedBy: {
-        userId: userToDeleteId
-      }
-    }
-  })
 
   return prisma.user.delete({
     where: {

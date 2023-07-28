@@ -42,7 +42,7 @@ export async function editOrganisation(
 ): Promise<void> {
   const orgId = parseInt(req.params['id'], 10)
   if (Number.isNaN(orgId)) {
-    throw new HttpException('Org id not valid', HttpCode.BadRequest)
+    throw new HttpException('Org id not a number', HttpCode.BadRequest)
   }
   const user = req.user
   if (!user) {

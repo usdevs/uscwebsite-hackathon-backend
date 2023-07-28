@@ -33,8 +33,8 @@ export async function createUser(
   }
 
   const newUser = UserSchema.parse(req.body)
-  const userPayload = { ...newUser, adminUserId: user.id }
-  const inserted = await addUser(userPayload)
+  const adminUserId = user.id
+  const inserted = await addUser(newUser, adminUserId)
   res.status(200).json({ result: [inserted] })
 }
 
@@ -44,16 +44,14 @@ export async function editUser(
 ): Promise<void> {
   const userToUpdateId = parseInt(req.params['id'], 10)
   if (Number.isNaN(userToUpdateId)) {
-    throw new HttpException('User id not found', HttpCode.BadRequest)
+    throw new HttpException('User id is not a number', HttpCode.BadRequest)
   }
   const adminUser = req.user
   if (!adminUser) {
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
-  const adminUserId = adminUser.id
   const user = UserSchema.parse(req.body)
-  const userPayload = { ...user, adminUserId: adminUserId }
-  const updatedUser = await updateUser(userToUpdateId, userPayload)
+  const updatedUser = await updateUser(userToUpdateId, user, adminUser.id)
   res.status(200).json({ result: [updatedUser] })
 }
 
