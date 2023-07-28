@@ -79,11 +79,18 @@ export async function deleteUser(
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: {
       userId: userToDeleteId
+    },
+    select: {
+      org: {
+        select: {
+          name: true
+        }
+      }
     }
   })
   if (userOnOrg) {
     throw new HttpException(
-      `User is a member of an existing organisation: ${userOnOrg.orgId}!`,
+      `User is a member of an existing organisation: ${userOnOrg.org.name}!`,
       HttpCode.BadRequest
     )
   }

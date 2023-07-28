@@ -4,5 +4,5 @@ export const UserSchema = z
   .object({
     name: z.string(),
     telegramUserName: z.string(),
-    telegramId: z.number().nullish().transform(x => x ?? null)
+    telegramId: z.string().nullish().transform(x => x ?? null)
   })

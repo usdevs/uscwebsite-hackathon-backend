@@ -15,7 +15,7 @@ datasource db {
 model User {
   id    Int    @id @default(autoincrement())
   name  String
-  telegramId Int? @unique
+  telegramId String? @unique
   telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
