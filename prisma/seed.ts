@@ -23,7 +23,6 @@ type MainSchemaType = {
   igHeadFullName: string
   inviteOrContactLink?: string
   igHeadTeleUsername: string
-  igHeadPreferredName?: string
   otherMembers?: string
   otherMembersTeleUsername?: string
   isInactive?: number
@@ -44,7 +43,6 @@ const mainSchema = {
   "igHeadFullName": { prop: "igHeadFullName", type: String, required: true },
   "inviteOrContactLink": { prop: "inviteOrContactLink", type: String },
   "igHeadTeleUsername": { prop: "igHeadTeleUsername", type: String, required: true },
-  "igHeadPreferredName": { prop: "igHeadPreferredName", type: String },
   "otherMembers": { prop: "otherMembers", type: String },
   "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String },
   "isInactive": { prop: "isInactive", type: Number },

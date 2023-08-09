@@ -14,6 +14,9 @@ type OrganisationsWithIGHeads = Prisma.OrganisationGetPayload<{
   };
 }>;
 
+const isCoreAdminOrg = (name: string) => {
+  return name.includes("Management Committee") || name.includes("Admin") || name.includes("MC")
+}
 
 /* Retrieves all organisations */
 export async function getAllOrgs(): Promise<OrganisationsWithIGHeads[]> {
@@ -59,6 +62,9 @@ export async function updateOrg(
 ): Promise<Organisation> {
   let oldSlug: string = ''; // no org would have an empty slug, so it's fine to use this in order to signify that
   // the org does not exist and that it should be created
+  const isUserAdmin = await checkIsUserAdmin(orgPayload.userId)
+  let isOrgCoreAdminOrg = false
+
   if (orgId === -1) {
     await throwIfNotAdmin(orgPayload.userId)
   }
@@ -74,23 +80,38 @@ export async function updateOrg(
         HttpCode.BadRequest
       )
     }
-    if (!await checkIsUserAdmin(orgPayload.userId))  {
+    if (!isUserAdmin)  {
       const userOnOrg = await prisma.userOnOrg.findFirst({
         where: { userId: orgPayload.userId, orgId: orgId },
       })
       if (!userOnOrg) {
         throw new HttpException(
-          `You are neither a member of this organisation.`,
+          `You are neither a member of this organisation nor an admin.`,
           HttpCode.Forbidden
         )
       }
     }
     oldSlug = orgToUpdate.slug
+    isOrgCoreAdminOrg = isCoreAdminOrg(orgToUpdate.name)
   }
 
   const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
   const generatedSlug: string = getSlugFromIgName(orgPayload.name)
   const updatedOrg: Prisma.OrganisationCreateInput = {name, description, category, inviteLink, isAdminOrg, isInactive, isInvisible, slug: generatedSlug}
+
+  if (isAdminOrg && !isUserAdmin) {
+    throw new HttpException(
+      `You cannot make an organisation an admin organisation, if you are not an admin yourself.`,
+      HttpCode.Forbidden
+    )
+  }
+
+  if (isOrgCoreAdminOrg && (!isAdminOrg || !isCoreAdminOrg(name)))  {
+    throw new HttpException(
+      `You are attempting to either remove the admin permissions from a core admin org or change the name without including 'Management Committee' or 'Admin'.`,
+      HttpCode.Forbidden
+    )
+  }
 
   const org: Organisation = await prisma.organisation.upsert({
     where: {
@@ -163,6 +184,13 @@ export async function deleteOrg(
   }
 
   await throwIfNotAdmin(userId)
+
+  if (isCoreAdminOrg(orgToDelete.name)) {
+    throw new HttpException(
+      `Users cannot directly delete this admin organisation because it is a core admin organisation.`,
+      HttpCode.Forbidden
+    )
+  }
 
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: {

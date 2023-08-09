@@ -48,7 +48,7 @@ export async function handleLogin(
   const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
     await matchingUsersPromise
   if (matchingUsers.length === 0) {
-    throw new HttpException('Not authorized!', HttpCode.Unauthorized)
+    throw new HttpException('Not authorized to access the NUSC website!', HttpCode.Unauthorized)
   } else if (matchingUsers.length > 1) {
     throw new HttpException(
       'Multiple entries for the same telegramId or the same telegramUserName detected!' +
