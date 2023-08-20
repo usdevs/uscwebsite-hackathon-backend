@@ -23,7 +23,6 @@ export async function handleLogin(
     return
   }
 
-  // TODO: update database tables
   let userId = 0
   const users = prisma.user
   const args: Prisma.UserFindManyArgs = {
@@ -48,11 +47,13 @@ export async function handleLogin(
   const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
     await matchingUsersPromise
   if (matchingUsers.length === 0) {
-    throw new HttpException('Not authorized to access the NUSC website!', HttpCode.Unauthorized)
+    throw new HttpException('You are not authorized to access the NUSC website! Note: this may be an issue if you' +
+      ' have recently changed your Telegram username without actually having logged into the NUSC website. If so,' +
+      ' please add your new username via the Admin tab.', HttpCode.Unauthorized)
   } else if (matchingUsers.length > 1) {
     throw new HttpException(
-      'Multiple entries for the same telegramId or the same telegramUserName detected!' +
-        ' Contact the DB admin to ensure there is only one.',
+      'Multiple database entries for the same telegramId or the same telegramUserName detected!' +
+        ' Contact the website admin to ensure there is only one.',
       HttpCode.InternalServerError
     )
   } else {
