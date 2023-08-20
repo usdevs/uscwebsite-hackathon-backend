@@ -1,9 +1,9 @@
-import { PrismaClient, Prisma, IGCategory } from "@prisma/client";
+import { Prisma, IGCategory, Venue, User, UserOnOrg } from "@prisma/client";
 import readXlsxFile from "read-excel-file/node";
 import { BookingPayload, addBooking } from "@/services/bookings";
-import slugify from "slugify";
+import { getSlugFromIgName } from "@/config/common";
+import { prisma } from '../db'
 
-const prisma = new PrismaClient();
 const excelFile = process.env.EXCEL_SEED_FILEPATH as string;
 
 const mainSheet = "Organisations and IG Heads";
@@ -19,14 +19,14 @@ type MainSchemaType = {
   description: string
   organisationType: IGCategory
   frequency?: string
-  isOrganisationVerified?: number
+  isAdminOrg?: number
   igHeadFullName: string
   inviteOrContactLink?: string
   igHeadTeleUsername: string
-  igHeadPreferredName?: string
   otherMembers?: string
   otherMembersTeleUsername?: string
   isInactive?: number
+  isInvisible?: number
 }
 
 const mainSchema = {
@@ -39,14 +39,14 @@ const mainSchema = {
       "Guips"], required: true
   },
   "frequency": { prop: "frequency", type: String },
-  "isOrganisationVerified": { prop: "isOrganisationVerified", type: Number },
+  "isAdminOrg": { prop: "isAdminOrg", type: Number },
   "igHeadFullName": { prop: "igHeadFullName", type: String, required: true },
   "inviteOrContactLink": { prop: "inviteOrContactLink", type: String },
   "igHeadTeleUsername": { prop: "igHeadTeleUsername", type: String, required: true },
-  "igHeadPreferredName": { prop: "igHeadPreferredName", type: String },
   "otherMembers": { prop: "otherMembers", type: String },
   "otherMembersTeleUsername": { prop: "otherMembersTeleUsername", type: String },
-  "isInactive": { prop: "isInactive", type: Number }
+  "isInactive": { prop: "isInactive", type: Number },
+  "isInvisible": { prop: "isInvisible", type: Number }
 };
 
 const userSchema = {
@@ -72,12 +72,7 @@ const userOnOrgSchema = {
   "isIGHead": { prop: "isIGHead", type: Number, required: true }
 };
 
-const userData: Prisma.UserUncheckedCreateInput[] = [];
 const userDataSet = new Set();
-const organisationData: Prisma.OrganisationUncheckedCreateInput[] = [];
-const venueData: Prisma.VenueUncheckedCreateInput[] = [];
-const userOnOrgData: Prisma.UserOnOrgUncheckedCreateInput[] = [];
-
 
 const maxSlots = parseEnvToInt("MAX_SLOTS_PER_BOOKING", 4);
 const minSlots = parseEnvToInt("MIN_SLOTS_PER_BOOKING", 1);
@@ -87,11 +82,11 @@ function parseEnvToInt(envVar: string | undefined, fallback: number): number {
   return (envVar && Number(envVar)) || fallback;
 }
 
-function generateBookingData(
-  userOnOrgData: Prisma.UserOnOrgUncheckedCreateInput[],
-  venueData: Prisma.VenueUncheckedCreateInput[],
+async function generateBookingData(
   size: Number
 ) {
+  const allUserOnOrg: Array<UserOnOrg> = await prisma.userOnOrg.findMany()
+  const allVenues: Array<Venue> = await prisma.venue.findMany()
 
   function getRandomDate(from: Date, to: Date) {
     const fromTime = from.getTime();
@@ -106,8 +101,8 @@ function generateBookingData(
   const bookingDurationData = [...Array(maxSlots - minSlots + 1).keys()].map(i => (i + minSlots) * duration);
 
   for (let i = 0; i < size; i++) {
-    const userOnOrg = userOnOrgData[Math.floor(Math.random() * userOnOrgData.length)];
-    const venue = venueData[Math.floor(Math.random() * venueData.length)];
+    const userOnOrg = allUserOnOrg[Math.floor(Math.random() * allUserOnOrg.length)];
+    const venue = allVenues[Math.floor(Math.random() * allVenues.length)];
     const bookingDuration = bookingDurationData[Math.floor(Math.random() * bookingDurationData.length)];
     const startDate = getRandomDate(new Date(Date.now() - 12096e5), new Date(Date.now() + 12096e5)); // Magic number because who cares
 
@@ -126,13 +121,47 @@ function generateBookingData(
 
 }
 
+const addUserToUserTable = async (u: Prisma.UserUncheckedCreateInput): Promise<number> => {
+  const user = await prisma.user.create({
+    data: u
+  });
+  console.log(`Created user with id: ${user.id}`);
+  return user.id
+}
+
+const addOrgToTable = async (u: Prisma.OrganisationUncheckedCreateInput): Promise<number> => {
+  const organisation = await prisma.organisation.create({
+    data: u
+  });
+  console.log(`Created organisation with id: ${organisation.id}`);
+  return organisation.id
+}
+
+const addUserOnOrgToTable = async (userId: number, orgId: number, isIGHead: boolean) => {
+  const orgToAdd: Prisma.OrganisationCreateNestedOneWithoutUserOrgInput = {
+    connect: {
+      id: orgId
+    }
+  }
+  const userToAdd: Prisma.UserCreateNestedOneWithoutUserOrgInput = {
+    connect: {
+      id: userId
+    }
+  }
+  const userOnOrgInput: Prisma.UserOnOrgCreateInput = { user: userToAdd, org: orgToAdd, isIGHead };
+
+  const userOnOrg = await prisma.userOnOrg.create({
+    data: userOnOrgInput
+  });
+  console.log(`Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`);
+}
 
 async function main() {
   const isDevEnv = process.env?.PRISMA_SEED_ENVIRONMENT === "DEV";
 
   const readUsers = async (userSheetName: string) => {
     await readXlsxFile(excelFile, { sheet: userSheetName, schema: userSchema })
-      .then(({ rows, errors }) => {
+      .then(async ({ rows, errors }) => {
         if (errors.length !== 0) {
           throw new Error(errors[0].error);
         }
@@ -140,155 +169,133 @@ async function main() {
         for (const row of casted) {
           if (!userDataSet.has(row.name)) {
             userDataSet.add(row.name);
-            userData.push(row as Prisma.UserUncheckedCreateInput);
+            await addUserToUserTable(row);
           }
         }
       });
   };
 
+  console.log(`Seed initial users...`);
   await readUsers(userSheet);
+  // grant access to developers even on prod
+  await readUsers(getDevSheetName(userSheet));
+  await prisma.$executeRaw`SELECT setval(pg_get_serial_sequence('"User"', 'id'), coalesce(max(id)+1, 1), false) FROM "User";`;
 
-  if (isDevEnv) {
-    await readUsers(getDevSheetName(userSheet));
-  }
-
+  console.log(`Start seeding venues...`);
   await readXlsxFile(excelFile, { sheet: venueSheet, schema: venueSchema })
-    .then(({ rows, errors }) => {
+    .then(async ({ rows, errors }) => {
       if (errors.length !== 0) {
         throw new Error(errors[0].error);
       }
       for (const row of rows) {
-        venueData.push(row as Prisma.VenueUncheckedCreateInput);
+        const venue = await prisma.venue.create({
+          data: (row as Prisma.VenueCreateInput)
+        });
+        console.log(`Created venue with id: ${venue.id}`);
       }
     });
 
-  let numOfUsers = userData.length + 1;
-
   const readMain = async (mainSheetName: string) => {
     return await readXlsxFile(excelFile, { sheet: mainSheetName, schema: mainSchema })
-      .then(({ rows, errors }) => {
+      .then(async ({ rows, errors }) => {
         if (errors.length !== 0) {
           throw new Error(errors[0].error);
         }
         const casted: MainSchemaType[] = rows as MainSchemaType[];
 
-        const addUserToUserTable = (userToAdd: Prisma.UserUncheckedCreateInput) => {
+        const addUserIfNotAddedAndGetIdOfUser = async (userToAdd: Prisma.UserCreateInput): Promise<number> => {
           if (!userDataSet.has(userToAdd.name)) {
             userDataSet.add(userToAdd.name);
-            userData.push(userToAdd);
-          } else {
-            const temp: Prisma.UserUncheckedCreateInput = userData.filter(u => userToAdd.name === u.name)[0];
-            userToAdd.id = temp.id;
+            return await addUserToUserTable(userToAdd)
+          }
+          else {
+            const igHeadUser: User = await prisma.user.findFirstOrThrow({
+              where: {
+                name: userToAdd.name
+              }
+            })
+            return igHeadUser.id
           }
         }
 
+        console.log(`Start seeding organisations and userOnOrg...`);
         for (const row of casted) {
           const organisation: Prisma.OrganisationUncheckedCreateInput = {
             id: row.id, name: row.name,
-            verified: row.isOrganisationVerified === 1, category: row.organisationType,
+            isAdminOrg: row.isAdminOrg === 1, category: row.organisationType,
             inviteLink: row.inviteOrContactLink || "https://t.me/" + row.igHeadTeleUsername,
             description: row.description,
-            slug: slugify(row.name, {
-              replacement: '-',
-              remove: /[*+~.()'"!:@]/g,
-              lower: true,
-              strict: true,
-              locale: 'en',
-              trim: true
-            }),
-            isInactive: row.isInactive === 1
+            slug: getSlugFromIgName(row.name),
+            isInactive: row.isInactive === 1,
+            isInvisible: row.isInvisible === 1
           };
-          organisationData.push(organisation);
 
-          const igHead: Prisma.UserUncheckedCreateInput = { name: row.igHeadFullName, telegramUserName: row.igHeadTeleUsername, id: numOfUsers++ };
-          addUserToUserTable(igHead);
+          const orgId = await addOrgToTable(organisation);
+          const igHead: Prisma.UserCreateInput = {
+            name: row.igHeadFullName,
+            telegramUserName: row.igHeadTeleUsername,
+          };
+          const userId = await addUserIfNotAddedAndGetIdOfUser(igHead);
 
-          const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: igHead.id || 0, orgId: row.id, isIGHead: true };
-          userOnOrgData.push(userOnOrg);
+          await addUserOnOrgToTable(userId, orgId, true);
 
           const otherUsersNames: string[] = row.otherMembers?.split(';') || []
           const otherUsersTelegramUsernames: string[] = row.otherMembersTeleUsername?.split(';') || []
           if (otherUsersTelegramUsernames.length !== otherUsersNames.length) {
             throw new Error(`For ${organisation.name} Lengths of otherMembersTeleUsername and otherMembers do not add up`)
           }
-          const otherUsers: Prisma.UserUncheckedCreateInput[] = otherUsersNames.map((otherUsersName, index) => {
-            return { name: otherUsersName, telegramUserName: otherUsersTelegramUsernames[index], id: numOfUsers++ }
+          const otherUsers: Prisma.UserCreateInput[] = otherUsersNames.map((otherUsersName, index) => {
+            return { name: otherUsersName, telegramUserName: otherUsersTelegramUsernames[index]}
           })
           for (const otherUser of otherUsers) {
-            addUserToUserTable(otherUser);
-
-            const userOnOrg: Prisma.UserOnOrgUncheckedCreateInput = { userId: otherUser.id || 0, orgId: row.id, isIGHead: true };
-            userOnOrgData.push(userOnOrg);
+            const userId = await addUserIfNotAddedAndGetIdOfUser(otherUser);
+            await addUserOnOrgToTable(userId, orgId, true);
           }
         }
       });
   }
 
   await readMain(mainSheet)
-
   if (isDevEnv) {
     await readMain(getDevSheetName(mainSheet))
   }
+  await prisma.$executeRaw`SELECT setval(pg_get_serial_sequence('"Organisation"', 'id'), coalesce(max(id)+1, 1), false) FROM "Organisation";`;
 
   const readUserOnOrg = async (sheetname: string) => await readXlsxFile(excelFile, {
     sheet: sheetname,
     schema: userOnOrgSchema
   })
-    .then(({ rows, errors }) => {
+    .then(async ({ rows, errors }) => {
       if (errors.length !== 0) {
         throw new Error(errors[0].error);
       }
       const casted: UserOnOrgSchemaType[] = rows as UserOnOrgSchemaType[];
-      let userOnOrg: Prisma.UserOnOrgUncheckedCreateInput;
       for (const row of casted) {
-        userOnOrg = {
-          ...row,
-          isIGHead: row.isIGHead === 1
-        }
-        userOnOrgData.push(userOnOrg as Prisma.UserOnOrgUncheckedCreateInput);
+        // we don't need to get the id from prisma again, but just to make sure
+        const user = await prisma.user.findUniqueOrThrow({
+          where: {
+            id: row.userId
+          }
+        })
+        const org = await prisma.organisation.findUniqueOrThrow({
+          where: {
+            id: row.orgId
+          }
+        })
+        await addUserOnOrgToTable(user.id, org.id, row.isIGHead === 1)
       }
     });
 
   await readUserOnOrg(userOnOrgSheet);
 
-  if (isDevEnv) {
-    await readUserOnOrg(getDevSheetName(userOnOrgSheet));
-  }
+  // grand access to developers even on prod
+  await readUserOnOrg(getDevSheetName(userOnOrgSheet));
 
-  console.log(`Start seeding ...`);
-  console.log(`Start seeding venues...`);
-  for (const u of venueData) {
-    const venue = await prisma.venue.create({
-      data: u
-    });
-    console.log(`Created venue with id: ${venue.id}`);
-  }
-  console.log(`Start seeding organisations...`);
-  for (const u of organisationData) {
-    const organisation = await prisma.organisation.create({
-      data: u
-    });
-    console.log(`Created organisation with id: ${organisation.id}`);
-  }
-  console.log(`Start seeding users...`);
-  for (const u of userData) {
-    const user = await prisma.user.create({
-      data: u
-    });
-    console.log(`Created user with id: ${user.id}`);
-  }
-
-  console.log(`Start seeding userOnOrg...`);
-  for (const u of userOnOrgData) {
-    const userOnOrg = await prisma.userOnOrg.create({
-      data: u
-    });
-    console.log(`Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`);
-  }
   console.log(`Seeding finished.`);
 
   if (isDevEnv) {
-    const bookingData = generateBookingData(userOnOrgData, venueData, 20);
+    const NUMBER_OF_RANDOM_BOOKINGS = 1000
+    const bookingData: BookingPayload[] = await generateBookingData(NUMBER_OF_RANDOM_BOOKINGS);
 
     console.log(`Start seeding bookings...`);
     for (const u of bookingData) {

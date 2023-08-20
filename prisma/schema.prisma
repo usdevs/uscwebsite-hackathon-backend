@@ -15,11 +15,10 @@ datasource db {
 model User {
   id    Int    @id @default(autoincrement())
   name  String
-  telegramId Int? @unique
+  telegramId String? @unique
   telegramUserName String
   telegramDpUrl String? // saves the url to the telegram display pic
   userOrg UserOnOrg[]
-  bookings Booking[]
   deleted Boolean @default(false) // supports soft delete
 }
 
@@ -27,7 +26,6 @@ enum IGCategory {
   Sports
   SocioCultural
   Others
-  Inactive
   Guips
 }
 
@@ -35,18 +33,19 @@ model Organisation {
   id        Int     @id @default(autoincrement())
   name     String
   description String @default("A NUSC organisation")
-  verified Boolean @default(false) // verified organisations have admin rights
+  isAdminOrg Boolean @default(false)
   userOrg UserOnOrg[]
   inviteLink String
   slug String @unique
   category IGCategory
   isInactive Boolean @default(false)
+  isInvisible Boolean @default(false) // is not displayed on the website
 }
 
 model UserOnOrg {
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int // relation scalar field (used in the `@relation` attribute above)
-  org   Organisation @relation(fields: [orgId], references: [id])
+  org   Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
   orgId Int // relation scalar field (used in the `@relation` attribute above)
   assignedAt DateTime @default(now())
   bookings Booking[]
@@ -64,10 +63,9 @@ model Venue {
 model Booking {
   id Int @id@default(autoincrement())
   eventName String
-  venue Venue @relation(fields: [venueId], references: [id])
+  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
   venueId Int
-  bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId])
-  bookedByUser User @relation(fields: [userId], references: [id])
+  bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId], onDelete: Cascade)
   userId Int
   orgId Int
   start DateTime // start time of booking

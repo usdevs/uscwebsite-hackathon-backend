@@ -1,4 +1,4 @@
-import prisma from './db'
+import { prisma } from '../../db'
 import { Prisma } from "@prisma/client";
 
 /* Retrieves all venues */

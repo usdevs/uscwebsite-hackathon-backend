@@ -6,7 +6,7 @@ import {
   MIN_SLOTS_BETWEEN_BOOKINGS,
   MIN_SLOTS_PER_BOOKING,
 } from "@/config/common"
-import prisma from '../services/db'
+import { prisma } from '../../db'
 
 /**
  * Checks if user is in the organisation OR if the user is an Admin
@@ -40,7 +40,7 @@ export async function checkUserinOrg(
             },
             {
               org: {
-                verified: true,
+                isAdminOrg: true,
               },
             },
           ],
@@ -95,7 +95,7 @@ export async function checkIsUserAdmin(userId: number): Promise<boolean> {
         },
         {
           org: {
-            verified: true,
+            isAdminOrg: true,
           },
         },
       ],
@@ -173,7 +173,7 @@ export async function checkStackedBookings(booking: BookingPayload) {
         },
         {
           org: {
-            verified: true,
+            isAdminOrg: true,
           },
         },
       ],

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { Request } from 'express'
 import { User } from '@prisma/client'
 import { z } from 'zod'
 
@@ -7,7 +7,7 @@ export interface RequestWithUser extends Request {
 }
 
 export const TelegramAuthSchema = z.object({
-  id: z.number(),
+  id: z.string(),
   first_name: z.string().optional(),
   last_name: z.string().optional(),
   username: z.string(),
