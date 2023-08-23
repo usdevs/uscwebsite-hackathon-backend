@@ -278,7 +278,7 @@ export async function deleteBooking(
     )
   }
 
-  if (bookingToDelete.userId !== userId) {
+  if (bookingToDelete.userId !== userId && !(await checkIsUserAdmin(userId))) {
     throw new HttpException(
       `You do not have permission to delete this booking`,
       HttpCode.Forbidden
