@@ -93,15 +93,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
       HttpCode.BadRequest
     )
   }
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: booking.userId, orgId: booking.orgId },
-  })
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are not a member of this organisation`,
-      HttpCode.BadRequest
-    )
-  }
 
   if (await checkConflictingBooking(booking)) {
     throw new HttpException(
@@ -112,6 +103,17 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   if (await checkIsUserAdmin(booking.userId)) {
     return prisma.booking.create({ data: booking });
+  }
+
+  const userOnOrg = await prisma.userOnOrg.findFirst({
+    where: { userId: booking.userId, orgId: booking.orgId },
+  })
+
+  if (!userOnOrg) {
+    throw new HttpException(
+      `You are not a member of this organisation`,
+      HttpCode.BadRequest
+    )
   }
 
   if (
@@ -181,22 +183,6 @@ export async function updateBooking(
       HttpCode.BadRequest
     )
   }
-  if (bookingToUpdate.userId !== userId) {
-    throw new HttpException(
-      `You do not have permission to edit this booking`,
-      HttpCode.Forbidden
-    )
-  }
-
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: userId, orgId: updatedBooking.orgId },
-  })
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are not a member of this organisation`,
-      HttpCode.BadRequest
-    )
-  }
 
   if (await checkConflictingBooking(updatedBooking, bookingId)) {
     throw new HttpException(
@@ -212,6 +198,23 @@ export async function updateBooking(
       },
       data: updatedBooking,
     });
+  }
+
+  if (bookingToUpdate.userId !== userId) {
+    throw new HttpException(
+      `You do not have permission to edit this booking`,
+      HttpCode.Forbidden
+    )
+  }
+
+  const userOnOrg = await prisma.userOnOrg.findFirst({
+    where: { userId: userId, orgId: updatedBooking.orgId },
+  })
+  if (!userOnOrg) {
+    throw new HttpException(
+      `You are not a member of this organisation`,
+      HttpCode.BadRequest
+    )
   }
 
   if (
