@@ -20,7 +20,7 @@ export async function createBooking(
   }
 
   const booking = BookingSchema.parse(req.body)
-  const bookingPayload = { ...booking, userId: user.id, userOrgId: booking.orgId }
+  const bookingPayload = { end: booking.end, eventName: booking.eventName, start: booking.start, venueId: booking.venueId, userId: user.id, userOrgId: booking.orgId }
   const inserted = await addBooking(bookingPayload)
   res.status(200).json({ result: [inserted] })
 }
@@ -74,7 +74,7 @@ export async function editBooking(
   }
   const userId = req.user.id
   const booking = BookingSchema.parse(req.body)
-  const bookingPayload = { ...booking, userId, userOrgId: booking.orgId }
+  const bookingPayload = { end: booking.end, eventName: booking.eventName, start: booking.start, venueId: booking.venueId, userId, userOrgId: booking.orgId }
   const updatedBooking = await updateBooking(bookingId, bookingPayload, userId)
   res.status(200).json({ result: [updatedBooking] })
 }
