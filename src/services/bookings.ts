@@ -80,14 +80,10 @@ export async function getBookingById(
   });
 }
 
-interface OrgId {
-  orgId: number
-}
-
 export type BookingPayload = Pick<
   Booking,
-  'eventName' | 'userId' | 'venueId' | 'start' | 'end'
-> & OrgId
+  'eventName' | 'userId' | 'venueId' | 'start' | 'end' | 'userOrgId'
+>
 
 /* Add a new booking */
 export async function addBooking(booking: BookingPayload): Promise<Booking> {
@@ -108,7 +104,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
 
   // admin users can also make bookings on behalf of other organisations
   if (await checkIsUserAdmin(booking.userId)) {
-    const adminUser = await prisma.user.findUnique({
+    const adminUser = await prisma.user.findUniqueOrThrow({
       where: {
         id: booking.userId
       },
@@ -126,20 +122,25 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
       }
     })
     const adminUserOrgs = adminUser.userOrg.map(x => x.org)
-    const indexOfBookingOrgId = adminUserOrgs.findIndex((org) => org.id === booking.orgId)
+    const indexOfBookingOrgId = adminUserOrgs.findIndex((org) => org.id === booking.userOrgId)
     if (indexOfBookingOrgId === -1) {
       const adminOrg = adminUserOrgs.find((org) => org.isAdminOrg)
-      const bookingToCreate = { ...booking, userOrgId: adminOrg.id, bookedForOrgId: booking.orgId }
-      delete bookingToCreate['orgId']
+      if (!adminOrg) {
+        throw new HttpException(
+            `No admin org found for you`,
+            HttpCode.BadRequest
+        )
+      }
+      // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
+      const bookingToCreate = { ...booking, userOrgId: adminOrg.id, bookedForOrgId: booking.userOrgId }
       return prisma.booking.create({ data: bookingToCreate });
     }
-    const bookingToCreate = { ...booking, userOrgId: booking.orgId }
-    delete bookingToCreate['orgId']
+    const bookingToCreate = { ...booking, userOrgId: booking.userOrgId }
     return prisma.booking.create({ data: bookingToCreate });
   }
 
   const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: booking.userId, orgId: booking.orgId },
+    where: { userId: booking.userId, orgId: booking.userOrgId },
   })
 
   if (!userOnOrg) {
@@ -188,8 +189,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  const bookingToCreate = {...booking, userOrgId: booking.orgId }
-  delete bookingToCreate['orgId']
+  const bookingToCreate = {...booking }
   return prisma.booking.create({ data: bookingToCreate });
 }
 
@@ -206,7 +206,7 @@ export async function updateBooking(
   updatedBooking: BookingPayload,
   userId: Booking['userId']
 ): Promise<Booking> {
-  const bookingToUpdate = await prisma.booking.findUnique({
+  const bookingToUpdate = await prisma.booking.findUniqueOrThrow({
     where: {
       id: bookingId,
     },
@@ -243,7 +243,7 @@ export async function updateBooking(
   }
 
   const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: userId, orgId: updatedBooking.orgId },
+    where: { userId: userId, orgId: updatedBooking.userOrgId },
   })
   if (!userOnOrg) {
     throw new HttpException(

@@ -109,7 +109,7 @@ async function generateBookingData(
     const booking = {
       venueId: venue.id!,
       userId: userOnOrg.userId,
-      orgId: userOnOrg.orgId,
+      userOrgId: userOnOrg.orgId,
       start: startDate,
       end: new Date(startDate.getTime() + bookingDuration * 60000), // more magicc
       eventName: Math.random().toString(36).slice(2, 7)
