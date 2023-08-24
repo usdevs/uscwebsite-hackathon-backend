@@ -1,5 +1,5 @@
 import { prisma } from '../../db'
-import { Booking } from '@prisma/client'
+import { Booking, Prisma } from '@prisma/client'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
 import {
   DURATION_PER_SLOT,
@@ -33,7 +33,7 @@ export async function getAllBookings(
         },
       ],
     },
-    orderBy: { start: 'asc' },
+    orderBy: { start: Prisma.SortOrder['asc'] },
     include: {
       venue: true,
       bookedBy: {
@@ -43,6 +43,7 @@ export async function getAllBookings(
           user: true
         }
       },
+      bookedForOrg: true
     },
   });
 }
@@ -81,7 +82,7 @@ export async function getBookingById(
 
 export type BookingPayload = Pick<
   Booking,
-  'eventName' | 'userId' | 'venueId' | 'orgId' | 'start' | 'end'
+  'eventName' | 'userId' | 'venueId' | 'start' | 'end' | 'userOrgId'
 >
 
 /* Add a new booking */
@@ -93,15 +94,6 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
       HttpCode.BadRequest
     )
   }
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: booking.userId, orgId: booking.orgId },
-  })
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are not a member of this organisation`,
-      HttpCode.BadRequest
-    )
-  }
 
   if (await checkConflictingBooking(booking)) {
     throw new HttpException(
@@ -110,8 +102,52 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
+  // admin users can also make bookings on behalf of other organisations
   if (await checkIsUserAdmin(booking.userId)) {
-    return prisma.booking.create({ data: booking });
+    const adminUser = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: booking.userId
+      },
+      include: {
+        userOrg: {
+          include: {
+            org: {
+              select: {
+                id: true,
+                isAdminOrg: true
+              }
+            }
+          }
+        }
+      }
+    })
+    const adminUserOrgs = adminUser.userOrg.map(x => x.org)
+    const indexOfBookingOrgId = adminUserOrgs.findIndex((org) => org.id === booking.userOrgId)
+    if (indexOfBookingOrgId === -1) {
+      const adminOrg = adminUserOrgs.find((org) => org.isAdminOrg)
+      if (!adminOrg) {
+        throw new HttpException(
+            `No admin org found for you`,
+            HttpCode.BadRequest
+        )
+      }
+      // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
+      const bookingToCreate = { ...booking, userOrgId: adminOrg.id, bookedForOrgId: booking.userOrgId }
+      return prisma.booking.create({ data: bookingToCreate });
+    }
+    const bookingToCreate = { ...booking, userOrgId: booking.userOrgId }
+    return prisma.booking.create({ data: bookingToCreate });
+  }
+
+  const userOnOrg = await prisma.userOnOrg.findFirst({
+    where: { userId: booking.userId, orgId: booking.userOrgId },
+  })
+
+  if (!userOnOrg) {
+    throw new HttpException(
+      `You are not a member of this organisation`,
+      HttpCode.BadRequest
+    )
   }
 
   if (
@@ -153,7 +189,8 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  return prisma.booking.create({ data: booking });
+  const bookingToCreate = {...booking }
+  return prisma.booking.create({ data: bookingToCreate });
 }
 
 /**
@@ -169,7 +206,7 @@ export async function updateBooking(
   updatedBooking: BookingPayload,
   userId: Booking['userId']
 ): Promise<Booking> {
-  const bookingToUpdate = await prisma.booking.findUnique({
+  const bookingToUpdate = await prisma.booking.findUniqueOrThrow({
     where: {
       id: bookingId,
     },
@@ -178,22 +215,6 @@ export async function updateBooking(
   if (!bookingToUpdate) {
     throw new HttpException(
       `Could not find booking with id ${bookingId}`,
-      HttpCode.BadRequest
-    )
-  }
-  if (bookingToUpdate.userId !== userId) {
-    throw new HttpException(
-      `You do not have permission to edit this booking`,
-      HttpCode.Forbidden
-    )
-  }
-
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: userId, orgId: updatedBooking.orgId },
-  })
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are not a member of this organisation`,
       HttpCode.BadRequest
     )
   }
@@ -212,6 +233,23 @@ export async function updateBooking(
       },
       data: updatedBooking,
     });
+  }
+
+  if (bookingToUpdate.userId !== userId) {
+    throw new HttpException(
+      `You do not have permission to edit this booking`,
+      HttpCode.Forbidden
+    )
+  }
+
+  const userOnOrg = await prisma.userOnOrg.findFirst({
+    where: { userId: userId, orgId: updatedBooking.userOrgId },
+  })
+  if (!userOnOrg) {
+    throw new HttpException(
+      `You are not a member of this organisation`,
+      HttpCode.BadRequest
+    )
   }
 
   if (

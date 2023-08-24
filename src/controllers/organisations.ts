@@ -50,7 +50,7 @@ export async function editOrganisation(
   }
   const userId = user.id
   const booking = OrganisationSchema.parse(req.body)
-  const orgPayload = { ...booking, userId: userId }
+  const orgPayload = { ...booking, userId }
   const updatedOrg = await updateOrg(orgId, orgPayload)
   res.status(200).json({ result: [updatedOrg] })
 }

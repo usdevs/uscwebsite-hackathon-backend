@@ -12,7 +12,7 @@
     "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write 'src/**/*.{js,ts,md,json}' --config ./.prettierrc.json",
     "prisma:init": "prisma init",
-    "prisma:migrate": "prisma migrate dev --preview-feature",
+    "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "prisma:generate": "prisma generate",
     "prisma:reset": "prisma migrate reset"

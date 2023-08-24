@@ -13,13 +13,13 @@ datasource db {
 }
 
 model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  telegramId String? @unique
+  id               Int         @id @default(autoincrement())
+  name             String
+  telegramId       String?     @unique
   telegramUserName String
-  telegramDpUrl String? // saves the url to the telegram display pic
-  userOrg UserOnOrg[]
-  deleted Boolean @default(false) // supports soft delete
+  telegramDpUrl    String? // saves the url to the telegram display pic
+  userOrg          UserOnOrg[]
+  deleted          Boolean     @default(false) // supports soft delete
 }
 
 enum IGCategory {
@@ -30,45 +30,50 @@ enum IGCategory {
 }
 
 model Organisation {
-  id        Int     @id @default(autoincrement())
-  name     String
-  description String @default("A NUSC organisation")
-  isAdminOrg Boolean @default(false)
-  userOrg UserOnOrg[]
-  inviteLink String
-  slug String @unique
-  category IGCategory
-  isInactive Boolean @default(false)
-  isInvisible Boolean @default(false) // is not displayed on the website
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String      @default("A NUSC organisation")
+  isAdminOrg  Boolean     @default(false)
+  bookings    Booking[]
+  userOrg     UserOnOrg[]
+  inviteLink  String
+  slug        String      @unique
+  category    IGCategory
+  isInactive  Boolean     @default(false)
+  isInvisible Boolean     @default(false) // is not displayed on the website
 }
 
 model UserOnOrg {
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     Int // relation scalar field (used in the `@relation` attribute above)
-  org   Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
-  orgId Int // relation scalar field (used in the `@relation` attribute above)
-  assignedAt DateTime @default(now())
-  bookings Booking[]
-  isIGHead Boolean @default(false)
+  org        Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgId      Int // relation scalar field (used in the `@relation` attribute above)
+  assignedAt DateTime     @default(now())
+  bookings   Booking[]
+  isIGHead   Boolean      @default(false)
+  deleted    Boolean      @default(false) // supports soft delete
+
   @@id([userId, orgId])
-  deleted Boolean @default(false) // supports soft delete
 }
 
 model Venue {
-  id    Int    @id @default(autoincrement())
-  name  String
+  id      Int       @id @default(autoincrement())
+  name    String
   booking Booking[]
 }
 
 model Booking {
-  id Int @id@default(autoincrement())
-  eventName String
-  venue Venue @relation(fields: [venueId], references: [id], onDelete: Cascade)
-  venueId Int
-  bookedBy UserOnOrg @relation(fields: [userId, orgId], references: [userId, orgId], onDelete: Cascade)
-  userId Int
-  orgId Int
-  start DateTime // start time of booking
-  end DateTime // end time of booking
-  bookedAt DateTime @default(now())
+  id             Int          @id @default(autoincrement())
+  eventName      String
+  venue          Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venueId        Int
+  bookedBy       UserOnOrg    @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade)
+  userId         Int
+  userOrgId      Int
+  bookedForOrg   Organisation? @relation(fields: [bookedForOrgId], references: [id], onDelete: Cascade)
+  bookedForOrgId Int? // // this field will only be populated if a user (typically an admin user) has made a
+  // booking on behalf of another org
+  start          DateTime // start time of booking
+  end            DateTime // end time of booking
+  bookedAt       DateTime     @default(now())
 }

@@ -1,4 +1,4 @@
-import { User, Organisation } from '@prisma/client'
+import { User, Organisation, Prisma } from '@prisma/client'
 import { BookingPayload } from "@services/bookings"
 import {
   DURATION_PER_SLOT,
@@ -148,7 +148,7 @@ export async function checkConflictingBooking(
       venueId: booking.venueId,
     },
     orderBy: {
-      end: 'desc',
+      end: Prisma.SortOrder['desc'],
     },
   })
 
@@ -164,12 +164,12 @@ export async function checkConflictingBooking(
  * @returns true if no violation of stacking rule is found
  */
 export async function checkStackedBookings(booking: BookingPayload) {
-  const { orgId, start, end, venueId } = booking
+  const { userOrgId, start, end, venueId } = booking
   const isAdminOrg = await prisma.userOnOrg.findMany({
     where: {
       AND: [
         {
-          orgId: orgId,
+          orgId: userOrgId,
         },
         {
           org: {
@@ -187,26 +187,26 @@ export async function checkStackedBookings(booking: BookingPayload) {
   const latestEarlierBooking = await prisma.booking.findFirst({
     orderBy: [
       {
-        end: 'desc',
+        end: Prisma.SortOrder['desc'],
       },
     ],
     where: {
       end: { lte: start },
-      venueId: venueId,
-      orgId: orgId,
+      venueId,
+      userOrgId,
     },
   })
 
   const earliestLaterBooking = await prisma.booking.findFirst({
     orderBy: [
       {
-        start: 'asc',
+        start: Prisma.SortOrder["asc"],
       },
     ],
     where: {
       start: { gte: end },
-      venueId: venueId,
-      orgId: orgId,
+      venueId,
+      userOrgId,
     },
   })
 
