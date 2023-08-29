@@ -231,9 +231,9 @@ export async function deleteOrg(
     },
   })
 
-  if (!userOnOrg) {
+  if (!userOnOrg && !(await checkIsUserAdmin(userId))) {
     throw new HttpException(
-      `You are not a member of this organisation.`,
+      `You are neither a member of this organisation nor an admin.`,
       HttpCode.Forbidden
     )
   }
