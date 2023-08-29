@@ -65,15 +65,27 @@ export async function updateOrg(
   // Idea of using slug as unique identifier taken from:
   // https://stackoverflow.com/questions/55404678/how-to-upsert-new-record-in-prisma-without-an-id
   const isUserAdmin = await checkIsUserAdmin(orgPayload.userId)
-  let isOrgCoreAdminOrg = false
+  const isNewOrg = orgId === -1
+
+  const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
+  const generatedSlug: string = getSlugFromIgName(orgPayload.name)
+  const updatedOrg: Prisma.OrganisationCreateInput = {name, description, category, inviteLink, isAdminOrg, isInactive, isInvisible, slug: generatedSlug}
+
   let isIgHeadChanged = false;
   let isOldIgHeadStillInExco = false;
   let oldIgHeadId: number = -1;
 
-  // if a new org is being created
-  if (orgId === -1) {
+  if (isAdminOrg && !isUserAdmin) {
+    throw new HttpException(
+      `You cannot make an organisation an admin organisation, if you are not an admin yourself.`,
+      HttpCode.Forbidden
+    )
+  }
+
+  // check if the request to create or edit an org is valid
+  if (!isNewOrg) {
     await throwIfNotAdmin(orgPayload.userId)
-  } // else an existing org is being updated
+  }
   else {
     const orgToUpdate: Organisation = await prisma.organisation.findUnique({
       where: {
@@ -104,28 +116,18 @@ export async function updateOrg(
         )
       }
     }
+    const isOrgCoreAdminOrg = isCoreAdminOrg(orgToUpdate.name)
+
+    if (isOrgCoreAdminOrg && (!isAdminOrg || !isCoreAdminOrg(name)))  {
+      throw new HttpException(
+        `You are attempting to either remove the admin permissions from a core admin org or change the name without including 'Management Committee' or 'Admin'.`,
+        HttpCode.Forbidden
+      )
+    }
+
     oldSlug = orgToUpdate.slug
-    isOrgCoreAdminOrg = isCoreAdminOrg(orgToUpdate.name)
     isIgHeadChanged = oldIgHeadId !== orgPayload.igHead
     isOldIgHeadStillInExco = orgPayload.otherMembers.includes(oldIgHeadId)
-  }
-
-  const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
-  const generatedSlug: string = getSlugFromIgName(orgPayload.name)
-  const updatedOrg: Prisma.OrganisationCreateInput = {name, description, category, inviteLink, isAdminOrg, isInactive, isInvisible, slug: generatedSlug}
-
-  if (isAdminOrg && !isUserAdmin) {
-    throw new HttpException(
-      `You cannot make an organisation an admin organisation, if you are not an admin yourself.`,
-      HttpCode.Forbidden
-    )
-  }
-
-  if (isOrgCoreAdminOrg && (!isAdminOrg || !isCoreAdminOrg(name)))  {
-    throw new HttpException(
-      `You are attempting to either remove the admin permissions from a core admin org or change the name without including 'Management Committee' or 'Admin'.`,
-      HttpCode.Forbidden
-    )
   }
 
   const org: Organisation = await prisma.organisation.upsert({
@@ -135,8 +137,9 @@ export async function updateOrg(
     create: updatedOrg,
     update: updatedOrg,
   });
-  // if an existing org is being edited
-  if (orgId !== -1) {
+
+  // perform cleanup operations for a request to edit an org
+  if (!isNewOrg) {
     // this will delete UserOnOrg who are no longer the IG head or members of the ExCo
     await prisma.userOnOrg.deleteMany({
       where: {
@@ -146,6 +149,7 @@ export async function updateOrg(
         orgId
       }
     })
+    // handle the case if an org was edited and the IG Head was demoted to just be an ExCo member
     if (isIgHeadChanged && isOldIgHeadStillInExco) {
       const demotedIgHead = {
         userId: oldIgHeadId,
@@ -156,7 +160,7 @@ export async function updateOrg(
       }
       await prisma.userOnOrg.update({
         where: igHeadCompoundType,
-        data: {...demotedIgHead, isIGHead: false},
+        data: { ...demotedIgHead, isIGHead: false },
       })
     }
   }
