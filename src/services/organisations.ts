@@ -87,12 +87,12 @@ export async function updateOrg(
     await throwIfNotAdmin(orgPayload.userId)
   }
   else {
-    const orgToUpdate: Organisation = await prisma.organisation.findUnique({
+    const orgToUpdate: Organisation = await prisma.organisation.findUniqueOrThrow({
       where: {
         id: orgId,
       }
     })
-    const existingIgHead: UserOnOrg = await prisma.userOnOrg.findFirst({
+    const existingIgHead: UserOnOrg = await prisma.userOnOrg.findFirstOrThrow({
       where: {
         orgId: orgToUpdate.id,
         isIGHead: true
@@ -203,7 +203,7 @@ export async function deleteOrg(
   orgId: Organisation['id'],
   userId: UserOnOrg['userId']
 ): Promise<Organisation> {
-  const orgToDelete: Organisation = await prisma.organisation.findFirst({
+  const orgToDelete: Organisation = await prisma.organisation.findFirstOrThrow({
     where: {
       id: orgId,
     },
