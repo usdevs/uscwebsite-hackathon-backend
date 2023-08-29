@@ -83,7 +83,7 @@ export async function updateOrg(
   }
 
   // check if the request to create or edit an org is valid
-  if (!isNewOrg) {
+  if (isNewOrg) {
     await throwIfNotAdmin(orgPayload.userId)
   }
   else {
