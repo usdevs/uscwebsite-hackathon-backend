@@ -62,18 +62,31 @@ export async function updateOrg(
 ): Promise<Organisation> {
   let oldSlug: string = ''; // no org would have an empty slug, so it's fine to use this in order to signify that
   // the org does not exist and that it should be created
+  // Idea of using slug as unique identifier taken from:
+  // https://stackoverflow.com/questions/55404678/how-to-upsert-new-record-in-prisma-without-an-id
   const isUserAdmin = await checkIsUserAdmin(orgPayload.userId)
   let isOrgCoreAdminOrg = false
+  let isIgHeadChanged = false;
+  let isOldIgHeadStillInExco = false;
+  let oldIgHeadId: number = -1;
 
+  // if a new org is being created
   if (orgId === -1) {
     await throwIfNotAdmin(orgPayload.userId)
-  }
+  } // else an existing org is being updated
   else {
-    const orgToUpdate = await prisma.organisation.findUnique({
+    const orgToUpdate: Organisation = await prisma.organisation.findUnique({
       where: {
         id: orgId,
-      },
+      }
     })
+    const existingIgHead: UserOnOrg = await prisma.userOnOrg.findFirst({
+      where: {
+        orgId: orgToUpdate.id,
+        isIGHead: true
+      }
+    })
+    oldIgHeadId = existingIgHead.userId
     if (!orgToUpdate) {
       throw new HttpException(
         `Could not find org with id ${orgId}`,
@@ -93,6 +106,8 @@ export async function updateOrg(
     }
     oldSlug = orgToUpdate.slug
     isOrgCoreAdminOrg = isCoreAdminOrg(orgToUpdate.name)
+    isIgHeadChanged = oldIgHeadId !== orgPayload.igHead
+    isOldIgHeadStillInExco = orgPayload.otherMembers.includes(oldIgHeadId)
   }
 
   const { name, description, isAdminOrg, inviteLink, isInactive, isInvisible, category } = orgPayload
@@ -120,8 +135,9 @@ export async function updateOrg(
     create: updatedOrg,
     update: updatedOrg,
   });
+  // if an existing org is being edited
   if (orgId !== -1) {
-    // deleting removed useronorg
+    // this will delete UserOnOrg who are no longer the IG head or members of the ExCo
     await prisma.userOnOrg.deleteMany({
       where: {
         NOT: {
@@ -130,12 +146,22 @@ export async function updateOrg(
         orgId
       }
     })
+    if (isIgHeadChanged && isOldIgHeadStillInExco) {
+      const demotedIgHead = {
+        userId: oldIgHeadId,
+        orgId: org.id
+      }
+      const igHeadCompoundType: Prisma.UserOnOrgWhereUniqueInput = {
+        userId_orgId: demotedIgHead
+      }
+      await prisma.userOnOrg.update({
+        where: igHeadCompoundType,
+        data: {...demotedIgHead, isIGHead: false},
+      })
+    }
   }
-  // todo there is the case where we promote an existing member to be the IG Head - then in this case, we must
-  //  update the isIGHead field only instead of creating a new UserOnOrg --> then if existing IG head is demoted,
-  //  also check for his existence and then demote him
-  // todo we also have onUpdate: Cascade
-  // add IG head first
+  // add IG head using upsert - this handles the case where you are both editing an existing org or creating a new org
+  // this also handles the case where the IG head is not changed
   const igHead = {
     userId: orgPayload.igHead,
     orgId: org.id
@@ -148,8 +174,10 @@ export async function updateOrg(
     create: {...igHead, isIGHead: true},
     update: {...igHead, isIGHead: true}
   })
-  // add the others
-  for (const orgMember of orgPayload.otherMembers) {
+  // filter the new igHead from the otherMembers, as a precaution
+  const otherExcoMembers = orgPayload.otherMembers.filter(otherMember => otherMember !== orgPayload.igHead)
+  // add the other new ExCo members
+  for (const orgMember of otherExcoMembers) {
     const member = {
       userId: orgMember,
       orgId: org.id
@@ -171,7 +199,7 @@ export async function deleteOrg(
   orgId: Organisation['id'],
   userId: UserOnOrg['userId']
 ): Promise<Organisation> {
-  const orgToDelete = await prisma.organisation.findFirst({
+  const orgToDelete: Organisation = await prisma.organisation.findFirst({
     where: {
       id: orgId,
     },

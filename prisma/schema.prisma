@@ -44,9 +44,9 @@ model Organisation {
 }
 
 model UserOnOrg {
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   userId     Int // relation scalar field (used in the `@relation` attribute above)
-  org        Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  org        Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   orgId      Int // relation scalar field (used in the `@relation` attribute above)
   assignedAt DateTime     @default(now())
   bookings   Booking[]
@@ -65,12 +65,12 @@ model Venue {
 model Booking {
   id             Int          @id @default(autoincrement())
   eventName      String
-  venue          Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  venue          Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   venueId        Int
-  bookedBy       UserOnOrg    @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade)
+  bookedBy       UserOnOrg    @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade, onUpdate: Cascade)
   userId         Int
   userOrgId      Int
-  bookedForOrg   Organisation? @relation(fields: [bookedForOrgId], references: [id], onDelete: Cascade)
+  bookedForOrg   Organisation? @relation(fields: [bookedForOrgId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   bookedForOrgId Int? // // this field will only be populated if a user (typically an admin user) has made a
   // booking on behalf of another org
   start          DateTime // start time of booking
