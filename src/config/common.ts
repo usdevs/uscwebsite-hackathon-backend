@@ -1,8 +1,8 @@
 // Parses the string stored in env to number
-import slugify from "slugify";
-import { User } from "@prisma/client";
-import { checkIsUserAdmin } from "@middlewares/checks";
-import { HttpCode, HttpException } from "@exceptions/HttpException";
+import slugify from 'slugify'
+import { User } from '@prisma/client'
+import { checkIsUserAdmin } from '../middlewares/checks'
+import { HttpCode, HttpException } from '../exceptions/HttpException'
 
 function parseEnvToInt(envVar: string | undefined, fallback: number): number {
   return (envVar && Number(envVar)) || fallback
@@ -15,7 +15,7 @@ export function getSlugFromIgName(igName: string): string {
     lower: true,
     strict: true,
     locale: 'en',
-    trim: true
+    trim: true,
   })
 }
 
@@ -37,11 +37,8 @@ export const MIN_SLOTS_BETWEEN_BOOKINGS: number = parseEnvToInt(
   1
 )
 
-export async function throwIfNotAdmin(userId: User["id"]) {
+export async function throwIfNotAdmin(userId: User['id']) {
   if (!(await checkIsUserAdmin(userId))) {
-    throw new HttpException(
-      `You are not an admin.`,
-      HttpCode.Forbidden
-    );
+    throw new HttpException(`You are not an admin.`, HttpCode.Forbidden)
   }
 }
