@@ -1,11 +1,11 @@
 import { User, Organisation, Prisma } from '@prisma/client'
-import { BookingPayload } from "@services/bookings"
+import { BookingPayload } from '@services/bookings'
 import {
   DURATION_PER_SLOT,
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
   MIN_SLOTS_PER_BOOKING,
-} from "@/config/common"
+} from '@/config/common'
 import { prisma } from '../../db'
 
 /**
@@ -87,7 +87,7 @@ export function checkStartEndTime(start: Date, end: Date): boolean {
  * @returns true if user is an admin
  */
 export async function checkIsUserAdmin(userId: number): Promise<boolean> {
-  const result = await prisma.userOnOrg.findMany({
+  const result = await prisma.userOnOrg.findFirst({
     where: {
       AND: [
         {
@@ -101,7 +101,8 @@ export async function checkIsUserAdmin(userId: number): Promise<boolean> {
       ],
     },
   })
-  return result.length > 0
+
+  return result !== null
 }
 
 /**
@@ -139,7 +140,7 @@ export async function checkConflictingBooking(
 ): Promise<boolean> {
   const startTime = booking.start
   const endTime = booking.end
-  const conflicting = await prisma.booking.findMany({
+  const conflicting = await prisma.booking.findFirst({
     where: {
       start: {
         lt: endTime,
@@ -152,7 +153,7 @@ export async function checkConflictingBooking(
     },
   })
 
-  return conflicting.length > 0 && conflicting[0].end > startTime
+  return conflicting !== null && conflicting.end > startTime
 }
 
 /**
@@ -200,7 +201,7 @@ export async function checkStackedBookings(booking: BookingPayload) {
   const earliestLaterBooking = await prisma.booking.findFirst({
     orderBy: [
       {
-        start: Prisma.SortOrder["asc"],
+        start: Prisma.SortOrder['asc'],
       },
     ],
     where: {
