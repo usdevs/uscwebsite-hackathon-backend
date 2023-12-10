@@ -20,7 +20,7 @@ export async function checkUserinOrg(
   organisation: Organisation
 ): Promise<boolean> {
   // find all userOnOrg where user is in the organisation OR user is an admin
-  const result = await prisma.userOnOrg.findMany({
+  const result = await prisma.userOnOrg.findFirst({
     where: {
       OR: [
         {
@@ -48,7 +48,7 @@ export async function checkUserinOrg(
       ],
     },
   })
-  return result.length > 0
+  return result !== null
 }
 
 /*Returns number of minutes*/
