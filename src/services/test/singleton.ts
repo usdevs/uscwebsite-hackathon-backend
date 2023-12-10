@@ -4,9 +4,9 @@ import { prisma } from '../../../db'
 
 // https://www.prisma.io/docs/guides/testing/unit-testing#example-unit-tests
 
-jest.mock('../db.ts', () => ({
+jest.mock('../../../db', () => ({
   __esModule: true,
-  default: mockDeep<PrismaClient>(),
+  prisma: mockDeep<PrismaClient>(), // "prisma" instead of "default" as we use named exports
 }))
 
 beforeEach(() => {
