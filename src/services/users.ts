@@ -1,23 +1,25 @@
-import { prisma } from "../../db";
-import { Prisma, User } from "@prisma/client";
-import { HttpCode, HttpException } from "@exceptions/HttpException";
-import { throwIfNotAdmin } from "@/config/common";
+import { prisma } from '../../db'
+import { Prisma, User } from '@prisma/client'
+import { HttpCode, HttpException } from '@exceptions/HttpException'
+import { throwIfNotAdmin } from '@/config/common'
 
 /* Retrieves all users */
-export async function getAllUsers(): Promise<Prisma.UserGetPayload<Prisma.UserArgs>[]> {
-  return prisma.user.findMany();
+export async function getAllUsers(): Promise<
+  Prisma.UserGetPayload<Prisma.UserArgs>[]
+> {
+  return prisma.user.findMany()
 }
 
-export type UserPayload = Pick<
-  User,
-  'name' | 'telegramUserName' | 'telegramId'
->
+export type UserPayload = Pick<User, 'name' | 'telegramUserName' | 'telegramId'>
 
 /* Add a new user */
-export async function addUser(userPayload: UserPayload, adminUserId: number): Promise<User> {
-  await throwIfNotAdmin(adminUserId);
-  const userToAdd: Prisma.UserCreateInput = {...userPayload}
-  return prisma.user.create({ data: userToAdd });
+export async function addUser(
+  userPayload: UserPayload,
+  adminUserId: number
+): Promise<User> {
+  await throwIfNotAdmin(adminUserId)
+  const userToAdd: Prisma.UserCreateInput = { ...userPayload }
+  return prisma.user.create({ data: userToAdd })
 }
 
 /**
@@ -47,13 +49,13 @@ export async function updateUser(
     )
   }
 
-  const updatedUser: Prisma.UserUpdateInput = {...userPayload}
+  const updatedUser: Prisma.UserUpdateInput = { ...userPayload }
   return prisma.user.update({
     where: {
       id: userId,
     },
     data: updatedUser,
-  });
+  })
 }
 
 /* Delete an existing user */
@@ -78,15 +80,15 @@ export async function deleteUser(
   // first, before deleting the user
   const userOnOrg = await prisma.userOnOrg.findFirst({
     where: {
-      userId: userToDeleteId
+      userId: userToDeleteId,
     },
     select: {
       org: {
         select: {
-          name: true
-        }
-      }
-    }
+          name: true,
+        },
+      },
+    },
   })
   if (userOnOrg) {
     throw new HttpException(
@@ -99,5 +101,5 @@ export async function deleteUser(
     where: {
       id: userToDeleteId,
     },
-  });
+  })
 }
