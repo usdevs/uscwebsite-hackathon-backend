@@ -60,7 +60,7 @@ router.delete('/user/:id', requiresAuthentication, asyncHandler(deleteUserFromDb
 // create a booking
 router.post('/bookings', requiresAuthentication, asyncHandler(createBooking))
 // view all bookings
-router.get('/bookings/all', getAllBookingsController)
+router.get('/bookings/all', asyncHandler(getAllBookingsController))
 // view bookings
 router.get('/bookings', asyncHandler(getUserBookingsController))
 // edit a booking
