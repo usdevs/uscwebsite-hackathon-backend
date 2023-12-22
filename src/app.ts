@@ -1,6 +1,7 @@
 import dotenv from 'dotenv'
 import express, { Express } from 'express'
 import cors from 'cors'
+import morgan from 'morgan'
 import { router } from '@routes/routes'
 import errorHandler from '@middlewares/error.middleware'
 
@@ -10,10 +11,20 @@ const app: Express = express()
 const port = process.env.PORT
 
 app.use(express.json())
+app.use(morgan('dev'))
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "development" ? ["http://localhost:3000", "http://localhost:3001", "https://frontend.local.dev", "https://usdevs.github.io", "https://nusc.club", "https://preview.nusc.club"]
-      : ["https://usdevs.github.io", "https://nusc.club"]
+    origin:
+      process.env.NODE_ENV === 'development'
+        ? [
+            'http://localhost:3000',
+            'http://localhost:3001',
+            'https://frontend.local.dev',
+            'https://usdevs.github.io',
+            'https://nusc.club',
+            'https://preview.nusc.club',
+          ]
+        : ['https://usdevs.github.io', 'https://nusc.club'],
   })
 )
 app.use('/', router)

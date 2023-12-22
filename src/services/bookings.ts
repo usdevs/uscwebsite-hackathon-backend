@@ -1,17 +1,17 @@
 import { prisma } from '../../db'
 import { Booking, Prisma } from '@prisma/client'
-import { HttpCode, HttpException } from '@/exceptions/HttpException'
+import { HttpCode, HttpException } from '../exceptions/HttpException'
 import {
   DURATION_PER_SLOT,
   MIN_SLOTS_PER_BOOKING,
   MAX_SLOTS_PER_BOOKING,
   MIN_SLOTS_BETWEEN_BOOKINGS,
-} from '@/config/common'
+} from '../config/common'
 import {
   checkConflictingBooking,
   checkStackedBookings,
   checkIsUserAdmin,
-} from '@middlewares/checks'
+} from '../middlewares/checks'
 
 /* Retrieves all bookings */
 export async function getAllBookings(
@@ -40,12 +40,12 @@ export async function getAllBookings(
         //todo optimise fetching of this data
         include: {
           org: true,
-          user: true
-        }
+          user: true,
+        },
       },
-      bookedForOrg: true
+      bookedForOrg: true,
     },
-  });
+  })
 }
 
 /**
@@ -59,7 +59,7 @@ export async function getUserBookings(
 ): Promise<Booking[]> {
   return prisma.booking.findMany({
     where: { userId: userId },
-  });
+  })
 }
 
 /**
@@ -77,7 +77,7 @@ export async function getBookingById(
       venue: true,
       bookedBy: true,
     },
-  });
+  })
 }
 
 export type BookingPayload = Pick<
@@ -106,7 +106,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   if (await checkIsUserAdmin(booking.userId)) {
     const adminUser = await prisma.user.findUniqueOrThrow({
       where: {
-        id: booking.userId
+        id: booking.userId,
       },
       include: {
         userOrg: {
@@ -114,29 +114,35 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
             org: {
               select: {
                 id: true,
-                isAdminOrg: true
-              }
-            }
-          }
-        }
-      }
+                isAdminOrg: true,
+              },
+            },
+          },
+        },
+      },
     })
-    const adminUserOrgs = adminUser.userOrg.map(x => x.org)
-    const indexOfBookingOrgId = adminUserOrgs.findIndex((org) => org.id === booking.userOrgId)
+    const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
+    const indexOfBookingOrgId = adminUserOrgs.findIndex(
+      (org) => org.id === booking.userOrgId
+    )
     if (indexOfBookingOrgId === -1) {
       const adminOrg = adminUserOrgs.find((org) => org.isAdminOrg)
       if (!adminOrg) {
         throw new HttpException(
-            `No admin org found for you`,
-            HttpCode.BadRequest
+          `No admin org found for you`,
+          HttpCode.BadRequest
         )
       }
       // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
-      const bookingToCreate = { ...booking, userOrgId: adminOrg.id, bookedForOrgId: booking.userOrgId }
-      return prisma.booking.create({ data: bookingToCreate });
+      const bookingToCreate = {
+        ...booking,
+        userOrgId: adminOrg.id,
+        bookedForOrgId: booking.userOrgId,
+      }
+      return prisma.booking.create({ data: bookingToCreate })
     }
     const bookingToCreate = { ...booking, userOrgId: booking.userOrgId }
-    return prisma.booking.create({ data: bookingToCreate });
+    return prisma.booking.create({ data: bookingToCreate })
   }
 
   const userOnOrg = await prisma.userOnOrg.findFirst({
@@ -189,8 +195,8 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  const bookingToCreate = {...booking }
-  return prisma.booking.create({ data: bookingToCreate });
+  const bookingToCreate = { ...booking }
+  return prisma.booking.create({ data: bookingToCreate })
 }
 
 /**
@@ -232,7 +238,7 @@ export async function updateBooking(
         id: bookingId,
       },
       data: updatedBooking,
-    });
+    })
   }
 
   if (bookingToUpdate.userId !== userId) {
@@ -296,7 +302,7 @@ export async function updateBooking(
       id: bookingId,
     },
     data: updatedBooking,
-  });
+  })
 }
 
 /* Delete an existing booking */
@@ -326,5 +332,5 @@ export async function deleteBooking(
     where: {
       id: bookingId,
     },
-  });
+  })
 }
