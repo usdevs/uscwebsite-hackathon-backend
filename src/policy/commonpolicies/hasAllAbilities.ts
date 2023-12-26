@@ -1,5 +1,7 @@
 import { Decision, Policy } from '@/interfaces/policy.interface'
+import { getUserAbilities } from '@/services/users'
 import { User } from '@prisma/client'
+import { ToAbilitiesMap } from './util'
 
 export class HasAllAbilities implements Policy {
   private abilities: string[]
@@ -9,13 +11,23 @@ export class HasAllAbilities implements Policy {
     this.abilities = abilities
   }
 
-  public Validate = (u?: User): Decision => {
-    // for (const ability of this.abilities) {
-    //   if (u.abilities.includes(ability)) {
-    //     return 'allow'
-    //   }
-    // }
-    return 'deny'
+  public Validate = async (u?: User): Promise<Decision> => {
+    if (!u) {
+      this.reason = 'User is not logged in'
+      return 'deny'
+    }
+
+    const abilities = await getUserAbilities(u.id)
+    const abilitiesMap = ToAbilitiesMap(abilities)
+
+    for (const ability of this.abilities) {
+      if (!abilitiesMap.get(ability)) {
+        this.reason = `User does not have the ability: ${ability}.`
+        return 'deny'
+      }
+    }
+
+    return 'allow'
   }
 
   public Reason = () => this.reason

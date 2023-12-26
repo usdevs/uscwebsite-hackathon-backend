@@ -10,7 +10,7 @@ export interface Policy {
    * @returns 'allow' if the user is authorized, 'deny' if not, '2fa' if 2fa is required
    * @throws {UnauthorizedException} if the user is not authorized
    */
-  Validate: (u?: User) => Decision
+  Validate: (u?: User) => Promise<Decision>
   /**
    * @returns the reason why the user is not authorized
    */

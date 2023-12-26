@@ -9,9 +9,9 @@ export class Any implements Policy {
     this.policies = policies
   }
 
-  public Validate = (u?: User): Decision => {
+  public Validate = async (u?: User): Promise<Decision> => {
     for (const p of this.policies) {
-      const decision = p.Validate(u)
+      const decision = await p.Validate(u)
       if (decision === 'allow') {
         return decision
       }
@@ -21,5 +21,5 @@ export class Any implements Policy {
     return 'deny'
   }
 
-  public Reason = () => this.reason.join(' ')
+  public Reason = () => this.reason.join(' OR ')
 }

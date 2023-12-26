@@ -3,7 +3,7 @@
 // Appears that the relations need to be optional https://stackoverflow.com/questions/73000266/prisma-not-deleting-because-it-depends-on-nonexistent-record
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["orderByNulls"]
 }
 
@@ -41,6 +41,7 @@ model Organisation {
   category    IGCategory
   isInactive  Boolean     @default(false)
   isInvisible Boolean     @default(false) // is not displayed on the website
+  orgRoles    OrgRole[]
 }
 
 model UserOnOrg {
@@ -63,11 +64,11 @@ model Venue {
 }
 
 model Booking {
-  id             Int          @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   eventName      String
-  venue          Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  venue          Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   venueId        Int
-  bookedBy       UserOnOrg    @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade, onUpdate: Cascade)
+  bookedBy       UserOnOrg     @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade, onUpdate: Cascade)
   userId         Int
   userOrgId      Int
   bookedForOrg   Organisation? @relation(fields: [bookedForOrgId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -75,5 +76,41 @@ model Booking {
   // booking on behalf of another org
   start          DateTime // start time of booking
   end            DateTime // end time of booking
-  bookedAt       DateTime     @default(now())
+  bookedAt       DateTime      @default(now())
+}
+
+model Ability {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  description   String
+  createdAt     DateTime      @default(now())
+  roleAbilities RoleAbility[]
+}
+
+model Role {
+  id            Int           @id @default(autoincrement())
+  name          String        @unique
+  createdAt     DateTime      @default(now())
+  roleAbilities RoleAbility[]
+  orgRoles      OrgRole[]
+}
+
+model RoleAbility {
+  id        Int     @id @default(autoincrement())
+  roleId    Int
+  abilityId Int
+  role      Role    @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  ability   Ability @relation(fields: [abilityId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([roleId, abilityId])
+}
+
+model OrgRole {
+  id           Int          @id @default(autoincrement())
+  orgId        Int
+  roleId       Int
+  organisation Organisation @relation(fields: [orgId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([orgId, roleId])
 }

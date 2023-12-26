@@ -103,3 +103,45 @@ export async function deleteUser(
     },
   })
 }
+
+export async function getUserAbilities(userId: number) {
+  const userAbilities = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      userOrg: {
+        select: {
+          org: {
+            select: {
+              orgRoles: {
+                select: {
+                  role: {
+                    select: {
+                      roleAbilities: {
+                        select: {
+                          ability: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  if (!userAbilities) return []
+
+  // Flatten the result to get a simple list of abilities
+  const abilities = userAbilities.userOrg.flatMap((userOnOrg) =>
+    userOnOrg.org.orgRoles.flatMap((orgRole) =>
+      orgRole.role.roleAbilities.map((roleAbility) => roleAbility.ability)
+    )
+  )
+
+  return abilities
+}

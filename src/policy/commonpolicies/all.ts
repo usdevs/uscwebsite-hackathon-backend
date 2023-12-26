@@ -9,9 +9,9 @@ export class All implements Policy {
     this.policies = policies
   }
 
-  public Validate = (u?: User): Decision => {
+  public Validate = async (u?: User): Promise<Decision> => {
     for (const p of this.policies) {
-      const decision = p.Validate(u)
+      const decision = await p.Validate(u)
       if (decision === 'deny') {
         this.Reason = p.Reason
         return decision
