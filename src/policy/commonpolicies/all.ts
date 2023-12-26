@@ -1,4 +1,4 @@
-import { Decision, Policy } from '@/interfaces/policy.interface'
+import { Policy } from '@/interfaces/policy.interface'
 import { User } from '@prisma/client'
 
 export class All implements Policy {

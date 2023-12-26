@@ -1,6 +1,8 @@
 import { User } from '@prisma/client'
 import { Policy } from '@/interfaces/policy.interface'
 import { UnauthorizedException } from '@/exceptions/HttpException'
+import { getUserAbilities } from '@/services/users'
+import { canManageAll } from './abilities'
 
 /**
  * Authorize a user to perform an action
@@ -10,10 +12,16 @@ import { UnauthorizedException } from '@/exceptions/HttpException'
  * @throws {UnauthorizedException} if the user is not authorized
  */
 export const Authorize = async (
-  u: User,
   action: string,
-  p: Policy
+  p: Policy,
+  u?: User
 ): Promise<void> => {
+  if (u) {
+    const abilities = await getUserAbilities(u.id)
+    const isAdmin = abilities.some((a) => a.name === canManageAll)
+    if (isAdmin) return // admin can do anything
+  }
+
   const decision = await p.Validate(u)
   switch (decision) {
     case 'allow':

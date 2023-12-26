@@ -1,8 +1,6 @@
 import { User } from '@prisma/client'
 import { UnauthorizedException } from '@/exceptions/HttpException'
 
-export type Decision = 'allow' | 'deny' | '2fa'
-
 export interface Policy {
   /**
    * Validate whether is authorized to perform an action

@@ -1,0 +1,5 @@
+export const canViewSubmissionList: AbilityName = 'canViewSubmissionList'
+export const canCreateSubmission: AbilityName = 'canCreateSubmission'
+export const canUpdateSubmission: AbilityName = 'canUpdateSubmission'
+export const canDeleteSubmission: AbilityName = 'canDeleteSubmission'
+export const canPublishSubmission: AbilityName = 'canApproveSubmission'

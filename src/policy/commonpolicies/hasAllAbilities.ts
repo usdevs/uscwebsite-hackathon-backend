@@ -1,13 +1,13 @@
-import { Decision, Policy } from '@/interfaces/policy.interface'
+import { Policy } from '@/interfaces/policy.interface'
 import { getUserAbilities } from '@/services/users'
 import { User } from '@prisma/client'
 import { ToAbilitiesMap } from './util'
 
 export class HasAllAbilities implements Policy {
-  private abilities: string[]
+  private abilities: AbilityName[]
   private reason: string = ''
 
-  constructor(...abilities: string[]) {
+  constructor(...abilities: AbilityName[]) {
     this.abilities = abilities
   }
 
