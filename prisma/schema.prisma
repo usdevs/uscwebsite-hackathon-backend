@@ -79,6 +79,7 @@ model Booking {
   bookedAt       DateTime      @default(now())
 }
 
+// Ability is a single action that the user can perform
 model Ability {
   id            Int           @id @default(autoincrement())
   name          String        @unique
@@ -87,6 +88,7 @@ model Ability {
   roleAbilities RoleAbility[]
 }
 
+// A role is a collection of abilities
 model Role {
   id            Int           @id @default(autoincrement())
   name          String        @unique

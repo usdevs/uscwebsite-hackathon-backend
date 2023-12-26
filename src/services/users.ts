@@ -104,6 +104,11 @@ export async function deleteUser(
   })
 }
 
+/**
+ * Returns the abilities of a user.
+ * Remark: Conventionally roles should belong to the user, but given the requirements of the project,
+ * we have to perform many joins.
+ */
 export async function getUserAbilities(userId: number) {
   const userAbilities = await prisma.user.findUnique({
     where: {
