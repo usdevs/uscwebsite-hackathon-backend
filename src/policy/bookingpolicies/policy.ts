@@ -1,6 +1,5 @@
-import { Policy } from '@/interfaces/policy.interface'
 import * as Policies from '../commonpolicies'
-import * as Abilitis from '../abilities'
+import * as Abilities from '../abilities'
 import { AllowIfBookingLessThanTwoHours } from './two-hour'
 
 export const viewBookingPolicy = () => {
@@ -9,7 +8,7 @@ export const viewBookingPolicy = () => {
 
 export const createBookingPolicy = (start: Date, end: Date) => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canCreateBooking),
+    new Policies.HasAnyAbilities(Abilities.canCreateBooking),
     new Policies.All(
       new Policies.AllowIfRoleIs('OrganisationHead'),
       new AllowIfBookingLessThanTwoHours(start, end)
@@ -19,7 +18,7 @@ export const createBookingPolicy = (start: Date, end: Date) => {
 
 export const deleteBookingPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canDeleteBooking)
+    new Policies.HasAnyAbilities(Abilities.canDeleteBooking)
   )
 }
 
@@ -29,18 +28,18 @@ export const createBookingRequestForMakerStudioPolicy = () => {
 
 export const approveMakerStudioRequestPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canApproveMakerStudioBooking)
+    new Policies.HasAnyAbilities(Abilities.canApproveMakerStudioBooking)
   )
 }
 
 export const rejectMakerStudioRequestPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canRejectMakerStudioBooking)
+    new Policies.HasAnyAbilities(Abilities.canRejectMakerStudioBooking)
   )
 }
 
 export const exportBookingPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canExportBooking)
+    new Policies.HasAnyAbilities(Abilities.canExportBooking)
   )
 }

@@ -1,23 +1,26 @@
-import { Policy } from '@/interfaces/policy.interface'
 import * as Policies from '../commonpolicies'
-import * as Abilitis from '../abilities'
+import * as Abilities from '../abilities'
 
 export const viewAdminListPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canViewAdminList)
+    new Policies.HasAnyAbilities(Abilities.canViewAdminList)
   )
 }
 
 export const viewOrganisationListPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilitis.canViewOrganisationList)
+    new Policies.HasAnyAbilities(Abilities.canViewOrganisationList)
   )
 }
 
 export const createAdminPolicy = () => {
-  return new Policies.Any(new Policies.HasAnyAbilities(Abilitis.canCreateAdmin))
+  return new Policies.Any(
+    new Policies.HasAnyAbilities(Abilities.canCreateAdmin)
+  )
 }
 
 export const deleteAdminPolicy = () => {
-  return new Policies.Any(new Policies.HasAnyAbilities(Abilitis.canDeleteAdmin))
+  return new Policies.Any(
+    new Policies.HasAnyAbilities(Abilities.canDeleteAdmin)
+  )
 }
