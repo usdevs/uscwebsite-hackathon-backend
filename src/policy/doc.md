@@ -84,7 +84,21 @@ const Authorize = async (
 
 Allows the combination of multiple policies for more advanced logic.
 
-- Any, All, HasAllAbilities, HasAnyAbilities, HasRole
+- Any, All, HasAllAbilities, HasAnyAbilities, HasRole, BelongToOrg
+
+Example:
+
+```typescript
+const createBookingPolicy = (start: Date, end: Date) => {
+  return new Policies.Any(
+    new Policies.HasAnyAbilities(Abilities.canCreateBooking),
+    new Policies.All(
+      new Policies.HasRole(OrganisationHead),
+      new AllowIfBookingLessThanTwoHours(start, end)
+    )
+  )
+}
+```
 
 ### All Policy
 
