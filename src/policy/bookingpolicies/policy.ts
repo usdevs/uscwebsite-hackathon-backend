@@ -11,7 +11,7 @@ export const createBookingPolicy = (start: Date, end: Date) => {
   return new Policies.Any(
     new Policies.HasAnyAbilities(Abilities.canCreateBooking),
     new Policies.All(
-      new Policies.AllowIfRoleIs(OrganisationHead),
+      new Policies.HasRole(OrganisationHead),
       new AllowIfBookingLessThanTwoHours(start, end)
     )
   )

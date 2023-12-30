@@ -2,7 +2,7 @@ import { Policy } from '@/interfaces/policy.interface'
 import { getUserRoles } from '@/services/users'
 import { User } from '@prisma/client'
 
-export class AllowIfRoleIs implements Policy {
+export class HasRole implements Policy {
   private roleName: string
   private reason: string = ''
 

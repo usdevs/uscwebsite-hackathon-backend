@@ -6,9 +6,9 @@ import { canManageAll } from './abilities'
 
 /**
  * Authorize a user to perform an action
- * @param u the user to authorize
- * @param action the action to authorize
+ * @param action the action to authorize, purely used for returning a more informative error message
  * @param p the policy to use
+ * @param u the user to authorize
  * @throws {UnauthorizedException} if the user is not authorized
  */
 export const Authorize = async (
