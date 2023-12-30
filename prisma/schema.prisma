@@ -3,7 +3,7 @@
 // Appears that the relations need to be optional https://stackoverflow.com/questions/73000266/prisma-not-deleting-because-it-depends-on-nonexistent-record
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["orderByNulls"]
 }
 
@@ -63,11 +63,11 @@ model Venue {
 }
 
 model Booking {
-  id             Int          @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   eventName      String
-  venue          Venue        @relation(fields: [venueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  venue          Venue         @relation(fields: [venueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   venueId        Int
-  bookedBy       UserOnOrg    @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade, onUpdate: Cascade)
+  bookedBy       UserOnOrg     @relation(fields: [userId, userOrgId], references: [userId, orgId], onDelete: Cascade, onUpdate: Cascade)
   userId         Int
   userOrgId      Int
   bookedForOrg   Organisation? @relation(fields: [bookedForOrgId], references: [id], onDelete: Cascade, onUpdate: Cascade)
@@ -75,57 +75,57 @@ model Booking {
   // booking on behalf of another org
   start          DateTime // start time of booking
   end            DateTime // end time of booking
-  bookedAt       DateTime     @default(now())
+  bookedAt       DateTime      @default(now())
 }
 
 model Course {
-  code  String @id
+  code  String  @id
   name  String
   teach Teach[]
 }
 
 model Professor {
-  id    Int    @id @default(autoincrement())
+  id    Int     @id @default(autoincrement())
   name  String
   teach Teach[]
 }
 
 model Teach {
-  teachId     Int       @id @default(autoincrement())
+  teachId     Int    @id @default(autoincrement())
   ay          String
   semester    String
   courseCode  String
-  professorId Int    
+  professorId Int
 
-  course      Course    @relation(fields: [courseCode], references: [code])
-  professor   Professor @relation(fields: [professorId], references: [id])
-  submit      Submit[]
+  course    Course    @relation(fields: [courseCode], references: [code])
+  professor Professor @relation(fields: [professorId], references: [id])
+  submit    Submit[]
 }
 
 model Student {
   id     Int      @id @default(autoincrement())
-  name   String
-  nusId  String
+  name   String   
+  nusId  String   @unique
   submit Submit[]
 }
 
 model Submission {
-  id          Int       @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   text        String
-  lastUpdated DateTime  @default(now())
-  isPublished Boolean   @default(false)
+  lastUpdated DateTime @default(now())
+  isPublished Boolean  @default(false)
   submit      Submit[]
 }
 
 model Submit {
-  submissionId  Int
-  studentId     Int
-  teachId       Int
+  submissionId Int
+  studentId    Int
+  teachId      Int
 
-  submission    Submission @relation(fields: [submissionId], references: [id])
-  student       Student    @relation(fields: [studentId], references: [id])
-  teach         Teach      @relation(fields: [teachId], references: [teachId])
+  submission Submission @relation(fields: [submissionId], references: [id])
+  student    Student    @relation(fields: [studentId], references: [id])
+  teach      Teach      @relation(fields: [teachId], references: [teachId])
 
   @@id([submissionId, studentId, teachId])
 }
