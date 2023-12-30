@@ -10,7 +10,7 @@ export class AllowIfBookingLessThanTwoHours implements Policy {
     this.end = end
   }
 
-  public Validate = async (u?: User): Promise<Decision> => {
+  public Validate = async (): Promise<Decision> => {
     const duration = this.end.getTime() - this.start.getTime()
     if (duration > 2 * 60 * 60 * 1000) return 'deny'
     return 'allow'
