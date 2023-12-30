@@ -152,7 +152,7 @@ model Submission {
   title       String
   text        String
   lastUpdated DateTime @default(now())
-  isPublished Boolean
+  isPublished Boolean  @default(false)
   Submit      Submit[]
 }
 
