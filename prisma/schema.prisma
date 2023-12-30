@@ -116,3 +116,53 @@ model OrgRole {
 
   @@unique([orgId, roleId])
 }
+
+model Course {
+  code  String  @id
+  name  String
+  Teach Teach[]
+}
+
+model Professor {
+  id    Int     @id @default(autoincrement())
+  name  String
+  Teach Teach[]
+}
+
+model Teach {
+  courseCode  String
+  course      Course    @relation(fields: [courseCode], references: [code])
+  professorId Int
+  professor   Professor @relation(fields: [professorId], references: [id])
+  semester    String
+  ay          String
+  teachId     Int       @id @default(autoincrement())
+  Submit      Submit[]
+}
+
+model Student {
+  id     Int      @id @default(autoincrement())
+  nusId  String   @unique
+  name   String
+  Submit Submit[]
+}
+
+model Submission {
+  id          Int      @id @default(autoincrement())
+  title       String
+  text        String
+  lastUpdated DateTime
+  isPublished Boolean
+  Submit      Submit[]
+}
+
+model Submit {
+  submissionId Int
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  studentId    Int
+  student      Student    @relation(fields: [studentId], references: [id])
+  teachId      Int
+  teach        Teach      @relation(fields: [teachId], references: [teachId])
+
+  @@id([submissionId, studentId, teachId])
+}
