@@ -7,6 +7,30 @@ The Policy Module is designed to authorize user actions within the application. 
 ## Usage Guidelines
 
 - **Integration Point**: The `Policy.Authorize` method must be invoked as soon as all necessary information for authorization is available. This typically occurs at the beginning of a request lifecycle, but in cases where request parsing is required to retrieve parameters, it should be called immediately afterward.
+  Example:
+
+```typescript
+export async function createBooking(
+  req: RequestWithUser,
+  res: Response
+): Promise<void> {
+  const user = req.user
+  if (!user) {
+    throw new HttpException('Requires authentication', HttpCode.Unauthorized)
+  }
+
+  const booking = BookingSchema.parse(req.body)
+
+  await Policy.Authorize(
+    createBookingAction,
+    Policy.createBookingPolicy(booking.start, booking.end),
+    user
+  )
+
+  // ... function implementation
+}
+```
+
 - **Method Documentation**: For detailed information on each method, refer to `src/policy/policy.ts`.
 
 ## Core Interfaces and Functions
@@ -16,10 +40,9 @@ The Policy Module is designed to authorize user actions within the application. 
 Defines the structure for creating new policy objects.
 
 ```typescript
-import { User } from '@prisma/client'
-import { UnauthorizedException } from '@/exceptions/HttpException'
+type Decision = 'allow' | 'deny' | '2fa'
 
-export interface Policy {
+interface Policy {
   /**
    * Determines if the user is authorized for an action.
    * @param u The user to validate.
@@ -41,12 +64,6 @@ export interface Policy {
 Authorizes a user to perform a specified action based on provided policies.
 
 ```typescript
-import { User } from '@prisma/client'
-import { Policy } from '@/interfaces/policy.interface'
-import { UnauthorizedException } from '@/exceptions/HttpException'
-import { getUserAbilities } from '@/services/users'
-import { canManageAll } from './abilities'
-
 /**
  * Authorizes a user action.
  * @param action The action to authorize.
@@ -54,7 +71,7 @@ import { canManageAll } from './abilities'
  * @param u The user to authorize.
  * @throws {UnauthorizedException} if the user is unauthorized.
  */
-export const Authorize = async (
+const Authorize = async (
   action: string,
   p: Policy,
   u?: User
@@ -74,7 +91,7 @@ Allows the combination of multiple policies for more advanced logic.
 Ensures that all provided policies must pass for authorization.
 
 ```typescript
-export class All implements Policy {
+class All implements Policy {
   // ... class implementation
 }
 ```
@@ -84,7 +101,7 @@ export class All implements Policy {
 Ensures that at last one of provided policies must pass for authorization.
 
 ```typescript
-export class Any implements Policy {
+class Any implements Policy {
   // ... class implementation
 }
 ```
@@ -98,7 +115,7 @@ Defines policies with specific checks for different modules.
 Authorizes actions based on the booking duration.
 
 ```typescript
-export class AllowIfBookingLessThanTwoHours implements Policy {
+class AllowIfBookingLessThanTwoHours implements Policy {
   // ... class implementation
 }
 ```
