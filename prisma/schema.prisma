@@ -131,9 +131,9 @@ model Professor {
 
 model Teach {
   courseCode  String
-  course      Course    @relation(fields: [courseCode], references: [code])
+  course      Course    @relation(fields: [courseCode], references: [code], onDelete: Cascade, onUpdate: Cascade)
   professorId Int
-  professor   Professor @relation(fields: [professorId], references: [id])
+  professor   Professor @relation(fields: [professorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   semester    String
   ay          String
   teachId     Int       @id @default(autoincrement())
@@ -151,18 +151,18 @@ model Submission {
   id          Int      @id @default(autoincrement())
   title       String
   text        String
-  lastUpdated DateTime
+  lastUpdated DateTime @default(now())
   isPublished Boolean
   Submit      Submit[]
 }
 
 model Submit {
   submissionId Int
-  submission   Submission @relation(fields: [submissionId], references: [id])
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   studentId    Int
-  student      Student    @relation(fields: [studentId], references: [id])
+  student      Student    @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   teachId      Int
-  teach        Teach      @relation(fields: [teachId], references: [teachId])
+  teach        Teach      @relation(fields: [teachId], references: [teachId], onDelete: Cascade, onUpdate: Cascade)
 
   @@id([submissionId, studentId, teachId])
 }
