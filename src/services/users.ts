@@ -181,3 +181,24 @@ export const getUserRoles = async (userId: number) => {
 
   return roles
 }
+
+export const getUserOrgs = async (userId: number) => {
+  const userOrgs = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      userOrg: {
+        select: {
+          org: true,
+        },
+      },
+    },
+  })
+
+  if (!userOrgs) return []
+
+  const orgs = userOrgs.userOrg.map((userOnOrg) => userOnOrg.org)
+
+  return orgs
+}

@@ -19,6 +19,10 @@ export class HasRole implements Policy {
     const roles = await getUserRoles(u.id)
     const hasRole = roles.some((r) => r.name === this.roleName)
 
+    if (!hasRole) {
+      this.reason = `User does not have role ${this.roleName}`
+    }
+
     return hasRole ? 'allow' : 'deny'
   }
 

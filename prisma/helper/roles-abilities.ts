@@ -62,7 +62,7 @@ export const seedRolesAbilities = async () => {
       Ab.canViewBookingList,
       Ab.canViewSubmissionList,
     ],
-    [Rl.Member]: [Ab.canViewBookingList],
+    [Rl.Member]: [Ab.canViewBookingList, Ab.canViewSubmissionList],
   }
 
   // Loop over key value pair
