@@ -156,6 +156,47 @@ const addUserOnOrgToTable = async (userId: number, orgId: number, isIGHead: bool
   console.log(`Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`);
 }
 
+const addFolioToTable = async () => {
+  // Seed for Course
+  const course1 = await prisma.course.create({
+    data: { code: 'NTW2001', name: 'Cosmopolitanism and Global Citizenship' },
+  });
+  
+  // Seed for Professor
+  const professor1 = await prisma.professor.create({
+    data: { name: 'Dr. Leung Wing Sze' },
+  });
+
+  // Seed for Teach
+  const teach1 = await prisma.teach.create({
+    data: {
+      ay: '2023/2024',
+      semester: '1',
+      courseCode: course1.code,
+      professorId: professor1.id,
+    },
+  });
+
+  // Seed for Student
+  const student1 = await prisma.student.create({
+    data: { name: 'Alice', nusId: 'A01234567' },
+  });
+
+  // Seed for Submission
+  const submission1 = await prisma.submission.create({
+    data: { title: 'My First Submission', text: 'This is a test submission.' },
+  });
+
+  // Seed for Submit
+  await prisma.submit.create({
+    data: {
+      submissionId: submission1.id,
+      studentId: student1.id,
+      teachId: teach1.teachId,
+    },
+  });
+}
+
 async function main() {
   const isDevEnv = process.env?.PRISMA_SEED_ENVIRONMENT === "DEV";
 
@@ -290,6 +331,9 @@ async function main() {
 
   // grand access to developers even on prod
   await readUserOnOrg(getDevSheetName(userOnOrgSheet));
+  
+  // TODO: Seed Folio Courses and Profs
+  await addFolioToTable
 
   console.log(`Seeding finished.`);
 
