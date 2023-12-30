@@ -1,6 +1,7 @@
 import * as Policies from '../commonpolicies'
 import * as Abilities from '../abilities'
 import { AllowIfBookingLessThanTwoHours } from './two-hour'
+import { OrganisationHead } from '../role'
 
 export const viewBookingPolicy = () => {
   return new Policies.Allow()
@@ -10,7 +11,7 @@ export const createBookingPolicy = (start: Date, end: Date) => {
   return new Policies.Any(
     new Policies.HasAnyAbilities(Abilities.canCreateBooking),
     new Policies.All(
-      new Policies.AllowIfRoleIs('OrganisationHead'),
+      new Policies.AllowIfRoleIs(OrganisationHead),
       new AllowIfBookingLessThanTwoHours(start, end)
     )
   )
