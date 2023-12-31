@@ -1,6 +1,6 @@
 import { User } from '@prisma/client'
 import { Policy } from '@/interfaces/policy.interface'
-import { UnauthorizedException } from '@/exceptions/HttpException'
+import { UnauthorizedException } from '@/exceptions'
 import { getUserAbilities } from '@/services/users'
 import { canManageAll } from './abilities'
 

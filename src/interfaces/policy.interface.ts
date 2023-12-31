@@ -1,5 +1,5 @@
 import { User } from '@prisma/client'
-import { UnauthorizedException } from '@/exceptions/HttpException'
+import { UnauthorizedException } from '@/exceptions'
 
 export interface Policy {
   /**
