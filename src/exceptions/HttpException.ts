@@ -15,9 +15,3 @@ export class HttpException {
     this.message = message
   }
 }
-
-export class UnauthorizedException extends HttpException {
-  constructor(message: string) {
-    super(message, HttpCode.Unauthorized)
-  }
-}
