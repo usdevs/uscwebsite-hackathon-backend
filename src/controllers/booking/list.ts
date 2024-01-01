@@ -1,6 +1,9 @@
 import { Response, Request } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { getAllBookings, getUserBookings } from '@services/bookings'
+import * as Policy from '@/policy'
+
+const listBookingsAction = 'list bookings'
 
 export async function listBookings(req: Request, res: Response): Promise<void> {
   // Responsibility of frontend to return valid ISO datetime string
@@ -17,6 +20,9 @@ export async function listBookings(req: Request, res: Response): Promise<void> {
       HttpCode.BadRequest
     )
   }
+
+  await Policy.Authorize(listBookingsAction, Policy.viewBookingPolicy())
+
   const bookings = await getAllBookings(start, end)
   res.json(bookings)
 }
@@ -30,6 +36,8 @@ export async function getUserBookingsController(
   if (!userId) {
     throw new HttpException('Query missing userId', HttpCode.BadRequest)
   }
+
+  await Policy.Authorize(listBookingsAction, Policy.viewBookingPolicy())
 
   const bookings = await getUserBookings(parseInt(userId))
   res.json(bookings)
