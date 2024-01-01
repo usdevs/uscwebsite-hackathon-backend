@@ -17,13 +17,6 @@ export async function createBooking(
   }
 
   const booking = BookingSchema.parse(req.body)
-
-  await Policy.Authorize(
-    createBookingAction,
-    Policy.createBookingPolicy(booking.start, booking.end),
-    user
-  )
-
   const bookingPayload = {
     end: booking.end,
     eventName: booking.eventName,
@@ -32,6 +25,13 @@ export async function createBooking(
     userId: user.id,
     userOrgId: booking.orgId,
   }
+
+  await Policy.Authorize(
+    createBookingAction,
+    Policy.createBookingPolicy(bookingPayload),
+    user
+  )
+
   const inserted = await addBooking(bookingPayload)
   res.status(200).json({ result: [inserted] })
 }

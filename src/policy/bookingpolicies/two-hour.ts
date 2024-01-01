@@ -1,17 +1,14 @@
 import { Policy } from '@/interfaces/policy.interface'
-import { User } from '@prisma/client'
+import { BookingPayload } from '@/services/bookings'
 
 export class AllowIfBookingLessThanTwoHours implements Policy {
-  private start: Date
-  private end: Date
+  private booking: BookingPayload
 
-  constructor(start: Date, end: Date) {
-    this.start = start
-    this.end = end
+  constructor(booking: BookingPayload) {
+    this.booking = booking
   }
-
   public Validate = async (): Promise<Decision> => {
-    const duration = this.end.getTime() - this.start.getTime()
+    const duration = this.booking.end.getTime() - this.booking.start.getTime()
     if (duration > 2 * 60 * 60 * 1000) return 'deny'
     return 'allow'
   }
