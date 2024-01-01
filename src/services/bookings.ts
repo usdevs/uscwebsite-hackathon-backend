@@ -102,6 +102,44 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
+  const user = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: booking.userId,
+    },
+    include: {
+      userOrg: {
+        include: {
+          org: {
+            select: {
+              id: true,
+              isAdminOrg: true,
+            },
+          },
+        },
+      },
+    },
+  })
+  const userOrgs = user.userOrg.map((x) => x.org)
+  const indexOfBookingOrgId = userOrgs.findIndex(
+    (org) => org.id === booking.userOrgId
+  )
+  if (indexOfBookingOrgId === -1) {
+    const adminOrg = userOrgs.find((org) => org.isAdminOrg)
+    if (!adminOrg) {
+      throw new HttpException(
+        `None admin cannot book on behalf of other orgs`,
+        HttpCode.BadRequest
+      )
+    }
+    // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
+    const bookingToCreate = {
+      ...booking,
+      userOrgId: adminOrg.id,
+      bookedForOrgId: booking.userOrgId,
+    }
+    return prisma.booking.create({ data: bookingToCreate })
+  }
+
   const bookingToCreate = { ...booking }
   return prisma.booking.create({ data: bookingToCreate })
 }
