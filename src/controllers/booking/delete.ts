@@ -2,6 +2,9 @@ import { Response } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { RequestWithUser } from '@/interfaces/auth.interface'
 import { destroyBooking } from '@services/bookings'
+import * as Policy from '@/policy'
+
+const deleteBookingAction = 'delete booking'
 
 export async function deleteBooking(
   req: RequestWithUser,
@@ -14,6 +17,13 @@ export async function deleteBooking(
   if (!req.user) {
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
+
+  await Policy.Authorize(
+    deleteBookingAction,
+    Policy.deleteBookingPolicy(),
+    req.user
+  )
+
   const booking = await destroyBooking(bookingId, req.user.id)
   res.json(booking)
 }

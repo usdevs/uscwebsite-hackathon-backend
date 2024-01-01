@@ -270,12 +270,6 @@ export async function destroyBooking(
     )
   }
 
-  if (bookingToDelete.userId !== userId && !(await checkIsUserAdmin(userId))) {
-    throw new HttpException(
-      `You do not have permission to delete this booking`,
-      HttpCode.Forbidden
-    )
-  }
   return prisma.booking.delete({
     where: {
       id: bookingId,
