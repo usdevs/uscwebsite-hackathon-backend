@@ -1,32 +1,30 @@
 import * as Policies from '../commonpolicies'
 import * as Abilities from '../abilities'
 
-export const viewSubmissionPolicy = () => {
+export const viewAdminListPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canViewSubmissionList)
+    new Policies.HasAnyAbilities(Abilities.canViewAdminList)
   )
 }
 
-export const createSubmissionPolicy = () => {
+export const viewOrganisationListPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canCreateSubmission)
+    new Policies.HasAnyAbilities(Abilities.canViewOrganisationList)
   )
 }
 
-export const updateSubmissionPolicy = () => {
+export const viewOrganisationCategoryPolicy = () => {
+  return new Policies.Allow()
+}
+
+export const createAdminPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canUpdateSubmission)
+    new Policies.HasAnyAbilities(Abilities.canCreateAdmin)
   )
 }
 
-export const publishSubmissionPolicy = () => {
+export const deleteAdminPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canPublishSubmission)
-  )
-}
-
-export const deleteSubmissionPolicy = () => {
-  return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canDeleteSubmission)
+    new Policies.HasAnyAbilities(Abilities.canDeleteAdmin)
   )
 }
