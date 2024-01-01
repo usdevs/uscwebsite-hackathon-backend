@@ -3,6 +3,9 @@ import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { RequestWithUser } from '@/interfaces/auth.interface'
 import { updateBooking } from '@services/bookings'
 import { BookingSchema } from '@/interfaces/booking.interface'
+import * as Policy from '@/policy'
+
+const updateBookingAction = 'update booking'
 
 export async function editBooking(
   req: RequestWithUser,
@@ -25,6 +28,13 @@ export async function editBooking(
     userId,
     userOrgId: booking.orgId,
   }
+
+  await Policy.Authorize(
+    updateBookingAction,
+    Policy.updateBookingPolicy(bookingPayload, req.user),
+    req.user
+  )
+
   const updatedBooking = await updateBooking(bookingId, bookingPayload, userId)
   res.status(200).json({ result: [updatedBooking] })
 }

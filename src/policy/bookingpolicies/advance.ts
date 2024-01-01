@@ -1,4 +1,3 @@
-import { DURATION_PER_SLOT, MAX_SLOTS_PER_BOOKING } from '@/config/common'
 import { Policy } from '@/interfaces/policy.interface'
 import { BookingPayload } from '@/services/bookings'
 
