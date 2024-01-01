@@ -112,6 +112,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
           org: {
             select: {
               id: true,
+              name: true,
               isAdminOrg: true,
             },
           },
@@ -124,10 +125,12 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     (org) => org.id === booking.userOrgId
   )
   if (indexOfBookingOrgId === -1) {
-    const adminOrg = userOrgs.find((org) => org.isAdminOrg)
+    const adminOrg = userOrgs.find(
+      (org) => org.isAdminOrg || org.name === 'Booking Admin'
+    )
     if (!adminOrg) {
       throw new HttpException(
-        `None admin cannot book on behalf of other orgs`,
+        `None admin or booking admin cannot book on behalf of other orgs`,
         HttpCode.BadRequest
       )
     }

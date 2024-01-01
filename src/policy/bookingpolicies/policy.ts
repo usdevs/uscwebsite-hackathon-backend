@@ -15,18 +15,16 @@ export const viewBookingPolicy = () => {
 }
 
 export const createBookingPolicy = (booking: BookingPayload) => {
-  return new Policies.All(
-    new Policies.BelongToOrg(booking.userOrgId),
-    new AllowIfBookingIsNotTooLong(booking),
-    new AllowIfBookingIsNotTooShort(booking),
-    new AllowIfBookingWithin14Days(booking),
-    new AllowIfBookingIsNotStacked(booking),
-    new Policies.Any(
-      new Policies.HasAnyAbilities(Abilities.canCreateBooking),
-      new Policies.All(
-        new Policies.HasRole(OrganisationHead),
-        new AllowIfBookingLessThanTwoHours(booking)
-      )
+  return new Policies.Any(
+    new Policies.HasAnyAbilities(Abilities.canCreateBooking),
+    new Policies.All(
+      new Policies.HasRole(OrganisationHead),
+      new Policies.BelongToOrg(booking.userOrgId),
+      new AllowIfBookingIsNotTooLong(booking),
+      new AllowIfBookingIsNotTooShort(booking),
+      new AllowIfBookingWithin14Days(booking),
+      new AllowIfBookingIsNotStacked(booking),
+      new AllowIfBookingLessThanTwoHours(booking)
     )
   )
 }
