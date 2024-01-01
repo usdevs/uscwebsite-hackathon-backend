@@ -52,6 +52,7 @@ export const seedRolesAbilities = async () => {
       Ab.canViewBookingList,
       Ab.canCreateBooking,
       Ab.canDeleteBooking,
+      Ab.canUpdateBooking,
       Ab.canApproveMakerStudioBooking,
       Ab.canRejectMakerStudioBooking,
       Ab.canViewSubmissionList,

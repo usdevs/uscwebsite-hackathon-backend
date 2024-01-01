@@ -8,49 +8,42 @@ export const canDeleteAdmin: AbilityName = 'canDeleteAdmin'
 export const canCreateOrganisation: AbilityName = 'canCreateOrganisation'
 export const canDeleteOrganisation: AbilityName = 'canDeleteOrganisation'
 
-export const canManageAllAbility: Omit<Ability, 'createdAt'> = {
-  id: 1,
+export const canManageAllAbility: Create<Ability> = {
   name: canManageAll,
   description: 'Can manage all',
 }
 
-export const canViewAdminListAbility: Omit<Ability, 'createdAt'> = {
-  id: 2,
+export const canViewAdminListAbility: Create<Ability> = {
   name: canViewAdminList,
   description: 'Can view admin list',
 }
 
-export const canViewOrganisationListAbility: Omit<Ability, 'createdAt'> = {
-  id: 3,
+export const canViewOrganisationListAbility: Create<Ability> = {
   name: canViewOrganisationList,
   description: 'Can view organisation list',
 }
 
-export const canCreateAdminAbility: Omit<Ability, 'createdAt'> = {
-  id: 4,
+export const canCreateAdminAbility: Create<Ability> = {
   name: canCreateAdmin,
   description: 'Can create admin',
 }
 
-export const canDeleteAdminAbility: Omit<Ability, 'createdAt'> = {
-  id: 5,
+export const canDeleteAdminAbility: Create<Ability> = {
   name: canDeleteAdmin,
   description: 'Can delete admin',
 }
 
-export const canCreateOrganisationAbility: Omit<Ability, 'createdAt'> = {
-  id: 6,
+export const canCreateOrganisationAbility: Create<Ability> = {
   name: canCreateOrganisation,
   description: 'Can create organisation',
 }
 
-export const canDeleteOrganisationAbility: Omit<Ability, 'createdAt'> = {
-  id: 7,
+export const canDeleteOrganisationAbility: Create<Ability> = {
   name: canDeleteOrganisation,
   description: 'Can delete organisation',
 }
 
-export const AllAdminAbilities: Omit<Ability, 'createdAt'>[] = [
+export const AllAdminAbilities: Create<Ability>[] = [
   canManageAllAbility,
   canViewAdminListAbility,
   canViewOrganisationListAbility,
