@@ -59,7 +59,7 @@ export async function updateUser(
 }
 
 /* Delete an existing user */
-export async function deleteUser(
+export async function destroyUser(
   userToDeleteId: User['id'],
   adminUserId: User['id']
 ): Promise<User> {

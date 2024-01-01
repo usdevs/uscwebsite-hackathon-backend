@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { checkSignature, generateToken } from '@middlewares/auth.middleware'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
 import { Prisma } from '@prisma/client'
-import { prisma } from '../../db'
+import { prisma } from '../../../db'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
 

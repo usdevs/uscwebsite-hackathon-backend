@@ -306,7 +306,7 @@ export async function updateBooking(
 }
 
 /* Delete an existing booking */
-export async function deleteBooking(
+export async function destroyBooking(
   bookingId: Booking['id'],
   userId: Booking['userId']
 ): Promise<Booking> {

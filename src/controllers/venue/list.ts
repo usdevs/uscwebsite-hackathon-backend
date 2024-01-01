@@ -1,5 +1,5 @@
 import { Response, Request, NextFunction } from 'express'
-import { getAllVenues } from "@/services/venues";
+import { getAllVenues } from '@/services/venues'
 
 /**
  * Retrieves all venues' details
@@ -7,7 +7,7 @@ import { getAllVenues } from "@/services/venues";
  * @param res json with all venues' details
  * @param next
  */
-export async function getVenues(
+export async function listVenue(
   req: Request,
   res: Response,
   next: NextFunction
