@@ -2,6 +2,9 @@ import { Response, NextFunction } from 'express'
 import { getAllUsers } from '@services/users'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { RequestWithUser } from '@interfaces/auth.interface'
+import * as Policy from '@/policy'
+
+const listUserAction = 'list user'
 
 /**
  * Retrieves all users' details
@@ -18,6 +21,9 @@ export async function listUser(
   if (!user) {
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
+
+  await Policy.Authorize(listUserAction, Policy.listUserPolicy(), user)
+
   const users = await getAllUsers()
   res.json(users)
 }

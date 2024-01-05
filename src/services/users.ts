@@ -13,11 +13,7 @@ export async function getAllUsers(): Promise<
 export type UserPayload = Pick<User, 'name' | 'telegramUserName' | 'telegramId'>
 
 /* Add a new user */
-export async function addUser(
-  userPayload: UserPayload,
-  adminUserId: number
-): Promise<User> {
-  await throwIfNotAdmin(adminUserId)
+export async function addUser(userPayload: UserPayload): Promise<User> {
   const userToAdd: Prisma.UserCreateInput = { ...userPayload }
   return prisma.user.create({ data: userToAdd })
 }
@@ -32,11 +28,8 @@ export async function addUser(
  */
 export async function updateUser(
   userId: User['id'],
-  userPayload: UserPayload,
-  adminUserId: number
+  userPayload: UserPayload
 ): Promise<User> {
-  await throwIfNotAdmin(adminUserId)
-
   const userToUpdate = await prisma.user.findUnique({
     where: {
       id: userId,
@@ -59,11 +52,7 @@ export async function updateUser(
 }
 
 /* Delete an existing user */
-export async function destroyUser(
-  userToDeleteId: User['id'],
-  adminUserId: User['id']
-): Promise<User> {
-  await throwIfNotAdmin(adminUserId)
+export async function destroyUser(userToDeleteId: User['id']): Promise<User> {
   const userToDelete = await prisma.user.findFirst({
     where: {
       id: userToDeleteId,

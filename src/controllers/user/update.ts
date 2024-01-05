@@ -3,6 +3,9 @@ import { updateUser } from '@services/users'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { RequestWithUser } from '@interfaces/auth.interface'
 import { UserSchema } from '@interfaces/user.interface'
+import * as Policy from '@/policy'
+
+const editUserAction = 'edit user'
 
 export async function editUser(
   req: RequestWithUser,
@@ -16,7 +19,10 @@ export async function editUser(
   if (!adminUser) {
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
+
+  await Policy.Authorize(editUserAction, Policy.updateUserPolicy(), adminUser)
+
   const user = UserSchema.parse(req.body)
-  const updatedUser = await updateUser(userToUpdateId, user, adminUser.id)
+  const updatedUser = await updateUser(userToUpdateId, user)
   res.status(200).json({ result: [updatedUser] })
 }
