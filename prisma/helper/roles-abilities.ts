@@ -1,5 +1,5 @@
 import { OrgRole, Prisma } from '@prisma/client'
-import { AllRoles } from '@/policy/role'
+import { AllRoles } from '@/policy/roles'
 import { AllAbilities } from '@/policy/abilities'
 import { RolesAbilities } from '@/policy/rolesabilities'
 import { orgRoleSchema } from './schema'

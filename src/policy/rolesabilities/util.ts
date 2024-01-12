@@ -1,4 +1,4 @@
-import * as Roles from '@/policy/role'
+import * as Roles from '@/policy/roles'
 import * as Abilities from '@/policy/abilities'
 
 /**
