@@ -10,10 +10,7 @@ export class HttpException {
   public status: HttpCode
   public message: any
 
-  constructor(
-    message: any,
-    status: HttpCode = HttpCode.InternalServerError
-  ) {
+  constructor(message: any, status: HttpCode = HttpCode.InternalServerError) {
     this.status = status
     this.message = message
   }
