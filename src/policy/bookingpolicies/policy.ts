@@ -1,6 +1,6 @@
 import * as Policies from '../commonpolicies'
 import * as Abilities from '../abilities'
-import { OrganisationHead } from '../role'
+import { OrganisationHead } from '../roles'
 import { BookingPayload } from '@/services/bookings'
 import { User } from '@prisma/client'
 import {

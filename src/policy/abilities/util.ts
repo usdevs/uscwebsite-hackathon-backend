@@ -1,11 +1,14 @@
-import { Ability } from '@prisma/client'
 import * as admin from './admin'
 import * as booking from './booking'
 import * as submission from './submission'
 
-export const GetAllAbilities = (): Create<Ability>[] => {
-  const adminAbilities = admin.AllAdminAbilities
-  const bookingAbilities = booking.AllBookingAbilities
-  const submissionAbilities = submission.AllSubmissionAbilities
-  return [...adminAbilities, ...bookingAbilities, ...submissionAbilities]
-}
+/**
+ * This is the list of all abilities in the system.
+ * It is used to seed the database with abilities.
+ * If you are adding a cluster of abilties, please add it here.
+ */
+export const AllAbilities = [
+  ...admin.AllAdminAbilities,
+  ...booking.AllBookingAbilities,
+  ...submission.AllSubmissionAbilities,
+]
