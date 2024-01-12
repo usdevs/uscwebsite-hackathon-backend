@@ -1,6 +1,7 @@
 import { OrgRole, Prisma } from '@prisma/client'
-import * as Rl from '@/policy/role'
-import * as Ab from '@/policy/abilities'
+import { AllRoles } from '@/policy/role'
+import { AllAbilities } from '@/policy/abilities'
+import { RolesAbilities } from '@/policy/rolesabilities'
 import { orgRoleSchema } from './schema'
 import { ReadRowsFromExcel } from './util'
 import { prisma } from '../../db'
@@ -8,7 +9,7 @@ import { prisma } from '../../db'
 export const seedRoles = async () => {
   console.info('Seeding roles and abilities...')
 
-  for (const r of Rl.GetAllRoles()) await prisma.role.create({ data: r })
+  for (const r of AllRoles) await prisma.role.create({ data: r })
 
   console.info('Seeding roles and abilities finished.')
 }
@@ -16,7 +17,7 @@ export const seedRoles = async () => {
 export const seedAbilities = async () => {
   console.info('Seeding roles and abilities...')
 
-  for (const a of Ab.GetAllAbilities()) await prisma.ability.create({ data: a })
+  for (const a of AllAbilities) await prisma.ability.create({ data: a })
 
   console.info('Seeding roles and abilities finished.')
 }
@@ -28,46 +29,8 @@ export const seedAbilities = async () => {
 export const seedRolesAbilities = async () => {
   console.info('Seeding rolesAbilities...')
 
-  const rolesAbilities: Record<RoleName, AbilityName[]> = {
-    [Rl.WebsiteAdmin]: [Ab.canManageAll],
-    [Rl.MakerAdmin]: [
-      Ab.canViewAdminList,
-      Ab.canViewOrganisationList,
-      Ab.canViewBookingList,
-      Ab.canApproveMakerStudioBooking,
-      Ab.canViewSubmissionList,
-    ],
-    [Rl.AcadsAdmin]: [
-      Ab.canViewAdminList,
-      Ab.canViewOrganisationList,
-      Ab.canViewBookingList,
-      Ab.canViewSubmissionList,
-      Ab.canCreateSubmission,
-      Ab.canUpdateSubmission,
-      Ab.canDeleteSubmission,
-    ],
-    [Rl.BookingAdmin]: [
-      Ab.canViewAdminList,
-      Ab.canViewOrganisationList,
-      Ab.canViewBookingList,
-      Ab.canCreateBooking,
-      Ab.canDeleteBooking,
-      Ab.canUpdateBooking,
-      Ab.canApproveMakerStudioBooking,
-      Ab.canRejectMakerStudioBooking,
-      Ab.canViewSubmissionList,
-    ],
-    [Rl.OrganisationHead]: [
-      Ab.canViewAdminList,
-      Ab.canViewOrganisationList,
-      Ab.canViewBookingList,
-      Ab.canViewSubmissionList,
-    ],
-    [Rl.Member]: [Ab.canViewBookingList, Ab.canViewSubmissionList],
-  }
-
   // Loop over key value pair
-  for (const [roleName, abilityNames] of Object.entries(rolesAbilities)) {
+  for (const [roleName, abilityNames] of Object.entries(RolesAbilities)) {
     // Query db for roleID
     const role = await prisma.role.findUnique({
       where: { name: roleName },

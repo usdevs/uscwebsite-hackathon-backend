@@ -37,6 +37,11 @@ export const MemberRole: Omit<Role, 'createdAt'> = {
   name: Member,
 }
 
+/**
+ * This is the list of all roles in the system.
+ * It is used to seed the database with roles.
+ * If you are adding a role, please add it here.
+ */
 export const AllRoles: Omit<Role, 'createdAt'>[] = [
   WebsiteAdminRole,
   MakerAdminRole,
@@ -45,7 +50,3 @@ export const AllRoles: Omit<Role, 'createdAt'>[] = [
   OrganisationHeadRole,
   MemberRole,
 ]
-
-export const GetAllRoles = (): Omit<Role, 'createdAt'>[] => {
-  return AllRoles
-}
