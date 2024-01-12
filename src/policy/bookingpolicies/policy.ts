@@ -1,18 +1,32 @@
 import * as Policies from '../commonpolicies'
 import * as Abilities from '../abilities'
-import { AllowIfBookingLessThanTwoHours } from './two-hour'
 import { OrganisationHead } from '../role'
+import { BookingPayload } from '@/services/bookings'
+import { User } from '@prisma/client'
+import {
+  AllowIfBookingBelongToUser,
+  AllowIfBookingIsNotStacked,
+  AllowIfBookingIsNotTooLong,
+  AllowIfBookingIsNotTooShort,
+  AllowIfBookingLessThanTwoHours,
+  AllowIfBookingWithin14Days,
+} from '.'
 
 export const viewBookingPolicy = () => {
   return new Policies.Allow()
 }
 
-export const createBookingPolicy = (start: Date, end: Date) => {
+export const createBookingPolicy = (booking: BookingPayload) => {
   return new Policies.Any(
     new Policies.HasAnyAbilities(Abilities.canCreateBooking),
     new Policies.All(
       new Policies.HasRole(OrganisationHead),
-      new AllowIfBookingLessThanTwoHours(start, end)
+      new Policies.BelongToOrg(booking.userOrgId),
+      new AllowIfBookingIsNotTooLong(booking),
+      new AllowIfBookingIsNotTooShort(booking),
+      new AllowIfBookingWithin14Days(booking),
+      new AllowIfBookingIsNotStacked(booking),
+      new AllowIfBookingLessThanTwoHours(booking)
     )
   )
 }
@@ -20,6 +34,21 @@ export const createBookingPolicy = (start: Date, end: Date) => {
 export const deleteBookingPolicy = () => {
   return new Policies.Any(
     new Policies.HasAnyAbilities(Abilities.canDeleteBooking)
+  )
+}
+
+export const updateBookingPolicy = (booking: BookingPayload, user: User) => {
+  return new Policies.Any(
+    new Policies.HasAnyAbilities(Abilities.canUpdateBooking),
+    new Policies.All(
+      new Policies.BelongToOrg(booking.userOrgId),
+      new AllowIfBookingBelongToUser(booking, user),
+      new AllowIfBookingIsNotTooLong(booking),
+      new AllowIfBookingIsNotTooShort(booking),
+      new AllowIfBookingWithin14Days(booking),
+      new AllowIfBookingIsNotStacked(booking),
+      new AllowIfBookingLessThanTwoHours(booking)
+    )
   )
 }
 
