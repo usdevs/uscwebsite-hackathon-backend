@@ -10,7 +10,8 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   [Roles.MakerAdmin]: [
     Abilities.canViewAdminList,
     Abilities.canViewBookingList,
-    Abilities.canApproveMakerStudioBooking,
+    Abilities.canApproveBooking,
+    Abilities.canRejectBooking,
     Abilities.canViewSubmissionList,
   ],
   [Roles.AcadsAdmin]: [
@@ -27,8 +28,8 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
     Abilities.canCreateBooking,
     Abilities.canDeleteBooking,
     Abilities.canUpdateBooking,
-    Abilities.canApproveMakerStudioBooking,
-    Abilities.canRejectMakerStudioBooking,
+    Abilities.canApproveBooking,
+    Abilities.canRejectBooking,
     Abilities.canViewSubmissionList,
   ],
   [Roles.OrganisationHead]: [

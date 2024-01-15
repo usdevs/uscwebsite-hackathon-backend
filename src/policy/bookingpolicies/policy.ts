@@ -58,13 +58,13 @@ export const createBookingRequestForMakerStudioPolicy = () => {
 
 export const approveMakerStudioRequestPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canApproveMakerStudioBooking)
+    new Policies.HasAnyAbilities(Abilities.canApproveBooking)
   )
 }
 
 export const rejectMakerStudioRequestPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canRejectMakerStudioBooking)
+    new Policies.HasAnyAbilities(Abilities.canRejectBooking)
   )
 }
 
