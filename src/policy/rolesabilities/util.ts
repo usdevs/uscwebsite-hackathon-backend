@@ -7,7 +7,7 @@ import * as Abilities from '@/policy/abilities'
  */
 export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   [Roles.WebsiteAdmin]: [Abilities.canManageAll],
-  [Roles.MakerAdmin]: [
+  [Roles.SpacesAdmin]: [
     Abilities.canViewAdminList,
     Abilities.canViewBookingList,
     Abilities.canApproveBooking,
