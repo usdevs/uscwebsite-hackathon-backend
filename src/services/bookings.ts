@@ -102,44 +102,50 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
-  const user = await prisma.user.findUniqueOrThrow({
-    where: {
-      id: booking.userId,
-    },
-    include: {
-      userOrg: {
-        include: {
-          org: {
-            select: {
-              id: true,
-              name: true,
-              isAdminOrg: true,
+  // admin users can also make bookings on behalf of other organisations
+  if (await checkIsUserAdmin(booking.userId)) {
+    const adminUser = await prisma.user.findUniqueOrThrow({
+      where: {
+        id: booking.userId,
+      },
+      include: {
+        userOrg: {
+          include: {
+            org: {
+              select: {
+                id: true,
+                name: true,
+                isAdminOrg: true,
+              },
             },
           },
         },
       },
-    },
-  })
-  const userOrgs = user.userOrg.map((x) => x.org)
-  const indexOfBookingOrgId = userOrgs.findIndex(
-    (org) => org.id === booking.userOrgId
-  )
-  if (indexOfBookingOrgId === -1) {
-    const adminOrg = userOrgs.find(
-      (org) => org.isAdminOrg || org.name === 'Booking Admin'
+    })
+    const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
+    const indexOfBookingOrgId = adminUserOrgs.findIndex(
+      (org) => org.id === booking.userOrgId
     )
-    if (!adminOrg) {
-      throw new HttpException(
-        `None admin or booking admin cannot book on behalf of other orgs`,
-        HttpCode.BadRequest
+    if (indexOfBookingOrgId === -1) {
+      const adminOrg = adminUserOrgs.find(
+        (org) => org.isAdminOrg || org.name === 'Booking Admin'
       )
+      if (!adminOrg) {
+        throw new HttpException(
+          `No admin org found for you`,
+          HttpCode.BadRequest
+        )
+      }
+      // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
+      const bookingToCreate = {
+        ...booking,
+        userOrgId: adminOrg.id,
+        bookedForOrgId: booking.userOrgId,
+      }
+      return prisma.booking.create({ data: bookingToCreate })
     }
-    // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
-    const bookingToCreate = {
-      ...booking,
-      userOrgId: adminOrg.id,
-      bookedForOrgId: booking.userOrgId,
-    }
+
+    const bookingToCreate = { ...booking, userOrgId: booking.userOrgId }
     return prisma.booking.create({ data: bookingToCreate })
   }
 
@@ -179,7 +185,6 @@ export async function updateBooking(
       HttpCode.BadRequest
     )
   }
-
   return prisma.booking.update({
     where: {
       id: bookingId,
