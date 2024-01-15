@@ -9,14 +9,12 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   [Roles.WebsiteAdmin]: [Abilities.canManageAll],
   [Roles.MakerAdmin]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canApproveMakerStudioBooking,
     Abilities.canViewSubmissionList,
   ],
   [Roles.AcadsAdmin]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canViewSubmissionList,
     Abilities.canCreateSubmission,
@@ -25,7 +23,6 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   ],
   [Roles.BookingAdmin]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canCreateBooking,
     Abilities.canDeleteBooking,
@@ -36,7 +33,6 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   ],
   [Roles.OrganisationHead]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canViewSubmissionList,
   ],

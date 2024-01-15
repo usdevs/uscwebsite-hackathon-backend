@@ -2,7 +2,6 @@ import { Ability } from '@prisma/client'
 
 export const canManageAll: AbilityName = 'canManageAll'
 export const canViewAdminList: AbilityName = 'canViewAdminList'
-export const canViewOrganisationList: AbilityName = 'canViewOrganisationList'
 export const canCreateAdmin: AbilityName = 'canCreateAdmin'
 export const canDeleteAdmin: AbilityName = 'canDeleteAdmin'
 export const canCreateOrganisation: AbilityName = 'canCreateOrganisation'
@@ -16,11 +15,6 @@ export const canManageAllAbility: Create<Ability> = {
 export const canViewAdminListAbility: Create<Ability> = {
   name: canViewAdminList,
   description: 'Can view admin list',
-}
-
-export const canViewOrganisationListAbility: Create<Ability> = {
-  name: canViewOrganisationList,
-  description: 'Can view organisation list',
 }
 
 export const canCreateAdminAbility: Create<Ability> = {
@@ -46,7 +40,6 @@ export const canDeleteOrganisationAbility: Create<Ability> = {
 export const AllAdminAbilities: Create<Ability>[] = [
   canManageAllAbility,
   canViewAdminListAbility,
-  canViewOrganisationListAbility,
   canCreateAdminAbility,
   canDeleteAdminAbility,
   canCreateOrganisationAbility,
