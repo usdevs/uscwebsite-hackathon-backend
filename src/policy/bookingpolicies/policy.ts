@@ -52,19 +52,19 @@ export const updateBookingPolicy = (booking: BookingPayload, user: User) => {
   )
 }
 
-export const createBookingRequestForMakerStudioPolicy = () => {
+export const createBookingRequestPolicy = () => {
   return new Policies.Allow()
 }
 
-export const approveMakerStudioRequestPolicy = () => {
+export const approveBookingRequestPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canApproveMakerStudioBooking)
+    new Policies.HasAnyAbilities(Abilities.canApproveBooking)
   )
 }
 
-export const rejectMakerStudioRequestPolicy = () => {
+export const rejectBookingRequestPolicy = () => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canRejectMakerStudioBooking)
+    new Policies.HasAnyAbilities(Abilities.canRejectBooking)
   )
 }
 

@@ -8,9 +8,7 @@ export const viewAdminListPolicy = () => {
 }
 
 export const viewOrganisationListPolicy = () => {
-  return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canViewOrganisationList)
-  )
+  return new Policies.Allow()
 }
 
 export const viewOrganisationCategoryPolicy = () => {

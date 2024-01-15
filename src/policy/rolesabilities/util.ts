@@ -7,16 +7,15 @@ import * as Abilities from '@/policy/abilities'
  */
 export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   [Roles.WebsiteAdmin]: [Abilities.canManageAll],
-  [Roles.MakerAdmin]: [
+  [Roles.SpacesAdmin]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
-    Abilities.canApproveMakerStudioBooking,
+    Abilities.canApproveBooking,
+    Abilities.canRejectBooking,
     Abilities.canViewSubmissionList,
   ],
   [Roles.AcadsAdmin]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canViewSubmissionList,
     Abilities.canCreateSubmission,
@@ -25,18 +24,16 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
   ],
   [Roles.BookingAdmin]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canCreateBooking,
     Abilities.canDeleteBooking,
     Abilities.canUpdateBooking,
-    Abilities.canApproveMakerStudioBooking,
-    Abilities.canRejectMakerStudioBooking,
+    Abilities.canApproveBooking,
+    Abilities.canRejectBooking,
     Abilities.canViewSubmissionList,
   ],
   [Roles.OrganisationHead]: [
     Abilities.canViewAdminList,
-    Abilities.canViewOrganisationList,
     Abilities.canViewBookingList,
     Abilities.canViewSubmissionList,
   ],

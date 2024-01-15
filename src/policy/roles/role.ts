@@ -1,20 +1,22 @@
 import { Role } from '@prisma/client'
 
 export const WebsiteAdmin: RoleName = 'website_admin'
-export const MakerAdmin: RoleName = 'maker_admin'
+export const SpacesAdmin: RoleName = 'spaces_admin'
 export const AcadsAdmin: RoleName = 'acads_admin'
 export const BookingAdmin: RoleName = 'booking_admin'
 export const OrganisationHead: RoleName = 'organisation_head'
 export const Member: RoleName = 'member'
 
+// ID is hardcoded because it is the exact ID is expected by the
+// orgRole seed in the seeding excel sheet.
 export const WebsiteAdminRole: Omit<Role, 'createdAt'> = {
   id: 1,
   name: WebsiteAdmin,
 }
 
-export const MakerAdminRole: Omit<Role, 'createdAt'> = {
+export const SpacesAdminRole: Omit<Role, 'createdAt'> = {
   id: 2,
-  name: MakerAdmin,
+  name: SpacesAdmin,
 }
 
 export const AcadsAdminRole: Omit<Role, 'createdAt'> = {
@@ -44,7 +46,7 @@ export const MemberRole: Omit<Role, 'createdAt'> = {
  */
 export const AllRoles: Omit<Role, 'createdAt'>[] = [
   WebsiteAdminRole,
-  MakerAdminRole,
+  SpacesAdminRole,
   AcadsAdminRole,
   BookingAdminRole,
   OrganisationHeadRole,
