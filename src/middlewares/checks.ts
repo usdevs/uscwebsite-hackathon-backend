@@ -7,6 +7,7 @@ import {
   MIN_SLOTS_PER_BOOKING,
 } from '@/config/common'
 import { prisma } from '../../db'
+import { BookingAdminRole, WebsiteAdminRole } from '@/policy'
 
 /**
  * Checks if user is in the organisation OR if the user is an Admin
@@ -87,6 +88,7 @@ export function checkStartEndTime(start: Date, end: Date): boolean {
  * @returns true if user is an admin
  */
 export async function checkIsUserAdmin(userId: number): Promise<boolean> {
+  // TODO: remove this first check when we fully migrate to the new policy module
   const result = await prisma.userOnOrg.findFirst({
     where: {
       AND: [
@@ -101,8 +103,72 @@ export async function checkIsUserAdmin(userId: number): Promise<boolean> {
       ],
     },
   })
+  if (result !== null) {
+    return true
+  }
 
-  return result !== null
+  const result2 = await prisma.userOnOrg.findFirst({
+    where: {
+      AND: [
+        {
+          userId: userId,
+        },
+        {
+          org: {
+            orgRoles: {
+              some: {
+                roleId: WebsiteAdminRole.id,
+              },
+            },
+          },
+        },
+      ],
+    },
+  })
+
+  return result2 !== null
+}
+
+export async function checkIsUserBookingAdmin(userId: number) {
+  // TODO: remove this first check when we fully migrate to the new policy module
+  const result = await prisma.userOnOrg.findFirst({
+    where: {
+      AND: [
+        {
+          userId: userId,
+        },
+        {
+          org: {
+            isAdminOrg: true,
+          },
+        },
+      ],
+    },
+  })
+  if (result !== null) {
+    return true
+  }
+
+  const result2 = await prisma.userOnOrg.findFirst({
+    where: {
+      AND: [
+        {
+          userId: userId,
+        },
+        {
+          org: {
+            orgRoles: {
+              some: {
+                roleId: { in: [WebsiteAdminRole.id, BookingAdminRole.id] },
+              },
+            },
+          },
+        },
+      ],
+    },
+  })
+
+  return result2 !== null
 }
 
 /**

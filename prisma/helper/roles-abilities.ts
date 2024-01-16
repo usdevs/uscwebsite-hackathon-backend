@@ -9,7 +9,7 @@ import { prisma } from '../../db'
 export const seedRoles = async () => {
   console.info('Seeding roles and abilities...')
 
-  for (const r of AllRoles) await prisma.role.create({ data: r })
+  await Promise.all(AllRoles.map((r) => prisma.role.create({ data: r })))
 
   console.info('Seeding roles and abilities finished.')
 }
@@ -17,7 +17,7 @@ export const seedRoles = async () => {
 export const seedAbilities = async () => {
   console.info('Seeding roles and abilities...')
 
-  for (const a of AllAbilities) await prisma.ability.create({ data: a })
+  await Promise.all(AllAbilities.map((a) => prisma.ability.create({ data: a })))
 
   console.info('Seeding roles and abilities finished.')
 }
