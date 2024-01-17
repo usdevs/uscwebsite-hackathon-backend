@@ -19,6 +19,7 @@ import {
   seedRoles,
   seedRolesAbilities,
 } from './helper/roles-abilities'
+import { seedDevInfo } from './helper/dev-info'
 
 const excelFile = process.env.EXCEL_SEED_FILEPATH as string
 
@@ -46,6 +47,8 @@ async function main() {
     userDataSet
   )
   await prisma.$executeRaw`SELECT setval(pg_get_serial_sequence('"User"', 'id'), coalesce(max(id)+1, 1), false) FROM "User";`
+
+  await seedDevInfo()
 
   console.log(`Start seeding venues...`)
   await readXlsxFile(excelFile, {
