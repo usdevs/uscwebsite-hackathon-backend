@@ -4,6 +4,7 @@ import { RequestWithUser, TelegramAuth } from '@interfaces/auth.interface'
 import { default as jwt } from 'jsonwebtoken'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { prisma } from '../../db'
+import { User } from '@prisma/client'
 
 const SECRET_KEY = process.env.SECRET_KEY || 'hello'
 
@@ -42,24 +43,37 @@ export async function requiresAuthentication(
 ) {
   try {
     const authHeader = req.header('Authorization')
-    const token = authHeader && authHeader.split(' ')[1] || ''
+    const token = (authHeader && authHeader.split(' ')[1]) || ''
 
     const decoded = jwt.verify(token, SECRET_KEY) as TelegramAuth
 
     const users = prisma.user
-    const findUser = await users.findUnique({
+    let findUser: User | null
+    findUser = await users.findUnique({
       where: { telegramId: decoded.id },
     })
 
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Dev: Find with telegramUsername: ${decoded.username}`)
+      findUser = await users.findFirst({
+        where: { telegramUserName: decoded.username },
+      })
+    }
+
     if (!findUser) {
-      next(new HttpException('Could not find user\'s telegramId in database, is the telegramId registered?', HttpCode.Unauthorized))
+      next(
+        new HttpException(
+          "Could not find user's telegramId in database, is the telegramId registered?",
+          HttpCode.Unauthorized
+        )
+      )
       return
     }
-    (req as RequestWithUser).user = findUser
+    ;(req as RequestWithUser).user = findUser
     next()
   } catch (err: unknown) {
-    let httpResponse = "Wrong credentials"
-    if (err instanceof Error) httpResponse = err.name + " " + err.message
+    let httpResponse = 'Wrong credentials'
+    if (err instanceof Error) httpResponse = err.name + ' ' + err.message
     next(new HttpException(httpResponse, HttpCode.Unauthorized))
   }
 }
