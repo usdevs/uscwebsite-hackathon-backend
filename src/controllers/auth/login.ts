@@ -61,6 +61,8 @@ export async function handleLogin(
       HttpCode.InternalServerError
     )
   } else {
+    // Update telegram details in the database
+    // When the user was initially created, we did not have their telegramId
     const user = matchingUsers[0]
     userId = user.id
     let name = `${userCredentials.first_name}`
