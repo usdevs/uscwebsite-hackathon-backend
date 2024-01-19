@@ -13,7 +13,8 @@ export async function handleLogin(
 ): Promise<void> {
   const userCredentials = TelegramAuthSchema.parse(req.body)
 
-  if (!checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
+  const isDev = process.env.NODE_ENV === 'development'
+  if (!isDev && !checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
     next(
       new HttpException(
         'Failed to check user credentials against those obtained from the bot!',
@@ -47,9 +48,12 @@ export async function handleLogin(
   const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
     await matchingUsersPromise
   if (matchingUsers.length === 0) {
-    throw new HttpException('You are not authorized to access the NUSC website! Note: this may be an issue if you' +
-      ' have recently changed your Telegram username without actually having logged into the NUSC website. If so,' +
-      ' please add your new username via the Admin tab.', HttpCode.Unauthorized)
+    throw new HttpException(
+      'You are not authorized to access the NUSC website! Note: this may be an issue if you' +
+        ' have recently changed your Telegram username without actually having logged into the NUSC website. If so,' +
+        ' please add your new username via the Admin tab.',
+      HttpCode.Unauthorized
+    )
   } else if (matchingUsers.length > 1) {
     throw new HttpException(
       'Multiple database entries for the same telegramId or the same telegramUserName detected!' +
@@ -57,6 +61,8 @@ export async function handleLogin(
       HttpCode.InternalServerError
     )
   } else {
+    // Update telegram details in the database
+    // When the user was initially created, we did not have their telegramId
     const user = matchingUsers[0]
     userId = user.id
     let name = `${userCredentials.first_name}`
@@ -82,10 +88,10 @@ export async function handleLogin(
     include: {
       org: {
         select: {
-          isAdminOrg: true
-        }
-      }
-    }
+          isAdminOrg: true,
+        },
+      },
+    },
   })
 
   const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
