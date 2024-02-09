@@ -5,6 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "test:unit": "jest -c ./jest.config.js --coverage --verbose",
+    "test:unit:watch": "jest -c ./jest.config.js --watch",
     "build": "npm run prisma:generate && tsc",
     "start": "npm run build && node -r ts-node/register/transpile-only -r tsconfig-paths/register dist/src/app.js",
     "dev": "cross-env NODE_ENV=development nodemon",
