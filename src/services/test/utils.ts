@@ -1,4 +1,12 @@
-import { Booking, Organisation, User, UserOnOrg, Venue } from '@prisma/client'
+import {
+  Ability,
+  Booking,
+  Organisation,
+  Role,
+  User,
+  UserOnOrg,
+  Venue,
+} from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import { IGCategory } from '@prisma/client'
 
@@ -79,5 +87,24 @@ export function generateUserOnOrg(user: User, org: Organisation): UserOnOrg {
     assignedAt: faker.datatype.datetime(),
     deleted: false,
     isIGHead: true, // TODO: change to random?
+  }
+}
+
+export function generateRandomAbility(Ability?: Partial<Ability>): Ability {
+  return {
+    id: generateRandomTableId(),
+    name: faker.lorem.words(),
+    description: faker.lorem.paragraph(),
+    createdAt: faker.datatype.datetime(),
+    ...Ability,
+  }
+}
+
+export function generateRandomRole(Role?: Partial<Role>): Role {
+  return {
+    id: generateRandomTableId(),
+    name: faker.lorem.words(),
+    createdAt: faker.datatype.datetime(),
+    ...Role,
   }
 }

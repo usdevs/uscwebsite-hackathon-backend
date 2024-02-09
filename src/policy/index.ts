@@ -11,6 +11,9 @@ export * from './bookingpolicies'
 export * from './adminpolicies'
 export * from './userpolicies'
 export * from './venuepolicies'
+export * from './abilities/'
+export * from './roles/'
+export * from './rolesabilities'
 
 export default {
   ...Policies,

@@ -2,16 +2,10 @@ import { prisma } from '../../db'
 import { Booking, Prisma } from '@prisma/client'
 import { HttpCode, HttpException } from '../exceptions/HttpException'
 import {
-  DURATION_PER_SLOT,
-  MIN_SLOTS_PER_BOOKING,
-  MAX_SLOTS_PER_BOOKING,
-  MIN_SLOTS_BETWEEN_BOOKINGS,
-} from '../config/common'
-import {
   checkConflictingBooking,
-  checkStackedBookings,
-  checkIsUserAdmin,
+  checkIsUserBookingAdmin,
 } from '../middlewares/checks'
+import { BookingAdminRole, WebsiteAdminRole } from '@/policy'
 
 /* Retrieves all bookings */
 export async function getAllBookings(
@@ -103,7 +97,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
   }
 
   // admin users can also make bookings on behalf of other organisations
-  if (await checkIsUserAdmin(booking.userId)) {
+  if (await checkIsUserBookingAdmin(booking.userId)) {
     const adminUser = await prisma.user.findUniqueOrThrow({
       where: {
         id: booking.userId,
@@ -116,6 +110,7 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
                 id: true,
                 name: true,
                 isAdminOrg: true,
+                orgRoles: true,
               },
             },
           },
@@ -123,13 +118,18 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
       },
     })
     const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
+    const adminUserOrgRoles = adminUserOrgs.flatMap((x) => x.orgRoles)
     const indexOfBookingOrgId = adminUserOrgs.findIndex(
       (org) => org.id === booking.userOrgId
     )
     if (indexOfBookingOrgId === -1) {
-      const adminOrg = adminUserOrgs.find(
-        (org) => org.isAdminOrg || org.name === 'Booking Admin'
-      )
+      const adminOrg =
+        adminUserOrgs.find((org) => org.isAdminOrg) ||
+        adminUserOrgRoles.find(
+          (orgRole) =>
+            orgRole.roleId === BookingAdminRole.id ||
+            orgRole.roleId === WebsiteAdminRole.id
+        )
       if (!adminOrg) {
         throw new HttpException(
           `No admin org found for you`,
