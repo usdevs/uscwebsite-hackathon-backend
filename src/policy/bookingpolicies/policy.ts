@@ -31,9 +31,20 @@ export const createBookingPolicy = (booking: BookingPayload) => {
   )
 }
 
-export const deleteBookingPolicy = () => {
+/**
+ * Creates a policy to delete a booking.
+ * Bookings can only be deleted by the user who created them or by an admin.
+ *
+ * @param booking {@link BookingPayload}
+ * @param user {@link User}
+ */
+export const deleteBookingPolicy = (booking: BookingPayload, user: User) => {
   return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canDeleteBooking)
+    new Policies.HasAnyAbilities(Abilities.canDeleteBooking),
+    new Policies.All(
+      new Policies.BelongToOrg(booking.userOrgId),
+      new AllowIfBookingBelongToUser(booking, user)
+    )
   )
 }
 
