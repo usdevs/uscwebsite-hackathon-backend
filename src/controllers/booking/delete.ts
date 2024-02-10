@@ -28,5 +28,5 @@ export async function deleteBooking(
   )
 
   const deletedBooking = await destroyBooking(bookingId, req.user.id)
-  res.json(deletedBooking)
+  res.status(200).json(deletedBooking)
 }
