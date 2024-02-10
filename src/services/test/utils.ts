@@ -41,7 +41,7 @@ export function generateRandomVenue(): Venue {
   }
 }
 
-export function generateRandomUser(): User {
+export function generateRandomUser(user?: Partial<User>): User {
   return {
     id: generateRandomTableId(),
     name: faker.name.firstName(),
@@ -49,10 +49,13 @@ export function generateRandomUser(): User {
     telegramId: faker.datatype.number().toString(),
     telegramDpUrl: faker.internet.url(),
     deleted: false,
+    ...user,
   }
 }
 
-export function generateRandomOrganisation(): Organisation {
+export function generateRandomOrganisation(
+  org?: Partial<Organisation>
+): Organisation {
   return {
     id: generateRandomTableId(),
     name: faker.company.name(),
@@ -63,6 +66,7 @@ export function generateRandomOrganisation(): Organisation {
     category: generateRandomIgCategory(),
     isInactive: false,
     isInvisible: false,
+    ...org,
   }
 }
 
