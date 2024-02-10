@@ -1,8 +1,7 @@
-import { Request, Response } from 'express'
+import { Request } from 'express'
 import { HttpCode, HttpException } from '../../exceptions/HttpException'
 import { listBookings, getUserBookingsController } from './list'
 import { getMockReq, getMockRes } from '@jest-mock/express'
-import * as Policy from '../../policy'
 import { generateRandomBooking } from '../../services/test/utils'
 import { getAllBookings, getUserBookings } from '../../services/bookings'
 
