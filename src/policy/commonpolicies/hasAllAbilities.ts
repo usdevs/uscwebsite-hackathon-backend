@@ -4,11 +4,11 @@ import { User } from '@prisma/client'
 import { ToAbilitiesMap } from './util'
 
 export class HasAllAbilities implements Policy {
-  private abilities: AbilityName[]
+  private abilityNames: AbilityName[]
   private reason: string = ''
 
-  constructor(...abilities: AbilityName[]) {
-    this.abilities = abilities
+  constructor(...abilityNames: AbilityName[]) {
+    this.abilityNames = abilityNames
   }
 
   public Validate = async (u?: User): Promise<Decision> => {
@@ -20,9 +20,9 @@ export class HasAllAbilities implements Policy {
     const abilities = await getUserAbilities(u.id)
     const abilitiesMap = ToAbilitiesMap(abilities)
 
-    for (const ability of this.abilities) {
-      if (!abilitiesMap.get(ability)) {
-        this.reason = `User does not have the ability: ${ability}.`
+    for (const name of this.abilityNames) {
+      if (!abilitiesMap.get(name)) {
+        this.reason = `User does not have the ability: ${name}.`
         return 'deny'
       }
     }

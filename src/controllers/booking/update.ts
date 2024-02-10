@@ -13,7 +13,7 @@ export async function editBooking(
 ): Promise<void> {
   const bookingId = parseInt(req.params['id'], 10)
   if (Number.isNaN(bookingId)) {
-    throw new HttpException('Booking id not found', HttpCode.BadRequest)
+    throw new HttpException('Invalid booking id', HttpCode.BadRequest)
   }
   if (!req.user) {
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
@@ -35,6 +35,6 @@ export async function editBooking(
     req.user
   )
 
-  const updatedBooking = await updateBooking(bookingId, bookingPayload, userId)
+  const updatedBooking = await updateBooking(bookingId, bookingPayload)
   res.status(200).json({ result: [updatedBooking] })
 }
