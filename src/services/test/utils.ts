@@ -19,7 +19,7 @@ function generateRandomIgCategory() {
 const generateRandomTableId: () => number = () =>
   faker.datatype.number({ min: 1 })
 
-export function generateRandomBooking(booking: Partial<Booking>): Booking {
+export function generateRandomBooking(booking?: Partial<Booking>): Booking {
   return {
     id: generateRandomTableId(),
     eventName: faker.lorem.words(),
