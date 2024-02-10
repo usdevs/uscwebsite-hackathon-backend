@@ -163,10 +163,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
  */
 export async function updateBooking(
   bookingId: Booking['id'],
-  updatedBooking: BookingPayload,
-  userId: Booking['userId']
+  updatedBooking: BookingPayload
 ): Promise<Booking> {
-  const bookingToUpdate = await prisma.booking.findUniqueOrThrow({
+  const bookingToUpdate = await prisma.booking.findUnique({
     where: {
       id: bookingId,
     },
