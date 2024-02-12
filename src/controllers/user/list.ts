@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express'
+import { Response } from 'express'
 import { getAllUsers } from '@services/users'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { RequestWithUser } from '@interfaces/auth.interface'
