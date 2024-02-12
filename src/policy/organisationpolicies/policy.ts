@@ -16,6 +16,8 @@ export const createOrgPolicy = () => {
 
 /**
  * Strictly only admin is allowed. We deny all other users.
+ * TODO: Allow IG heads to update their own organisations
+ *
  */
 export const updateOrgPolicy = () => {
   return new Policies.Deny()
