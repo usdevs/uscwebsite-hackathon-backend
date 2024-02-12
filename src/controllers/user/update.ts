@@ -15,14 +15,21 @@ export async function editUser(
   if (Number.isNaN(userToUpdateId)) {
     throw new HttpException('User id is not a number', HttpCode.BadRequest)
   }
-  const adminUser = req.user
-  if (!adminUser) {
+
+  const userToUpdateRes = UserSchema.safeParse(req.body)
+  if (!userToUpdateRes.success) {
+    throw new HttpException('Invalid user data', HttpCode.BadRequest)
+  }
+
+  const userToUpdate = userToUpdateRes.data
+
+  const user = req.user
+  if (!user) {
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
 
-  await Policy.Authorize(editUserAction, Policy.updateUserPolicy(), adminUser)
+  await Policy.Authorize(editUserAction, Policy.updateUserPolicy(), user)
 
-  const user = UserSchema.parse(req.body)
-  const updatedUser = await updateUser(userToUpdateId, user)
+  const updatedUser = await updateUser(userToUpdateId, userToUpdate)
   res.status(200).json({ result: [updatedUser] })
 }
