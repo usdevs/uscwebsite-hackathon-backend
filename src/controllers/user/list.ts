@@ -14,8 +14,7 @@ const listUserAction = 'list user'
  */
 export async function listUser(
   req: RequestWithUser,
-  res: Response,
-  next: NextFunction
+  res: Response
 ): Promise<void> {
   const user = req.user
   if (!user) {
