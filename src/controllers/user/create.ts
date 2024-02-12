@@ -19,7 +19,7 @@ export async function createUser(
 
   const newUserRes = UserSchema.safeParse(req.body)
   if (!newUserRes.success) {
-    throw new UnauthorizedException('Invalid new user data')
+    throw new HttpException('Invalid new user data', HttpCode.BadRequest)
   }
 
   await Policy.Authorize(createUserAction, Policy.createUserPolicy(), user)

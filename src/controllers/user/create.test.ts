@@ -82,9 +82,9 @@ describe('Create User controller', () => {
         await createUser(req, res)
         throw new Error('Test failed')
       } catch (e) {
-        expect(e).toBeInstanceOf(UnauthorizedException)
-        const exception = e as UnauthorizedException
-        expect(exception.status).toBe(HttpCode.Unauthorized)
+        expect(e).toBeInstanceOf(HttpException)
+        const exception = e as HttpException
+        expect(exception.status).toBe(HttpCode.BadRequest)
         expect(exception.message).toMatch(/Invalid new user data/)
         expect(getUserAbilities).not.toHaveBeenCalled()
       }
