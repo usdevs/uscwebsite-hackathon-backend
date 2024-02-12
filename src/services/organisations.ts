@@ -5,12 +5,16 @@ import {
   Prisma,
   UserOnOrg,
   Booking,
+  User,
 } from '@prisma/client'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { checkIsUserAdmin } from '@middlewares/checks'
 import { throwIfNotAdmin, getSlugFromIgName } from '@/config/common'
 
-type OrganisationsWithIGHeads = Prisma.OrganisationGetPayload<{
+/**
+ * A type alias for an {@link Organisation} with its IG head (i.e. a {@link User})
+ */
+export type OrganisationWithIGHead = Prisma.OrganisationGetPayload<{
   include: {
     userOrg: {
       include: {
@@ -29,7 +33,7 @@ const isCoreAdminOrg = (name: string) => {
 }
 
 /* Retrieves all organisations */
-export async function getAllOrgs(): Promise<OrganisationsWithIGHeads[]> {
+export async function getAllOrgs(): Promise<OrganisationWithIGHead[]> {
   return prisma.organisation.findMany({
     include: {
       userOrg: {
