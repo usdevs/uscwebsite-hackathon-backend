@@ -4,7 +4,6 @@ export const canViewSubmissionList: AbilityName = 'canViewSubmissionList'
 export const canCreateSubmission: AbilityName = 'canCreateSubmission'
 export const canUpdateSubmission: AbilityName = 'canUpdateSubmission'
 export const canDeleteSubmission: AbilityName = 'canDeleteSubmission'
-export const canPublishSubmission: AbilityName = 'canApproveSubmission'
 
 export const canViewSubmissionListAbility: Create<Ability> = {
   name: canViewSubmissionList,
@@ -26,15 +25,9 @@ export const canDeleteSubmissionAbility: Create<Ability> = {
   description: 'Can delete submission',
 }
 
-export const canPublishSubmissionAbility: Create<Ability> = {
-  name: canPublishSubmission,
-  description: 'Can publish submission',
-}
-
 export const AllSubmissionAbilities: Create<Ability>[] = [
   canViewSubmissionListAbility,
   canCreateSubmissionAbility,
   canUpdateSubmissionAbility,
   canDeleteSubmissionAbility,
-  canPublishSubmissionAbility,
 ]

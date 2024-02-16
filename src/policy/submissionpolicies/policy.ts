@@ -1,10 +1,11 @@
 import * as Policies from '../commonpolicies'
 import * as Abilities from '../abilities'
 
+/**
+ * All users, even non-members, are allowed to view submissions.
+ */
 export const viewSubmissionPolicy = () => {
-  return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canViewSubmissionList)
-  )
+  return new Policies.Allow()
 }
 
 export const createSubmissionPolicy = () => {
@@ -16,12 +17,6 @@ export const createSubmissionPolicy = () => {
 export const updateSubmissionPolicy = () => {
   return new Policies.Any(
     new Policies.HasAnyAbilities(Abilities.canUpdateSubmission)
-  )
-}
-
-export const publishSubmissionPolicy = () => {
-  return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canPublishSubmission)
   )
 }
 
