@@ -18,7 +18,6 @@ describe('Submission Policies', () => {
   const viewSubmission = Policy.viewSubmissionPolicy()
   const createSubmission = Policy.createSubmissionPolicy()
   const updateSubmission = Policy.updateSubmissionPolicy()
-  const publishSubmission = Policy.publishSubmissionPolicy()
   const deleteSubmission = Policy.deleteSubmissionPolicy()
 
   afterEach(() => {
@@ -35,7 +34,7 @@ describe('Submission Policies', () => {
     })
 
     test('Should be allowed to view submission', async () => {
-      const res = await viewSubmission.Validate(mockUser)
+      const res = await viewSubmission.Validate()
       expect(res).toBe(allowDecision)
     })
 
@@ -46,11 +45,6 @@ describe('Submission Policies', () => {
 
     test('Should not be allowed to update submission', async () => {
       const res = await updateSubmission.Validate(mockUser)
-      expect(res).toBe(denyDecision)
-    })
-
-    test('Should not be allowed to publish submission', async () => {
-      const res = await publishSubmission.Validate(mockUser)
       expect(res).toBe(denyDecision)
     })
 
@@ -70,7 +64,7 @@ describe('Submission Policies', () => {
     })
 
     test('Should be allowed to view submission', async () => {
-      const res = await viewSubmission.Validate(mockUser)
+      const res = await viewSubmission.Validate()
       expect(res).toBe(allowDecision)
     })
 
@@ -81,11 +75,6 @@ describe('Submission Policies', () => {
 
     test('Should be allowed to update submission', async () => {
       const res = await updateSubmission.Validate(mockUser)
-      expect(res).toBe(allowDecision)
-    })
-
-    test('Should be allowed to publish submission', async () => {
-      const res = await publishSubmission.Validate(mockUser)
       expect(res).toBe(allowDecision)
     })
 

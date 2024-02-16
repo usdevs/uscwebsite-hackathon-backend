@@ -20,12 +20,6 @@ export const updateSubmissionPolicy = () => {
   )
 }
 
-export const publishSubmissionPolicy = () => {
-  return new Policies.Any(
-    new Policies.HasAnyAbilities(Abilities.canPublishSubmission)
-  )
-}
-
 export const deleteSubmissionPolicy = () => {
   return new Policies.Any(
     new Policies.HasAnyAbilities(Abilities.canDeleteSubmission)

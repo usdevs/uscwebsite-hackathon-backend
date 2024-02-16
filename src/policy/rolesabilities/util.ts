@@ -21,7 +21,6 @@ export const RolesAbilities: Record<RoleName, AbilityName[]> = {
     Abilities.canCreateSubmission,
     Abilities.canUpdateSubmission,
     Abilities.canDeleteSubmission,
-    Abilities.canPublishSubmission,
   ],
   [Roles.BookingAdmin]: [
     Abilities.canViewAdminList,
