@@ -125,7 +125,7 @@ model Course {
 
 model Professor {
   id              Int              @id @default(autoincrement())
-  name            String
+  name            String           @unique
   courseOfferings CourseOffering[]
 }
 
@@ -135,16 +135,16 @@ model CourseOffering {
   course      Course       @relation(fields: [courseCode], references: [code], onDelete: Cascade, onUpdate: Cascade)
   professorId Int
   professor   Professor    @relation(fields: [professorId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-  semester    String
+  semester    String // Change to enum?
   ay          String
   submissions Submission[]
 }
 
 model Student {
-  id          Int          @id @default(autoincrement())
-  nusId       String       @unique
-  name        String
-  submissions Submission[]
+  id              Int          @id @default(autoincrement())
+  matriculationNo String       @unique
+  name            String
+  submissions     Submission[]
 }
 
 model Submission {

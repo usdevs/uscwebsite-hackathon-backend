@@ -1,14 +1,20 @@
 import {
   Ability,
   Booking,
+  Course,
+  CourseOffering,
   Organisation,
+  Professor,
   Role,
+  Student,
+  Submission,
   User,
   UserOnOrg,
   Venue,
 } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import { IGCategory } from '@prisma/client'
+import { DetailedSubmission, SubmissionPayload } from '../submissions'
 
 function generateRandomIgCategory() {
   const categories = Object.values(IGCategory)
@@ -110,5 +116,96 @@ export function generateRandomRole(Role?: Partial<Role>): Role {
     name: faker.lorem.words(),
     createdAt: faker.datatype.datetime(),
     ...Role,
+  }
+}
+
+// Folio
+export function generateRandomProfessor(
+  professor?: Partial<Professor>
+): Professor {
+  return {
+    id: generateRandomTableId(),
+    name: faker.name.firstName(),
+    ...professor,
+  }
+}
+
+export function generateRandomCourse(course?: Partial<Course>): Course {
+  return {
+    code: faker.lorem.slug(1),
+    name: faker.lorem.words(),
+    ...course,
+  }
+}
+
+export function generateRandomCourseOffering(
+  courseOffering?: Partial<CourseOffering>
+): CourseOffering {
+  return {
+    id: generateRandomTableId(),
+    courseCode: faker.lorem.slug(1),
+    professorId: generateRandomTableId(),
+    ay: faker.lorem.words(),
+    semester: faker.lorem.words(),
+    ...courseOffering,
+  }
+}
+
+export function generateRandomStudent(student?: Partial<Student>): Student {
+  return {
+    id: generateRandomTableId(),
+    matriculationNo: faker.datatype.number().toString(),
+    name: faker.name.firstName(),
+    ...student,
+  }
+}
+
+export function generateRandomSubmission(
+  submission?: Partial<Submission>
+): Submission {
+  return {
+    id: generateRandomTableId(),
+    title: faker.lorem.words(),
+    text: faker.lorem.paragraph(),
+    lastUpdated: faker.datatype.datetime(),
+    isPublished: faker.datatype.boolean(),
+    studentId: generateRandomTableId(),
+    courseOfferingId: generateRandomTableId(),
+    ...submission,
+  }
+}
+
+export function generateRandomSubmissionPayload(
+  submissionPayload?: Partial<SubmissionPayload>
+): SubmissionPayload {
+  return {
+    title: faker.lorem.words(),
+    text: faker.lorem.paragraph(),
+    matriculationNo: faker.datatype.number().toString(),
+    courseOfferingId: generateRandomTableId(),
+    ...submissionPayload,
+  }
+}
+
+export function generateRandomDetailedSubmission(
+  submission?: Partial<Submission>,
+  course?: Partial<Course>,
+  professor?: Partial<Professor>,
+  student?: Partial<Student>
+): DetailedSubmission {
+  return {
+    ...generateRandomSubmission(submission),
+    courseOffering: {
+      ...generateRandomCourseOffering(),
+      course: {
+        ...generateRandomCourse(course),
+      },
+      professor: {
+        ...generateRandomProfessor(professor),
+      },
+    },
+    student: {
+      ...generateRandomStudent(student),
+    },
   }
 }
