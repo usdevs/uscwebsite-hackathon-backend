@@ -95,10 +95,10 @@ describe('Delete Submission controller', () => {
       user: userMember,
     })
 
-    const bookingAdminAbilities = Policy.RolesAbilities['acads_admin'].map(
+    const acadsAdminAbilities = Policy.RolesAbilities['acads_admin'].map(
       (name) => generateRandomAbility({ name })
     )
-    jest.mocked(getUserAbilities).mockResolvedValue(bookingAdminAbilities)
+    jest.mocked(getUserAbilities).mockResolvedValue(acadsAdminAbilities)
     jest.mocked(deleteSubmission).mockResolvedValue(detailedSubmission)
 
     await handleDeleteSubmission(req, res)
