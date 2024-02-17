@@ -84,3 +84,21 @@ router.delete(
   requiresAuthentication,
   asyncHandler(Controller.deleteBooking)
 )
+
+// Folio Submissions
+router.get('/submissions/all', asyncHandler(Controller.listSubmissions))
+router.post(
+  '/submissions',
+  requiresAuthentication,
+  asyncHandler(Controller.createSubmission)
+)
+router.put(
+  '/submissions/:id',
+  requiresAuthentication,
+  asyncHandler(Controller.editSubmission)
+)
+router.delete(
+  '/submissions/:id',
+  requiresAuthentication,
+  asyncHandler(Controller.handleDeleteSubmission)
+)
