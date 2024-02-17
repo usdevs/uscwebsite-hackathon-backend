@@ -28,7 +28,7 @@ CREATE TABLE "CourseOffering" (
 -- CreateTable
 CREATE TABLE "Student" (
     "id" SERIAL NOT NULL,
-    "nusId" TEXT NOT NULL,
+    "matriculationNo" TEXT NOT NULL,
     "name" TEXT NOT NULL,
 
     CONSTRAINT "Student_pkey" PRIMARY KEY ("id")
@@ -48,7 +48,10 @@ CREATE TABLE "Submission" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Student_nusId_key" ON "Student"("nusId");
+CREATE UNIQUE INDEX "Professor_name_key" ON "Professor"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Student_matriculationNo_key" ON "Student"("matriculationNo");
 
 -- AddForeignKey
 ALTER TABLE "CourseOffering" ADD CONSTRAINT "CourseOffering_courseCode_fkey" FOREIGN KEY ("courseCode") REFERENCES "Course"("code") ON DELETE CASCADE ON UPDATE CASCADE;

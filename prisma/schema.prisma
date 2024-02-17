@@ -125,7 +125,7 @@ model Course {
 
 model Professor {
   id              Int              @id @default(autoincrement())
-  name            String
+  name            String           @unique
   courseOfferings CourseOffering[]
 }
 
@@ -141,10 +141,10 @@ model CourseOffering {
 }
 
 model Student {
-  id          Int          @id @default(autoincrement())
-  nusId       String       @unique
-  name        String
-  submissions Submission[]
+  id              Int          @id @default(autoincrement())
+  matriculationNo String       @unique
+  name            String
+  submissions     Submission[]
 }
 
 model Submission {
