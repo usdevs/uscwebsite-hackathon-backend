@@ -20,6 +20,13 @@ import {
   seedRolesAbilities,
 } from './helper/roles-abilities'
 import { seedDevInfo } from './helper/dev-info'
+import {
+  seedCourseOfferings,
+  seedCourses,
+  seedProfessors,
+  seedStudents,
+  seedSubmissions,
+} from './helper/submissions'
 
 const excelFile = process.env.EXCEL_SEED_FILEPATH as string
 
@@ -109,6 +116,13 @@ async function main() {
   }
 
   await seedOrgRoles(excelFile, getDevSheetName(orgRoleSheet))
+
+  // Folio Submissions
+  await seedCourses()
+  await seedProfessors()
+  await seedStudents()
+  await seedCourseOfferings()
+  await seedSubmissions()
 
   console.log(`Seeding finished.`)
 }
