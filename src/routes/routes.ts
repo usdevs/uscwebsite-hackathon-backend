@@ -86,73 +86,73 @@ router.delete(
 )
 
 // Folio Submissions
-router.get('/submissions/all', asyncHandler(Controller.listSubmissions))
+router.get('/folio/submissions/all', asyncHandler(Controller.listSubmissions))
 router.post(
-  '/submissions',
+  '/folio/submissions',
   requiresAuthentication,
   asyncHandler(Controller.createSubmission)
 )
 router.put(
-  '/submissions/:id',
+  '/folio/submissions/:id',
   requiresAuthentication,
   asyncHandler(Controller.editSubmission)
 )
 router.delete(
-  '/submissions/:id',
+  '/folio/submissions/:id',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteSubmission)
 )
 
 // Folio Students
-router.get('/students/all', asyncHandler(Controller.listStudents))
+router.get('/folio/students/all', asyncHandler(Controller.listStudents))
 router.post(
-  '/students',
+  '/folio/students',
   requiresAuthentication,
   asyncHandler(Controller.createStudent)
 )
 router.put(
-  '/students/:matriculationNo',
+  '/folio/students/:matriculationNo',
   requiresAuthentication,
   asyncHandler(Controller.editStudent)
 )
 router.delete(
-  '/students/:matriculationNo',
+  '/folio/students/:matriculationNo',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteStudent)
 )
 
 // Folio Professors
-router.get('/professors/all', asyncHandler(Controller.listProfessors))
+router.get('/folio/professors/all', asyncHandler(Controller.listProfessors))
 router.post(
-  '/professors',
+  '/folio/professors',
   requiresAuthentication,
   asyncHandler(Controller.createProfessor)
 )
 router.put(
-  '/professors/:id',
+  '/folio/professors/:id',
   requiresAuthentication,
   asyncHandler(Controller.editProfessor)
 )
 router.delete(
-  '/professors/:id',
+  '/folio/professors/:id',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteProfessor)
 )
 
 // Folio Courses
-router.get('/courses/all', asyncHandler(Controller.listCourses))
+router.get('/folio/courses/all', asyncHandler(Controller.listCourses))
 router.post(
-  '/courses',
+  '/folio/courses',
   requiresAuthentication,
   asyncHandler(Controller.createCourse)
 )
 router.put(
-  '/courses/:id',
+  '/folio/courses/:id',
   requiresAuthentication,
   asyncHandler(Controller.editCourse)
 )
 router.delete(
-  '/courses/:id',
+  '/folio/courses/:id',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteCourse)
 )
