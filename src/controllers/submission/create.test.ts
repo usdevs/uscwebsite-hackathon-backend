@@ -9,7 +9,9 @@ import {
 import { getUserAbilities } from '../../services/users'
 import {
   generateRandomAbility,
+  generateRandomCourseOfferingUniqueInput,
   generateRandomDetailedSubmission,
+  generateRandomStudent,
   generateRandomUser,
 } from '../../services/test/utils'
 import { createSubmission } from './create'
@@ -30,11 +32,14 @@ afterEach(() => {
 describe('Create Submission controller', () => {
   const userMember = generateRandomUser({ id: 1 })
   const submission = generateRandomDetailedSubmission({ id: 1 })
+  const courseOfferingInput = generateRandomCourseOfferingUniqueInput()
+  const student = generateRandomStudent()
+
   const submissionPayload: SubmissionPayload = {
     title: submission.title,
     text: submission.text,
-    courseOfferingId: submission.courseOfferingId,
-    matriculationNo: submission.student.matriculationNo,
+    matriculationNo: student.matriculationNo,
+    courseOfferingInput,
   }
 
   test('Should return 401 not authorized if user is not logged in', async () => {

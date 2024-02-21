@@ -16,7 +16,6 @@ export async function createSubmission(
   }
 
   const submissionPayload = SubmissionSchema.parse(req.body)
-
   await Policy.Authorize(
     createSubmissionAction,
     Policy.createSubmissionPolicy(),

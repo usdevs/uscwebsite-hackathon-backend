@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "Semester" AS ENUM ('Semester1', 'Semester2');
+
 -- CreateTable
 CREATE TABLE "Course" (
     "code" TEXT NOT NULL,
@@ -19,8 +22,8 @@ CREATE TABLE "CourseOffering" (
     "id" SERIAL NOT NULL,
     "courseCode" TEXT NOT NULL,
     "professorId" INTEGER NOT NULL,
-    "semester" TEXT NOT NULL,
-    "ay" TEXT NOT NULL,
+    "semester" "Semester" NOT NULL,
+    "academicYear" INTEGER NOT NULL,
 
     CONSTRAINT "CourseOffering_pkey" PRIMARY KEY ("id")
 );
@@ -49,6 +52,9 @@ CREATE TABLE "Submission" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Professor_name_key" ON "Professor"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "CourseOffering_courseCode_professorId_semester_academicYear_key" ON "CourseOffering"("courseCode", "professorId", "semester", "academicYear");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Student_matriculationNo_key" ON "Student"("matriculationNo");
