@@ -1,13 +1,13 @@
 import { Response } from 'express'
 import { RequestWithUser } from '@/interfaces/auth.interface'
 import * as Policy from '@/policy'
-import { SubmissionSchema } from '@/interfaces/submission.interface'
-import { addSubmission } from '@/services/submissions'
 import { HttpCode, HttpException } from '@/exceptions'
+import { ProfessorSchema } from '@/interfaces/professor.interface'
+import { addProfessor } from '@/services/professors'
 
-const createSubmissionAction = 'create submission'
+const createProfessorAction = 'create professor'
 
-export async function createSubmission(
+export async function createProfessor(
   req: RequestWithUser,
   res: Response
 ): Promise<void> {
@@ -15,13 +15,14 @@ export async function createSubmission(
     throw new HttpException('Requires authentication', HttpCode.Unauthorized)
   }
 
-  const submissionPayload = SubmissionSchema.parse(req.body)
+  const professorPayload = ProfessorSchema.parse(req.body)
+
   await Policy.Authorize(
-    createSubmissionAction,
+    createProfessorAction,
     Policy.createSubmissionPolicy(),
     req.user
   )
 
-  const inserted = await addSubmission(submissionPayload)
+  const inserted = await addProfessor(professorPayload)
   res.status(200).json({ result: [inserted] })
 }

@@ -6,6 +6,7 @@ import {
   Organisation,
   Professor,
   Role,
+  Semester,
   Student,
   Submission,
   User,
@@ -138,15 +139,24 @@ export function generateRandomCourse(course?: Partial<Course>): Course {
   }
 }
 
+export function generateRandomCourseOfferingUniqueInput() {
+  return {
+    courseCode: faker.lorem.slug(1),
+    professorId: generateRandomTableId(),
+    academicYear: faker.datatype.number({ min: 2019, max: 2025 }),
+    semester: faker.helpers.arrayElement([
+      'Semester1',
+      'Semester2',
+    ]) as Semester,
+  }
+}
+
 export function generateRandomCourseOffering(
   courseOffering?: Partial<CourseOffering>
 ): CourseOffering {
   return {
     id: generateRandomTableId(),
-    courseCode: faker.lorem.slug(1),
-    professorId: generateRandomTableId(),
-    ay: faker.lorem.words(),
-    semester: faker.lorem.words(),
+    ...generateRandomCourseOfferingUniqueInput(),
     ...courseOffering,
   }
 }
@@ -182,7 +192,7 @@ export function generateRandomSubmissionPayload(
     title: faker.lorem.words(),
     text: faker.lorem.paragraph(),
     matriculationNo: faker.datatype.number().toString(),
-    courseOfferingId: generateRandomTableId(),
+    courseOfferingInput: generateRandomCourseOfferingUniqueInput(),
     ...submissionPayload,
   }
 }

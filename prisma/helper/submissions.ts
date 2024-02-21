@@ -1,3 +1,4 @@
+import { Semester } from '@prisma/client'
 import { prisma } from '../../db'
 
 // TODO: Move the data elsewhere
@@ -180,8 +181,8 @@ const courseOfferings = [
         id: 1,
       },
     },
-    semester: 'Semester 2',
-    ay: '2022/2023',
+    semester: Semester['Semester2'],
+    academicYear: 2022,
   },
   {
     course: {
@@ -195,8 +196,8 @@ const courseOfferings = [
       },
     },
 
-    semester: 'Semester 1',
-    ay: '2023/2024',
+    semester: Semester['Semester1'],
+    academicYear: 2023,
   },
 ]
 

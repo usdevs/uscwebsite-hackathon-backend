@@ -1,6 +1,7 @@
 import {
   Course,
   CourseOffering,
+  Prisma,
   Professor,
   Student,
   Submission,
@@ -18,7 +19,7 @@ export type DetailedSubmission = Submission & {
 }
 
 // Helper object to include the Course, Professor and Student associated
-const submissionInclude = {
+export const submissionInclude = {
   courseOffering: {
     include: {
       course: true,
@@ -53,13 +54,13 @@ export async function getSubmissionsByCourseCode(
 
 // Get submissions by AY and Sem e.g. 2023/2024, Semester 1
 export async function getSubmissionsByAYSem(
-  ay: CourseOffering['ay'],
+  academicYear: CourseOffering['academicYear'],
   semester: CourseOffering['semester']
 ): Promise<DetailedSubmission[]> {
   return prisma.submission.findMany({
     where: {
       courseOffering: {
-        ay,
+        academicYear,
         semester,
       },
     },
@@ -77,17 +78,63 @@ export async function getSubmissionById(
   })
 }
 
+type CourseOfferingUniqueInput =
+  Prisma.CourseOfferingCourseCodeProfessorIdSemesterAcademicYearCompoundUniqueInput
+
 export type SubmissionPayload = Pick<Submission, 'title' | 'text'> & {
   matriculationNo: Student['matriculationNo']
-  courseOfferingId: CourseOffering['id']
+  courseOfferingInput: CourseOfferingUniqueInput
 }
+
+async function findUniqueCourseOffering(
+  unique: CourseOfferingUniqueInput
+): Promise<CourseOffering | null> {
+  const { courseCode, professorId, academicYear, semester } = unique
+  const courseOffering = await prisma.courseOffering.findFirst({
+    where: {
+      courseCode,
+      professorId,
+      academicYear,
+      semester,
+    },
+  })
+
+  return courseOffering
+}
+
 // Add submission
 export async function addSubmission({
   title,
   text,
   matriculationNo,
-  courseOfferingId,
+  courseOfferingInput,
 }: SubmissionPayload): Promise<DetailedSubmission> {
+  let courseOffering = await findUniqueCourseOffering(courseOfferingInput)
+
+  const { courseCode, professorId, academicYear, semester } =
+    courseOfferingInput
+
+  const courseOfferingExists = !!courseOffering
+  if (!courseOfferingExists) {
+    // Create course offering
+    courseOffering = await prisma.courseOffering.create({
+      data: {
+        course: {
+          connect: {
+            code: courseCode,
+          },
+        },
+        professor: {
+          connect: {
+            id: professorId,
+          },
+        },
+        academicYear,
+        semester,
+      },
+    })
+  }
+
   return prisma.submission.create({
     data: {
       title,
@@ -99,7 +146,7 @@ export async function addSubmission({
       },
       courseOffering: {
         connect: {
-          id: courseOfferingId,
+          id: courseOffering!.id,
         },
       },
     },
