@@ -102,3 +102,57 @@ router.delete(
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteSubmission)
 )
+
+// Folio Students
+router.get('/students/all', asyncHandler(Controller.listStudents))
+router.post(
+  '/students',
+  requiresAuthentication,
+  asyncHandler(Controller.createStudent)
+)
+router.put(
+  '/students/:matriculationNo',
+  requiresAuthentication,
+  asyncHandler(Controller.editStudent)
+)
+router.delete(
+  '/students/:matriculationNo',
+  requiresAuthentication,
+  asyncHandler(Controller.handleDeleteStudent)
+)
+
+// Folio Professors
+router.get('/professors/all', asyncHandler(Controller.listProfessors))
+router.post(
+  '/professors',
+  requiresAuthentication,
+  asyncHandler(Controller.createProfessor)
+)
+router.put(
+  '/professors/:id',
+  requiresAuthentication,
+  asyncHandler(Controller.editProfessor)
+)
+router.delete(
+  '/professors/:id',
+  requiresAuthentication,
+  asyncHandler(Controller.handleDeleteProfessor)
+)
+
+// Folio Courses
+router.get('/courses/all', asyncHandler(Controller.listCourses))
+router.post(
+  '/courses',
+  requiresAuthentication,
+  asyncHandler(Controller.createCourse)
+)
+router.put(
+  '/courses/:id',
+  requiresAuthentication,
+  asyncHandler(Controller.editCourse)
+)
+router.delete(
+  '/courses/:id',
+  requiresAuthentication,
+  asyncHandler(Controller.handleDeleteCourse)
+)
