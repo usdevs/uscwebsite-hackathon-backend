@@ -14,6 +14,10 @@ export async function handleLogin(
   const userCredentials = TelegramAuthSchema.parse(req.body)
 
   const isDev = process.env.NODE_ENV === 'development'
+  if (isDev) {
+    console.log('Running in development mode, skipping signature checks...')
+  }
+
   if (!isDev && !checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
     next(
       new HttpException(
@@ -26,9 +30,15 @@ export async function handleLogin(
 
   let userId = 0
   const users = prisma.user
-  const args: Prisma.UserFindManyArgs = {
-    where: {
-      OR: [
+
+  const input: Prisma.UserWhereInput[] = isDev
+    ? [
+        // In development, we don't have the telegramId
+        {
+          telegramUserName: userCredentials.username,
+        },
+      ]
+    : [
         {
           telegramId: userCredentials.id,
         },
@@ -36,7 +46,11 @@ export async function handleLogin(
           telegramId: null,
           telegramUserName: userCredentials.username,
         },
-      ],
+      ]
+
+  const args: Prisma.UserFindManyArgs = {
+    where: {
+      OR: input,
     },
     orderBy: {
       telegramId: { sort: 'asc', nulls: 'last' },
@@ -47,6 +61,8 @@ export async function handleLogin(
   > = users.findMany(args)
   const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
     await matchingUsersPromise
+
+  console.log(matchingUsers)
   if (matchingUsers.length === 0) {
     throw new HttpException(
       'You are not authorized to access the NUSC website! Note: this may be an issue if you' +
