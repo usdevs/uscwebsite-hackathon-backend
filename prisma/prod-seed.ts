@@ -37,6 +37,19 @@ async function seedProdOrgRoles() {
       'dxilary',
       'nigelteh',
     ],
+    'NUSCC Tech Team': [
+      'WXiaoyun',
+      'LQ_Xu',
+      'bluestarandfireheart',
+      'skylerng',
+      'iuhiah',
+      'timpipi',
+      'tringa',
+      'Jukezter',
+      'peasantbird',
+      'reubenth',
+      'opticalcloud',
+    ],
   }
 
   const data: Prisma.OrganisationCreateInput[] = [
@@ -93,6 +106,25 @@ async function seedProdOrgRoles() {
       userOrg: {
         create: {
           userId: 123, // Mahima
+          isIGHead: true,
+        },
+      },
+    },
+    {
+      name: 'NUSCC Tech Team',
+      description: 'NUSCC Tech',
+      inviteLink: '',
+      isInvisible: true,
+      slug: getSlugFromIgName('NUSCC Tech Team'),
+      category: 'Others',
+      orgRoles: {
+        create: {
+          roleId: WebsiteAdminRole.id,
+        },
+      },
+      userOrg: {
+        create: {
+          userId: 24, // Megan
           isIGHead: true,
         },
       },
