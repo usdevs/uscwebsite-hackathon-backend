@@ -159,12 +159,8 @@ export const seedProfessors = async () => {
 
 const students: Array<{ name: string; matriculationNo: string }> = [
   {
-    name: 'John Tan',
-    matriculationNo: 'A0201234B',
-  },
-  {
-    name: 'Jane Tan',
-    matriculationNo: 'A0201235C',
+    name: 'Cheng Zhi Sheng',
+    matriculationNo: 'A0252753A',
   },
 ]
 

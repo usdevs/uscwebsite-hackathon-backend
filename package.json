@@ -16,7 +16,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
     "prisma:generate": "prisma generate",
-    "prisma:reset": "prisma migrate reset"
+    "prisma:reset": "prisma migrate reset",
+    "prisma:prod-seed": "ts-node -r tsconfig-paths/register --transpile-only prisma/prod-seed.ts"
   },
   "prisma": {
     "seed": "ts-node -r tsconfig-paths/register --transpile-only prisma/seed.ts"
