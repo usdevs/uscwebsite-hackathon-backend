@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '../../../db'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
+import { getUserRoles } from '@/services/users'
 
 export async function handleLogin(
   req: Request,
@@ -109,11 +110,10 @@ export async function handleLogin(
       },
     },
   })
-
+  const roles = (await getUserRoles(userId)).map((role) => role.name)
   const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
-  const isAdminUser: boolean = userOrgs.reduce((isAdmin, currentOrg) => {
-    return isAdmin || currentOrg.org.isAdminOrg
-  }, false)
+
   const token = generateToken(userCredentials)
-  res.status(200).send({ userCredentials, token, orgIds, userId, isAdminUser })
+  console.log(roles)
+  res.status(200).send({ userCredentials, token, orgIds, userId, roles })
 }
