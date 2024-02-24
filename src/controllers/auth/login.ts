@@ -5,6 +5,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '../../../db'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
+import { getUserRoles } from '@/services/users'
 
 export async function handleLogin(
   req: Request,
@@ -14,6 +15,10 @@ export async function handleLogin(
   const userCredentials = TelegramAuthSchema.parse(req.body)
 
   const isDev = process.env.NODE_ENV === 'development'
+  if (isDev) {
+    console.log('Running in development mode, skipping signature checks...')
+  }
+
   if (!isDev && !checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
     next(
       new HttpException(
@@ -26,9 +31,15 @@ export async function handleLogin(
 
   let userId = 0
   const users = prisma.user
-  const args: Prisma.UserFindManyArgs = {
-    where: {
-      OR: [
+
+  const input: Prisma.UserWhereInput[] = isDev
+    ? [
+        // In development, we don't have the telegramId
+        {
+          telegramUserName: userCredentials.username,
+        },
+      ]
+    : [
         {
           telegramId: userCredentials.id,
         },
@@ -36,7 +47,11 @@ export async function handleLogin(
           telegramId: null,
           telegramUserName: userCredentials.username,
         },
-      ],
+      ]
+
+  const args: Prisma.UserFindManyArgs = {
+    where: {
+      OR: input,
     },
     orderBy: {
       telegramId: { sort: 'asc', nulls: 'last' },
@@ -47,6 +62,8 @@ export async function handleLogin(
   > = users.findMany(args)
   const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
     await matchingUsersPromise
+
+  console.log(matchingUsers)
   if (matchingUsers.length === 0) {
     throw new HttpException(
       'You are not authorized to access the NUSC website! Note: this may be an issue if you' +
@@ -93,11 +110,10 @@ export async function handleLogin(
       },
     },
   })
-
+  const roles = (await getUserRoles(userId)).map((role) => role.name)
   const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
-  const isAdminUser: boolean = userOrgs.reduce((isAdmin, currentOrg) => {
-    return isAdmin || currentOrg.org.isAdminOrg
-  }, false)
+
   const token = generateToken(userCredentials)
-  res.status(200).send({ userCredentials, token, orgIds, userId, isAdminUser })
+  console.log(roles)
+  res.status(200).send({ userCredentials, token, orgIds, userId, roles })
 }

@@ -18,6 +18,9 @@ export const Authorize = async (
 ): Promise<void> => {
   if (u) {
     const abilities = await getUserAbilities(u.id)
+    console.log(
+      `User ${u.telegramUserName} abilities: ${abilities.map((a) => a.name)}`
+    )
     const isAdmin = abilities.some((a) => a.name === canManageAll)
     if (isAdmin) return // admin can do anything
   }

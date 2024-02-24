@@ -3,6 +3,7 @@ import * as Policy from '@/policy'
 import { RequestWithUser } from '@/interfaces/auth.interface'
 import { HttpCode, HttpException } from '@/exceptions'
 import { deleteSubmission } from '@/services/submissions'
+import { revalidateFolioFrontendSubmissions } from '@/services/frontend'
 
 const deleteSubmissionAction = 'delete submission'
 
@@ -26,5 +27,6 @@ export async function handleDeleteSubmission(
   )
 
   const submission = await deleteSubmission(submissionId)
+  await revalidateFolioFrontendSubmissions(submissionId)
   res.status(200).json(submission)
 }
