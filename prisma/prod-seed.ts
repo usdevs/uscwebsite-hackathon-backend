@@ -8,14 +8,37 @@ import {
 import { seedCourses, seedProfessors, seedStudents } from './helper/submissions'
 import {
   AcadsAdminRole,
-  BookingAdminRole,
   MemberRole,
+  OrganisationHeadRole,
   SpacesAdminRole,
   WebsiteAdminRole,
 } from '@/policy'
 import { Prisma } from '@prisma/client'
 
 async function seedProdOrgRoles() {
+  const otherMembersUserNames: Record<string, string[]> = {
+    'NUSCC Acads Team': ['migahfoo', 'horangu', 'sinkingshipss', 'llixfell'],
+    'NUSCC Makers Team': [
+      'arhaanjain',
+      'matchadrinksmatcha',
+      'kimtrakarnwichit',
+      'saatvikagrawal',
+      'limjh16',
+      'reubenth',
+      'I_AM_atomikk',
+    ],
+    'NUSCC Spaces Team': [
+      'swwchoi',
+      'matchadrinksmatcha',
+      'icedjam',
+      'racheltre',
+      'calistayx',
+      'gr4cel',
+      'dxilary',
+      'nigelteh',
+    ],
+  }
+
   const data: Prisma.OrganisationCreateInput[] = [
     {
       name: 'NUSCC Acads Team',
@@ -29,6 +52,12 @@ async function seedProdOrgRoles() {
           roleId: AcadsAdminRole.id,
         },
       },
+      userOrg: {
+        create: {
+          userId: 41, // Jackson
+          isIGHead: true,
+        },
+      },
     },
     {
       name: 'NUSCC Makers Team',
@@ -40,6 +69,31 @@ async function seedProdOrgRoles() {
       orgRoles: {
         create: {
           roleId: SpacesAdminRole.id,
+        },
+      },
+      userOrg: {
+        create: {
+          userId: 226, // Soham
+          isIGHead: true,
+        },
+      },
+    },
+    {
+      name: 'NUSCC Spaces Team',
+      description: 'NUSCC Spaces',
+      inviteLink: '',
+      isInvisible: true,
+      slug: getSlugFromIgName('NUSCC Spaces Team'),
+      category: 'Others',
+      orgRoles: {
+        create: {
+          roleId: SpacesAdminRole.id,
+        },
+      },
+      userOrg: {
+        create: {
+          userId: 123, // Mahima
+          isIGHead: true,
         },
       },
     },
@@ -57,9 +111,35 @@ async function seedProdOrgRoles() {
       continue
     }
 
-    await prisma.organisation.create({
+    const { id } = await prisma.organisation.create({
       data: org,
     })
+
+    const otherMembers = otherMembersUserNames[org.name]
+    if (!otherMembers) {
+      throw new Error(`No other members found for org ${org.name}`)
+    }
+
+    for (const username of otherMembers) {
+      const user = await prisma.user.findFirst({
+        where: {
+          telegramUserName: username,
+        },
+      })
+
+      if (!user) {
+        console.log(`User with username ${username} not found. Skipping...`)
+        continue
+      }
+
+      // Add these new members to the org
+      await prisma.userOnOrg.create({
+        data: {
+          userId: user.id,
+          orgId: id,
+        },
+      })
+    }
   }
 
   const adminTeamOrgId = 75
@@ -82,7 +162,7 @@ async function seedProdOrgRoles() {
     data: [
       {
         orgId: residentialTeamOrgId,
-        roleId: BookingAdminRole.id,
+        roleId: OrganisationHeadRole.id,
       },
     ],
   })
