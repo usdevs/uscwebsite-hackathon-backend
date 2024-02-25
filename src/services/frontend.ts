@@ -9,8 +9,10 @@ export const revalidateFolioFrontendSubmissions = async (
     return
   }
 
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001'
+
   try {
-    const revalidateEndpoint = `http://localhost:3001/api/folio/revalidate`
+    const revalidateEndpoint = `${frontendUrl}/api/folio/revalidate`
     const payload = { id: submissionId }
 
     const response = await axios.post(revalidateEndpoint, payload, {
