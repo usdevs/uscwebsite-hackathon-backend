@@ -251,7 +251,7 @@ Addressing the challenges posed by human trafficking within the context of labor
 In conclusion, human trafficking and labor migration are complex issues that demand comprehensive, collaborative efforts to ensure migration remains a hopeful choice rather than a pathway to exploitation. Learn more about this at [United Nations Office on Drugs and Crime](https://www.unodc.org/).`,
     student: {
       connect: {
-        matriculationNo: 'A0201234B',
+        matriculationNo: 'A0252753A',
       },
     },
     courseOffering: {
@@ -288,7 +288,7 @@ Tourist sites are not just destinations; they are a testament to our world's div
 By embracing the principles of sustainable tourism, we can navigate the complexities of global travel, preserving the integrity of tourist sites while still enjoying the rich experiences they offer.`,
     student: {
       connect: {
-        matriculationNo: 'A0201235C',
+        matriculationNo: 'A0252753A',
       },
     },
     courseOffering: {
