@@ -8,6 +8,7 @@ import {
 import { seedCourses, seedProfessors, seedStudents } from './helper/submissions'
 import {
   AcadsAdminRole,
+  ButteryAdminRole,
   MemberRole,
   OrganisationHeadRole,
   SpacesAdminRole,
@@ -15,7 +16,7 @@ import {
 } from '@/policy'
 import { Prisma } from '@prisma/client'
 
-async function seedProdOrgRoles() {
+export async function seedProdOrgRoles() {
   const otherMembersUserNames: Record<string, string[]> = {
     'NUSCC Acads Team': ['migahfoo', 'horangu', 'sinkingshipss', 'llixfell'],
     'NUSCC Makers Team': [
@@ -49,6 +50,13 @@ async function seedProdOrgRoles() {
       'peasantbird',
       'reubenth',
       'opticalcloud',
+    ],
+    'Buttery Team': [
+      'carinateh',
+      'jemmacheah',
+      'jeremyyong128',
+      'owenyeoo',
+      'ymirmeddeb',
     ],
   }
 
@@ -125,6 +133,25 @@ async function seedProdOrgRoles() {
       userOrg: {
         create: {
           userId: 24, // Megan
+          isIGHead: true,
+        },
+      },
+    },
+    {
+      name: 'Buttery Team',
+      description: 'Manages the Buttery spaces',
+      inviteLink: '',
+      isInvisible: true,
+      slug: getSlugFromIgName('Buttery Team'),
+      category: 'Others',
+      orgRoles: {
+        create: {
+          roleId: ButteryAdminRole.id,
+        },
+      },
+      userOrg: {
+        create: {
+          userId: 79, // Carina
           isIGHead: true,
         },
       },
