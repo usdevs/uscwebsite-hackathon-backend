@@ -6,6 +6,7 @@ export const AcadsAdmin: RoleName = 'acads_admin'
 export const BookingAdmin: RoleName = 'booking_admin'
 export const OrganisationHead: RoleName = 'organisation_head'
 export const Member: RoleName = 'member'
+export const ButteryAdmin: RoleName = 'buttery_admin'
 
 // ID is hardcoded because it is the exact ID is expected by the
 // orgRole seed in the seeding excel sheet.
@@ -39,6 +40,11 @@ export const MemberRole: Omit<Role, 'createdAt'> = {
   name: Member,
 }
 
+export const ButteryAdminRole: Omit<Role, 'createdAt'> = {
+  id: 7,
+  name: ButteryAdmin,
+}
+
 /**
  * This is the list of all roles in the system.
  * It is used to seed the database with roles.
@@ -51,4 +57,5 @@ export const AllRoles: Omit<Role, 'createdAt'>[] = [
   BookingAdminRole,
   OrganisationHeadRole,
   MemberRole,
+  ButteryAdminRole,
 ]

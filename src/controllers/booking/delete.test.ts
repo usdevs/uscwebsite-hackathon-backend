@@ -20,6 +20,7 @@ import {
   getUserOrgs,
   getUserRoles,
 } from '../../services/users'
+import { getVenueRoles } from '../../services/venues'
 
 jest.mock('../../services/users', () => ({
   getUserAbilities: jest.fn(),
@@ -31,6 +32,17 @@ jest.mock('../../services/bookings', () => ({
   destroyBooking: jest.fn(),
   getBookingById: jest.fn(),
 }))
+
+jest.mock('../../services/venues', () => ({
+  getVenueRoles: jest.fn(),
+}))
+
+beforeEach(() => {
+  jest.mocked(getVenueRoles).mockResolvedValue([])
+  jest.mocked(getUserAbilities).mockResolvedValue([])
+  jest.mocked(getUserRoles).mockResolvedValue([])
+  jest.mocked(getUserOrgs).mockResolvedValue([])
+})
 
 afterEach(() => {
   jest.resetAllMocks()
@@ -92,10 +104,7 @@ describe('Test delete booking handler', () => {
       params: { id: mockBookingId.toString() },
     })
 
-    jest.mocked(getUserAbilities).mockResolvedValue([])
-    jest.mocked(getUserRoles).mockResolvedValue([])
     jest.mocked(getBookingById).mockResolvedValue(mockBooking)
-    jest.mocked(getUserOrgs).mockResolvedValue([])
 
     try {
       await deleteBooking(req, res)
@@ -117,11 +126,9 @@ describe('Test delete booking handler', () => {
       params: { id: mockBookingId.toString() },
     })
 
-    jest.mocked(getUserAbilities).mockResolvedValue([])
     jest
       .mocked(getUserRoles)
       .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])
-
     jest.mocked(getBookingById).mockResolvedValue(mockBooking)
     jest.mocked(getUserOrgs).mockResolvedValue([orgHeadOrg])
 
@@ -136,7 +143,6 @@ describe('Test delete booking handler', () => {
       params: { id: mockBookingId.toString() },
     })
 
-    jest.mocked(getUserAbilities).mockResolvedValue([])
     jest
       .mocked(getUserRoles)
       .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])
@@ -167,9 +173,7 @@ describe('Test delete booking handler', () => {
       .mockResolvedValue([
         generateRandomAbility(Policy.canDeleteBookingAbility),
       ])
-    jest.mocked(getUserRoles).mockResolvedValue([])
     jest.mocked(getBookingById).mockResolvedValue(mockBooking)
-    jest.mocked(getUserOrgs).mockResolvedValue([])
 
     await deleteBooking(req, res)
     expect(res.status).toBeCalledWith(HttpCode.OK)

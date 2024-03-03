@@ -1,3 +1,4 @@
+import { getVenueRoles } from './../../services/venues'
 import { getMockReq, getMockRes } from '@jest-mock/express'
 import * as Policy from '../../policy'
 import { RequestWithUser } from '../../interfaces/auth.interface'
@@ -24,18 +25,26 @@ jest.mock('../../middlewares/checks', () => ({
 }))
 
 jest.mock('../../services/users', () => ({
-  getUserAbilities: jest.fn(),
-  getUserRoles: jest.fn(),
-  getUserOrgs: jest.fn(),
+  getUserAbilities: jest.fn().mockResolvedValue([]),
+  getUserRoles: jest.fn().mockResolvedValue([]),
+  getUserOrgs: jest.fn().mockResolvedValue([]),
 }))
 
 jest.mock('../../services/bookings', () => ({
   addBooking: jest.fn(),
 }))
 
+jest.mock('../../services/venues', () => ({
+  getVenueRoles: jest.fn().mockResolvedValue([]),
+}))
+
 beforeEach(() => {
   jest.mocked(addBooking).mockResolvedValue(generateRandomBooking({}))
   jest.mocked(checkStackedBookings).mockResolvedValue(true)
+  jest.mocked(getVenueRoles).mockResolvedValue([])
+  jest.mocked(getUserAbilities).mockResolvedValue([])
+  jest.mocked(getUserRoles).mockResolvedValue([])
+  jest.mocked(getUserOrgs).mockResolvedValue([])
 })
 
 afterEach(async () => {
@@ -93,9 +102,6 @@ describe('Test create booking handler', () => {
     })
 
     // A member role should have no abilities with regards to booking module
-    jest.mocked(getUserAbilities).mockResolvedValue([])
-    jest.mocked(getUserRoles).mockResolvedValue([])
-
     await expect(createBooking(req, res)).rejects.toBeInstanceOf(
       UnauthorizedException
     )
@@ -117,7 +123,6 @@ describe('Test create booking handler', () => {
       },
     })
 
-    jest.mocked(getUserAbilities).mockResolvedValue([])
     jest
       .mocked(getUserRoles)
       .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])
@@ -148,7 +153,6 @@ describe('Test create booking handler', () => {
     })
 
     // A member role should have no abilities with regards to booking module
-    jest.mocked(getUserAbilities).mockResolvedValue([])
     jest
       .mocked(getUserRoles)
       .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])

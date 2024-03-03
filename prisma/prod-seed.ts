@@ -4,10 +4,12 @@ import {
   seedAbilities,
   seedRoles,
   seedRolesAbilities,
+  seedVenueRoles,
 } from './helper/roles-abilities'
 import { seedCourses, seedProfessors, seedStudents } from './helper/submissions'
 import {
   AcadsAdminRole,
+  ButteryAdminRole,
   MemberRole,
   OrganisationHeadRole,
   SpacesAdminRole,
@@ -15,7 +17,7 @@ import {
 } from '@/policy'
 import { Prisma } from '@prisma/client'
 
-async function seedProdOrgRoles() {
+export async function seedProdOrgRoles() {
   const otherMembersUserNames: Record<string, string[]> = {
     'NUSCC Acads Team': ['migahfoo', 'horangu', 'sinkingshipss', 'llixfell'],
     'NUSCC Makers Team': [
@@ -49,6 +51,13 @@ async function seedProdOrgRoles() {
       'peasantbird',
       'reubenth',
       'opticalcloud',
+    ],
+    'Buttery Team': [
+      'carinateh',
+      'jemmacheah',
+      'jeremyyong128',
+      'owenyeoo',
+      'ymirmeddeb',
     ],
   }
 
@@ -129,6 +138,25 @@ async function seedProdOrgRoles() {
         },
       },
     },
+    {
+      name: 'Buttery Team',
+      description: 'Manages the Buttery spaces',
+      inviteLink: '',
+      isInvisible: true,
+      slug: getSlugFromIgName('Buttery Team'),
+      category: 'Others',
+      orgRoles: {
+        create: {
+          roleId: ButteryAdminRole.id,
+        },
+      },
+      userOrg: {
+        create: {
+          userId: 79, // Carina
+          isIGHead: true,
+        },
+      },
+    },
   ]
 
   for (const org of data) {
@@ -202,7 +230,6 @@ async function seedProdOrgRoles() {
   // Add member role to all orgs
 
   const orgs = await prisma.organisation.findMany()
-
   for (const org of orgs) {
     await prisma.orgRole.create({
       data: {
@@ -226,6 +253,7 @@ async function main() {
   await seedAbilities()
   await seedRoles()
   await seedRolesAbilities()
+  await seedVenueRoles()
 
   await seedCourses()
   await seedProfessors()

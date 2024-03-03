@@ -5,6 +5,14 @@ import { RolesAbilities } from '@/policy/rolesabilities'
 import { orgRoleSchema } from './schema'
 import { ReadRowsFromExcel } from './util'
 import { prisma } from '../../db'
+import {
+  AcadsAdminRole,
+  ButteryAdminRole,
+  MemberRole,
+  OrganisationHeadRole,
+  SpacesAdminRole,
+  WebsiteAdminRole,
+} from '@/policy'
 
 export const seedRoles = async () => {
   console.info('Seeding roles and abilities...')
@@ -94,4 +102,32 @@ export const seedOrgRoles = async (excelFile: string, sheet: string) => {
   }
 
   console.info('Seeding orgRoles finished.')
+}
+
+export const seedVenueRoles = async () => {
+  console.info('Seeding venueRoles...')
+
+  // Allow certain roles to access certain venues
+  const MAKERS_STUDIO = 4
+  const BUTTERY_COMMON_AREA = 7
+  const BUTTER_COOKING_AREA = 9
+
+  await prisma.venueAdminRole.createMany({
+    data: [
+      {
+        venueId: MAKERS_STUDIO,
+        roleId: SpacesAdminRole.id,
+      },
+      {
+        venueId: BUTTERY_COMMON_AREA,
+        roleId: ButteryAdminRole.id,
+      },
+      {
+        venueId: BUTTER_COOKING_AREA,
+        roleId: ButteryAdminRole.id,
+      },
+    ],
+  })
+
+  console.info('Seeding venueRoles finished.')
 }

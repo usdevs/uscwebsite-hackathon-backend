@@ -1,11 +1,59 @@
-import { NextFunction, Request, Response } from 'express'
-import { checkSignature, generateToken } from '@middlewares/auth.middleware'
 import { HttpCode, HttpException } from '@/exceptions/HttpException'
-import { Prisma } from '@prisma/client'
+import { checkSignature, generateToken } from '@middlewares/auth.middleware'
+import { Prisma, Role } from '@prisma/client'
+import { NextFunction, Request, Response } from 'express'
 import { prisma } from '../../../db'
 
-import { TelegramAuthSchema } from '@interfaces/auth.interface'
+import { AcadsAdminRole, BookingAdminRole, WebsiteAdminRole } from '@/policy'
 import { getUserRoles } from '@/services/users'
+import { getAllVenues, getVenueRoles } from '@/services/venues'
+import { TelegramAuthSchema } from '@interfaces/auth.interface'
+
+const NO_MATCHING_USER_MESSAGE = `You are not authorized to access the NUSC website!
+Note: this may be an issue if you have recently changed your Telegram username without actually having logged into the NUSC website.
+If so, please add your new username via the Admin tab.`
+
+const MULTIPLE_MATCHING_USERS_MESSAGE = `Multiple database entries for the same telegramId or the same telegramUserName detected!
+  Contact the website admin to ensure there is only one.`
+
+async function generatePermissions(userId: number): Promise<{
+  isAdmin: boolean
+}> {
+  const roleNames = (await getUserRoles(userId)).map((role) => role.name)
+  console.log(roleNames)
+
+  const roleNamesSet = new Set(roleNames)
+  const allVenues = await getAllVenues()
+
+  // Set the permission for various tasks for frontend to use
+  const isAdmin: boolean = roleNames.includes(WebsiteAdminRole.name)
+  const isBookingAdmin = isAdmin || roleNames.includes(BookingAdminRole.name)
+  const isAcadsAdmin = isAdmin || roleNames.includes(AcadsAdminRole.name)
+
+  // Create a map of venue name to whether the user is an admin for that venue
+  const venueRoles: Array<[number, Role[]]> = await Promise.all(
+    allVenues.map(async (venue) => [venue.id, await getVenueRoles(venue.id)])
+  )
+  const venueIsVenueAdmin: Array<[number, boolean]> = venueRoles.map(
+    ([venueId, roles]) => [
+      venueId,
+      isAdmin ||
+        isBookingAdmin ||
+        roles.some((role) => roleNamesSet.has(role.name)),
+    ]
+  )
+
+  const venueIdToIsVenueAdmin: Record<string, boolean> =
+    Object.fromEntries(venueIsVenueAdmin)
+
+  const permissions = {
+    isAdmin,
+    isAcadsAdmin,
+    venueIdToIsVenueAdmin,
+  }
+
+  return permissions
+}
 
 export async function handleLogin(
   req: Request,
@@ -17,6 +65,7 @@ export async function handleLogin(
   const isDev = process.env.NODE_ENV === 'development'
   if (isDev) {
     console.log('Running in development mode, skipping signature checks...')
+    console.log('User credentials:', userCredentials)
   }
 
   if (!isDev && !checkSignature(process.env.BOT_TOKEN || '', userCredentials)) {
@@ -63,18 +112,13 @@ export async function handleLogin(
   const matchingUsers: Prisma.UserGetPayload<Prisma.UserFindManyArgs>[] =
     await matchingUsersPromise
 
-  console.log(matchingUsers)
   if (matchingUsers.length === 0) {
-    throw new HttpException(
-      'You are not authorized to access the NUSC website! Note: this may be an issue if you' +
-        ' have recently changed your Telegram username without actually having logged into the NUSC website. If so,' +
-        ' please add your new username via the Admin tab.',
-      HttpCode.Unauthorized
-    )
+    console.error(input)
+    throw new HttpException(NO_MATCHING_USER_MESSAGE, HttpCode.Unauthorized)
   } else if (matchingUsers.length > 1) {
+    console.error(matchingUsers)
     throw new HttpException(
-      'Multiple database entries for the same telegramId or the same telegramUserName detected!' +
-        ' Contact the website admin to ensure there is only one.',
+      MULTIPLE_MATCHING_USERS_MESSAGE,
       HttpCode.InternalServerError
     )
   } else {
@@ -110,10 +154,11 @@ export async function handleLogin(
       },
     },
   })
-  const roles = (await getUserRoles(userId)).map((role) => role.name)
-  const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
 
+  const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
   const token = generateToken(userCredentials)
-  console.log(roles)
-  res.status(200).send({ userCredentials, token, orgIds, userId, roles })
+
+  const permissions = await generatePermissions(userId)
+
+  res.status(200).send({ userCredentials, token, orgIds, userId, permissions })
 }

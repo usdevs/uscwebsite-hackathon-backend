@@ -51,12 +51,19 @@ const addUserOnOrgToTable = async (
     isIGHead,
   }
 
-  const userOnOrg = await prisma.userOnOrg.create({
-    data: userOnOrgInput,
-  })
-  console.log(
-    `Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`
-  )
+  try {
+    const userOnOrg = await prisma.userOnOrg.create({
+      data: userOnOrgInput,
+    })
+    console.log(
+      `Added user of id ${userOnOrg.userId} into organisation of id ${userOnOrg.orgId}`
+    )
+  } catch (err) {
+    console.log(
+      `Failed on user of id ${userId} into organisation of id ${orgId}`
+    )
+    throw err
+  }
 }
 
 export const readFromExcelandSeedUsers = async (

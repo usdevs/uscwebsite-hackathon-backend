@@ -22,6 +22,7 @@ import {
   getUserRoles,
 } from '../../services/users'
 import { checkStackedBookings } from '../../middlewares/checks'
+import { getVenueRoles } from '../../services/venues'
 
 jest.mock('../../middlewares/checks', () => ({
   checkStackedBookings: jest.fn(),
@@ -36,6 +37,17 @@ jest.mock('../../services/users', () => ({
 jest.mock('../../services/bookings', () => ({
   updateBooking: jest.fn(),
 }))
+
+jest.mock('../../services/venues', () => ({
+  getVenueRoles: jest.fn(),
+}))
+
+beforeEach(() => {
+  jest.mocked(getVenueRoles).mockResolvedValue([])
+  jest.mocked(getUserAbilities).mockResolvedValue([])
+  jest.mocked(getUserRoles).mockResolvedValue([])
+  jest.mocked(getUserOrgs).mockResolvedValue([])
+})
 
 afterEach(() => {
   jest.resetAllMocks()
@@ -125,10 +137,6 @@ describe('editBooking', () => {
       })
 
       // A member role should have no abilities with regards to booking module
-      jest.mocked(getUserAbilities).mockResolvedValue([])
-      jest.mocked(getUserRoles).mockResolvedValue([])
-      jest.mocked(getUserOrgs).mockResolvedValue([])
-
       try {
         await editBooking(req, res)
         throw new Error('Should not reach here')
@@ -157,11 +165,9 @@ describe('editBooking', () => {
         },
       })
 
-      jest.mocked(getUserAbilities).mockResolvedValue([])
       jest
         .mocked(getUserRoles)
         .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])
-
       // Generate random org that the user is not a head of
       jest
         .mocked(getUserOrgs)
@@ -193,12 +199,10 @@ describe('editBooking', () => {
         },
       })
 
-      jest.mocked(getUserAbilities).mockResolvedValue([])
       jest
         .mocked(getUserRoles)
         .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])
       jest.mocked(getUserOrgs).mockResolvedValue([memberOrg])
-
       jest.mocked(checkStackedBookings).mockResolvedValue(true)
 
       // Mock that the booking does not exist
@@ -232,7 +236,6 @@ describe('editBooking', () => {
         },
       })
 
-      jest.mocked(getUserAbilities).mockResolvedValue([])
       jest
         .mocked(getUserRoles)
         .mockResolvedValue([generateRandomRole(Policy.OrganisationHeadRole)])
@@ -270,8 +273,6 @@ describe('editBooking', () => {
         .mockResolvedValue([
           generateRandomAbility(Policy.canUpdateBookingAbility),
         ])
-      jest.mocked(getUserRoles).mockResolvedValue([])
-      jest.mocked(getUserOrgs).mockResolvedValue([])
       jest.mocked(checkStackedBookings).mockResolvedValue(true)
 
       const mockBooking = generateRandomBooking({
