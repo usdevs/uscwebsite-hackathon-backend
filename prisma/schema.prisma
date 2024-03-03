@@ -58,9 +58,19 @@ model UserOnOrg {
 }
 
 model Venue {
-  id      Int       @id @default(autoincrement())
-  name    String
-  booking Booking[]
+  id             Int              @id @default(autoincrement())
+  name           String
+  booking        Booking[]
+  VenueAdminRole VenueAdminRole[]
+}
+
+// Roles that are considered admins for the venue
+model VenueAdminRole {
+  id      Int   @id @default(autoincrement())
+  venueId Int
+  venue   Venue @relation(fields: [venueId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  roleId  Int
+  role    Role  @relation(fields: [roleId], references: [id], onDelete: Cascade, onUpdate: Cascade)
 }
 
 model Booking {
@@ -90,11 +100,12 @@ model Ability {
 
 // A role is a collection of abilities
 model Role {
-  id            Int           @id @default(autoincrement())
-  name          String        @unique
-  createdAt     DateTime      @default(now())
-  roleAbilities RoleAbility[]
-  orgRoles      OrgRole[]
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  createdAt      DateTime         @default(now())
+  roleAbilities  RoleAbility[]
+  orgRoles       OrgRole[]
+  VenueAdminRole VenueAdminRole[]
 }
 
 model RoleAbility {
