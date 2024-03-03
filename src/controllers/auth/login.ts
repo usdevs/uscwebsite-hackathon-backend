@@ -6,6 +6,47 @@ import { prisma } from '../../../db'
 
 import { TelegramAuthSchema } from '@interfaces/auth.interface'
 import { getUserRoles } from '@/services/users'
+import {
+  AcadsAdminRole,
+  BookingAdminRole,
+  ButteryAdminRole,
+  OrganisationHeadRole,
+  SpacesAdminRole,
+  WebsiteAdminRole,
+} from '@/policy'
+
+async function generatePermissions(userId: number): Promise<{
+  isAdmin: boolean
+  isBookingAdmin: boolean
+  isButteryAdmin: boolean
+  isSpacesAdmin: boolean
+  isAcadsAdmin: boolean
+}> {
+  const roleNames = (await getUserRoles(userId)).map((role) => role.name)
+  console.log(roleNames)
+
+  // Set the permission for various tasks for frontend to use
+  const isAdmin: boolean = roleNames.includes(WebsiteAdminRole.name)
+  const isBookingAdmin = isAdmin || roleNames.includes(BookingAdminRole.name)
+
+  const isButteryAdmin =
+    isBookingAdmin || roleNames.includes(ButteryAdminRole.name)
+  const isSpacesAdmin =
+    isBookingAdmin || roleNames.includes(SpacesAdminRole.name)
+  const isAcadsAdmin = isBookingAdmin || roleNames.includes(AcadsAdminRole.name)
+  const isOrgHead = roleNames.includes(OrganisationHeadRole.name)
+
+  const permissions = {
+    isAdmin,
+    isBookingAdmin,
+    isButteryAdmin,
+    isSpacesAdmin,
+    isAcadsAdmin,
+    isOrgHead,
+  }
+
+  return permissions
+}
 
 export async function handleLogin(
   req: Request,
@@ -110,10 +151,11 @@ export async function handleLogin(
       },
     },
   })
-  const roles = (await getUserRoles(userId)).map((role) => role.name)
-  const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
 
+  const orgIds = userOrgs.map((userOrg) => userOrg.orgId)
   const token = generateToken(userCredentials)
-  console.log(roles)
-  res.status(200).send({ userCredentials, token, orgIds, userId, roles })
+
+  const permissions = await generatePermissions(userId)
+
+  res.status(200).send({ userCredentials, token, orgIds, userId, permissions })
 }
