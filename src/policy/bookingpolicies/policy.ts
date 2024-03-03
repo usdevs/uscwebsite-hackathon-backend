@@ -22,7 +22,6 @@ export const createBookingPolicy = (booking: BookingPayload) => {
     new Policies.HasAnyAbilities(Abilities.canCreateBooking),
     new AllowIfAdminForVenue(booking),
     new Policies.All(
-      new Policies.HasRole(OrganisationHead),
       new Policies.BelongToOrg(booking.userOrgId),
       new AllowIfBookingIsNotTooLong(booking),
       new AllowIfBookingIsNotTooShort(booking),
