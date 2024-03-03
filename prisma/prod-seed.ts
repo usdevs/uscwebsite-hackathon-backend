@@ -4,6 +4,7 @@ import {
   seedAbilities,
   seedRoles,
   seedRolesAbilities,
+  seedVenueRoles,
 } from './helper/roles-abilities'
 import { seedCourses, seedProfessors, seedStudents } from './helper/submissions'
 import {
@@ -229,7 +230,6 @@ export async function seedProdOrgRoles() {
   // Add member role to all orgs
 
   const orgs = await prisma.organisation.findMany()
-
   for (const org of orgs) {
     await prisma.orgRole.create({
       data: {
@@ -253,6 +253,7 @@ async function main() {
   await seedAbilities()
   await seedRoles()
   await seedRolesAbilities()
+  await seedVenueRoles()
 
   await seedCourses()
   await seedProfessors()

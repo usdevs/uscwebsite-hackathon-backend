@@ -18,6 +18,7 @@ import {
   seedOrgRoles,
   seedRoles,
   seedRolesAbilities,
+  seedVenueRoles,
 } from './helper/roles-abilities'
 import { seedDevInfo } from './helper/dev-info'
 import {
@@ -95,7 +96,16 @@ async function main() {
 
   console.info('seeding dev data...')
 
-  const NUMBER_OF_RANDOM_BOOKINGS = 1000
+  await seedOrgRoles(excelFile, getDevSheetName(orgRoleSheet))
+  await seedVenueRoles()
+  // Folio Submissions
+  await seedCourses()
+  await seedProfessors()
+  await seedStudents()
+  await seedCourseOfferings()
+  await seedSubmissions()
+
+  const NUMBER_OF_RANDOM_BOOKINGS = 200
   const bookingData: BookingPayload[] = await generateBookingData(
     NUMBER_OF_RANDOM_BOOKINGS,
     maxSlots,
@@ -114,15 +124,6 @@ async function main() {
       console.log(error)
     }
   }
-
-  await seedOrgRoles(excelFile, getDevSheetName(orgRoleSheet))
-
-  // Folio Submissions
-  await seedCourses()
-  await seedProfessors()
-  await seedStudents()
-  await seedCourseOfferings()
-  await seedSubmissions()
 
   console.log(`Seeding finished.`)
 }
