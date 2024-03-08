@@ -85,74 +85,74 @@ router.delete(
   asyncHandler(Controller.deleteBooking)
 )
 
-// Folio Submissions
-router.get('/folio/submissions/all', asyncHandler(Controller.listSubmissions))
+// Stylio Submissions
+router.get('/stylio/submissions/all', asyncHandler(Controller.listSubmissions))
 router.post(
-  '/folio/submissions',
+  '/stylio/submissions',
   requiresAuthentication,
   asyncHandler(Controller.createSubmission)
 )
 router.put(
-  '/folio/submissions/:id',
+  '/stylio/submissions/:id',
   requiresAuthentication,
   asyncHandler(Controller.editSubmission)
 )
 router.delete(
-  '/folio/submissions/:id',
+  '/stylio/submissions/:id',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteSubmission)
 )
 
-// Folio Students
-router.get('/folio/students/all', asyncHandler(Controller.listStudents))
+// Stylio Students
+router.get('/stylio/students/all', asyncHandler(Controller.listStudents))
 router.post(
-  '/folio/students',
+  '/stylio/students',
   requiresAuthentication,
   asyncHandler(Controller.createStudent)
 )
 router.put(
-  '/folio/students/:matriculationNo',
+  '/stylio/students/:matriculationNo',
   requiresAuthentication,
   asyncHandler(Controller.editStudent)
 )
 router.delete(
-  '/folio/students/:matriculationNo',
+  '/stylio/students/:matriculationNo',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteStudent)
 )
 
-// Folio Professors
-router.get('/folio/professors/all', asyncHandler(Controller.listProfessors))
+// Stylio Professors
+router.get('/stylio/professors/all', asyncHandler(Controller.listProfessors))
 router.post(
-  '/folio/professors',
+  '/stylio/professors',
   requiresAuthentication,
   asyncHandler(Controller.createProfessor)
 )
 router.put(
-  '/folio/professors/:id',
+  '/stylio/professors/:id',
   requiresAuthentication,
   asyncHandler(Controller.editProfessor)
 )
 router.delete(
-  '/folio/professors/:id',
+  '/stylio/professors/:id',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteProfessor)
 )
 
-// Folio Courses
-router.get('/folio/courses/all', asyncHandler(Controller.listCourses))
+// Stylio Courses
+router.get('/stylio/courses/all', asyncHandler(Controller.listCourses))
 router.post(
-  '/folio/courses',
+  '/stylio/courses',
   requiresAuthentication,
   asyncHandler(Controller.createCourse)
 )
 router.put(
-  '/folio/courses/:id',
+  '/stylio/courses/:id',
   requiresAuthentication,
   asyncHandler(Controller.editCourse)
 )
 router.delete(
-  '/folio/courses/:id',
+  '/stylio/courses/:id',
   requiresAuthentication,
   asyncHandler(Controller.handleDeleteCourse)
 )

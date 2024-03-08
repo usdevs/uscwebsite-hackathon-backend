@@ -4,7 +4,7 @@ import * as Policy from '@/policy'
 import { SubmissionSchema } from '@/interfaces/submission.interface'
 import { addSubmission } from '@/services/submissions'
 import { HttpCode, HttpException } from '@/exceptions'
-import { revalidateFolioFrontendSubmissions } from '@/services/frontend'
+import { revalidateStylioFrontendSubmissions } from '@/services/frontend'
 
 const createSubmissionAction = 'create submission'
 
@@ -30,7 +30,7 @@ export async function createSubmission(
   )
 
   const inserted = await addSubmission(submissionPayload)
-  await revalidateFolioFrontendSubmissions(inserted.id)
+  await revalidateStylioFrontendSubmissions(inserted.id)
 
   res.status(200).json({ result: [inserted] })
 }

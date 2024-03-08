@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios'
 
-// Revalidates Folio submissions after a successful response
-export const revalidateFolioFrontendSubmissions = async (
+// Revalidates Stylio submissions after a successful response
+export const revalidateStylioFrontendSubmissions = async (
   submissionId?: number
 ) => {
   if (!process.env.FRONTEND_REVALIDATE_SECRET) {
@@ -12,7 +12,7 @@ export const revalidateFolioFrontendSubmissions = async (
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001'
 
   try {
-    const revalidateEndpoint = `${frontendUrl}/api/folio/revalidate`
+    const revalidateEndpoint = `${frontendUrl}/api/stylio/revalidate`
     const payload = { id: submissionId }
 
     const response = await axios.post(revalidateEndpoint, payload, {

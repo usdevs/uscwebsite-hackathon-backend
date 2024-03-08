@@ -4,7 +4,7 @@ import { RequestWithUser } from '@interfaces/auth.interface'
 import * as Policy from '@/policy'
 import { UpdateSubmissionSchema } from '@/interfaces/submission.interface'
 import { updateSubmission } from '@/services/submissions'
-import { revalidateFolioFrontendSubmissions } from '@/services/frontend'
+import { revalidateStylioFrontendSubmissions } from '@/services/frontend'
 
 const editSubmissionAction = 'edit submission'
 
@@ -42,6 +42,6 @@ export async function editSubmission(
     submissionToUpdateId,
     submissionToUpdate
   )
-  await revalidateFolioFrontendSubmissions(submissionToUpdateId)
+  await revalidateStylioFrontendSubmissions(submissionToUpdateId)
   res.status(200).json({ result: [updatedSubmission] })
 }

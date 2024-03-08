@@ -120,7 +120,7 @@ export function generateRandomRole(Role?: Partial<Role>): Role {
   }
 }
 
-// Folio
+// Stylio
 export function generateRandomProfessor(
   professor?: Partial<Professor>
 ): Professor {
