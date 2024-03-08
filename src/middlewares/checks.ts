@@ -10,46 +10,27 @@ import { prisma } from '../../db'
 import { BookingAdminRole, WebsiteAdminRole } from '@/policy'
 
 /**
- * Checks if user is in the organisation OR if the user is an Admin
- *
- * @param user
- * @param organisation
+ * Returns true if user is in the organisation
+ * @param userId user id
+ * @param orgId organisation id
  * @returns true if user is in the organisation
  */
-export async function checkUserinOrg(
-  user: User,
-  organisation: Organisation
+export async function checkIsUserInOrg(
+  userId: number,
+  orgId: number
 ): Promise<boolean> {
-  // find all userOnOrg where user is in the organisation OR user is an admin
-  const result = await prisma.userOnOrg.findFirst({
+  const user = await prisma.user.findFirst({
     where: {
-      OR: [
-        {
-          AND: [
-            {
-              user: user,
-            },
-            {
-              org: organisation,
-            },
-          ],
+      id: userId,
+      userOrg: {
+        some: {
+          orgId: orgId,
         },
-        {
-          AND: [
-            {
-              user: user,
-            },
-            {
-              org: {
-                isAdminOrg: true,
-              },
-            },
-          ],
-        },
-      ],
+      },
     },
   })
-  return result !== null
+
+  return !!user
 }
 
 /*Returns number of minutes*/
@@ -130,26 +111,7 @@ export async function checkIsUserAdmin(userId: number): Promise<boolean> {
 }
 
 export async function checkIsUserBookingAdmin(userId: number) {
-  // TODO: remove this first check when we fully migrate to the new policy module
-  const result = await prisma.userOnOrg.findFirst({
-    where: {
-      AND: [
-        {
-          userId: userId,
-        },
-        {
-          org: {
-            isAdminOrg: true,
-          },
-        },
-      ],
-    },
-  })
-  if (result !== null) {
-    return true
-  }
-
-  const result2 = await prisma.userOnOrg.findFirst({
+  const res = await prisma.userOnOrg.findFirst({
     where: {
       AND: [
         {
@@ -168,7 +130,7 @@ export async function checkIsUserBookingAdmin(userId: number) {
     },
   })
 
-  return result2 !== null
+  return res !== null
 }
 
 /**

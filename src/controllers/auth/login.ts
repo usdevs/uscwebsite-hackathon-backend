@@ -34,6 +34,7 @@ async function generatePermissions(userId: number): Promise<{
   const venueRoles: Array<[number, Role[]]> = await Promise.all(
     allVenues.map(async (venue) => [venue.id, await getVenueRoles(venue.id)])
   )
+
   const venueIsVenueAdmin: Array<[number, boolean]> = venueRoles.map(
     ([venueId, roles]) => [
       venueId,
@@ -159,6 +160,12 @@ export async function handleLogin(
   const token = generateToken(userCredentials)
 
   const permissions = await generatePermissions(userId)
+  if (isDev) {
+    console.log(
+      `Permissions for user ${userId}:`,
+      JSON.stringify(permissions, null, 2)
+    )
+  }
 
   res.status(200).send({ userCredentials, token, orgIds, userId, permissions })
 }

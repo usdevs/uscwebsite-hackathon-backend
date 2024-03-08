@@ -1,15 +1,14 @@
-import { prisma } from '../../db'
+import { getSlugFromIgName } from '@/config/common'
+import { HttpCode, HttpException } from '@exceptions/HttpException'
 import {
+  Booking,
   IGCategory,
   Organisation,
   Prisma,
-  UserOnOrg,
-  Booking,
   User,
+  UserOnOrg,
 } from '@prisma/client'
-import { HttpCode, HttpException } from '@exceptions/HttpException'
-import { checkIsUserAdmin } from '@middlewares/checks'
-import { throwIfNotAdmin, getSlugFromIgName } from '@/config/common'
+import { prisma } from '../../db'
 
 /**
  * A type alias for an {@link Organisation} with its IG head (i.e. a {@link User})
@@ -23,14 +22,6 @@ export type OrganisationWithIGHead = Prisma.OrganisationGetPayload<{
     }
   }
 }>
-
-const isCoreAdminOrg = (name: string) => {
-  return (
-    name.includes('Management Committee') ||
-    name.includes('Admin') ||
-    name.includes('MC')
-  )
-}
 
 /* Retrieves all organisations */
 export async function getAllOrgs(): Promise<OrganisationWithIGHead[]> {

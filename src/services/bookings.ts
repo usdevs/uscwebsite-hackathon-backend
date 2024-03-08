@@ -4,8 +4,10 @@ import { HttpCode, HttpException } from '../exceptions/HttpException'
 import {
   checkConflictingBooking,
   checkIsUserBookingAdmin,
+  checkIsUserInOrg,
 } from '../middlewares/checks'
 import { BookingAdminRole, WebsiteAdminRole } from '@/policy'
+import { getUserOrgs } from './users'
 
 /* Retrieves all bookings */
 export async function getAllBookings(
@@ -79,6 +81,40 @@ export type BookingPayload = Pick<
   'eventName' | 'userId' | 'venueId' | 'start' | 'end' | 'userOrgId'
 >
 
+/** Helper function to retrieve the first organisation where the user has a
+ * Booking Admin / Website Admin role.
+ */
+async function getFirstBookingAdminOrgForUser(userId: number) {
+  const adminUser = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: userId,
+    },
+    include: {
+      userOrg: {
+        include: {
+          org: {
+            select: {
+              id: true,
+              name: true,
+              orgRoles: true,
+            },
+          },
+        },
+      },
+    },
+  })
+  const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
+  const adminOrg = adminUserOrgs.find((org) =>
+    org.orgRoles.some(
+      (orgRole) =>
+        orgRole.roleId === BookingAdminRole.id ||
+        orgRole.roleId === WebsiteAdminRole.id
+    )
+  )
+
+  return adminOrg
+}
+
 /* Add a new booking */
 export async function addBooking(booking: BookingPayload): Promise<Booking> {
   const venue = await prisma.venue.findFirst({ where: { id: booking.venueId } })
@@ -96,56 +132,26 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
+  const isAdminBookingOnBehalfOfAnotherOrg =
+    !(await checkIsUserInOrg(booking.userId, booking.userOrgId)) &&
+    (await checkIsUserBookingAdmin(booking.userId))
+
   // admin users can also make bookings on behalf of other organisations
-  if (await checkIsUserBookingAdmin(booking.userId)) {
-    const adminUser = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: booking.userId,
-      },
-      include: {
-        userOrg: {
-          include: {
-            org: {
-              select: {
-                id: true,
-                name: true,
-                isAdminOrg: true,
-                orgRoles: true,
-              },
-            },
-          },
-        },
-      },
-    })
-    const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
-    const adminUserOrgRoles = adminUserOrgs.flatMap((x) => x.orgRoles)
-    const indexOfBookingOrgId = adminUserOrgs.findIndex(
-      (org) => org.id === booking.userOrgId
+  if (isAdminBookingOnBehalfOfAnotherOrg) {
+    console.log(
+      `Admin user ${booking.userId} is booking for another org - ${booking.userOrgId}`
     )
-    if (indexOfBookingOrgId === -1) {
-      const adminOrg =
-        adminUserOrgs.find((org) => org.isAdminOrg) ||
-        adminUserOrgRoles.find(
-          (orgRole) =>
-            orgRole.roleId === BookingAdminRole.id ||
-            orgRole.roleId === WebsiteAdminRole.id
-        )
-      if (!adminOrg) {
-        throw new HttpException(
-          `No admin org found for you`,
-          HttpCode.BadRequest
-        )
-      }
-      // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
-      const bookingToCreate = {
-        ...booking,
-        userOrgId: adminOrg.id,
-        bookedForOrgId: booking.userOrgId,
-      }
-      return prisma.booking.create({ data: bookingToCreate })
+    const adminOrg = await getFirstBookingAdminOrgForUser(booking.userId)
+    if (!adminOrg) {
+      throw new Error('Should not reach - checkIsUserBookingAdmin is broken')
     }
 
-    const bookingToCreate = { ...booking, userOrgId: booking.userOrgId }
+    // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
+    const bookingToCreate = {
+      ...booking,
+      userOrgId: adminOrg.id,
+      bookedForOrgId: booking.userOrgId,
+    }
     return prisma.booking.create({ data: bookingToCreate })
   }
 
