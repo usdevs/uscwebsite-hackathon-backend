@@ -98,7 +98,7 @@ async function main() {
 
   await seedOrgRoles(excelFile, getDevSheetName(orgRoleSheet))
   await seedVenueRoles()
-  // Folio Submissions
+  // Stylio Submissions
   await seedCourses()
   await seedProfessors()
   await seedStudents()

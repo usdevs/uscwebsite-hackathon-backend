@@ -17,6 +17,11 @@ import {
 } from '@/policy'
 import { Prisma } from '@prisma/client'
 
+/* 
+This script is used to seed the production database with the data for new features added in AY23/24 Winter
+These includes - Roles, Abilities, Venue Roles for RBAC, Submissions for Stylio.
+*/
+
 export async function seedProdOrgRoles() {
   const otherMembersUserNames: Record<string, string[]> = {
     'NUSCC Acads Team': ['migahfoo', 'horangu', 'sinkingshipss', 'llixfell'],
@@ -52,8 +57,7 @@ export async function seedProdOrgRoles() {
       'reubenth',
       'opticalcloud',
     ],
-    'Buttery Team': [
-      'carinateh',
+    'NUSCC Buttery Team': [
       'jemmacheah',
       'jeremyyong128',
       'owenyeoo',
@@ -139,7 +143,7 @@ export async function seedProdOrgRoles() {
       },
     },
     {
-      name: 'Buttery Team',
+      name: 'NUSCC Buttery Team',
       description: 'Manages the Buttery spaces',
       inviteLink: '',
       isInvisible: true,
@@ -193,12 +197,17 @@ export async function seedProdOrgRoles() {
       }
 
       // Add these new members to the org
-      await prisma.userOnOrg.create({
-        data: {
-          userId: user.id,
-          orgId: id,
-        },
-      })
+      try {
+        await prisma.userOnOrg.create({
+          data: {
+            userId: user.id,
+            orgId: id,
+          },
+        })
+      } catch (err) {
+        console.error(`Error adding user ${user.id} to org ${id}`)
+        throw err
+      }
     }
   }
 
@@ -217,35 +226,14 @@ export async function seedProdOrgRoles() {
     ],
   })
 
-  const residentialTeamOrgId = 74
-  await prisma.orgRole.createMany({
-    data: [
-      {
-        orgId: residentialTeamOrgId,
-        roleId: OrganisationHeadRole.id,
-      },
-    ],
-  })
-
   // Add member role to all orgs
-
   const orgs = await prisma.organisation.findMany()
-  for (const org of orgs) {
-    await prisma.orgRole.create({
-      data: {
-        organisation: {
-          connect: {
-            id: org.id,
-          },
-        },
-        role: {
-          connect: {
-            id: MemberRole.id,
-          },
-        },
-      },
-    })
-  }
+  await prisma.orgRole.createMany({
+    data: orgs.map((org) => ({
+      orgId: org.id,
+      roleId: MemberRole.id,
+    })),
+  })
 }
 
 async function main() {
