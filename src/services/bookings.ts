@@ -2,16 +2,12 @@ import { prisma } from '../../db'
 import { Booking, Prisma } from '@prisma/client'
 import { HttpCode, HttpException } from '../exceptions/HttpException'
 import {
-  DURATION_PER_SLOT,
-  MIN_SLOTS_PER_BOOKING,
-  MAX_SLOTS_PER_BOOKING,
-  MIN_SLOTS_BETWEEN_BOOKINGS,
-} from '../config/common'
-import {
   checkConflictingBooking,
-  checkStackedBookings,
-  checkIsUserAdmin,
+  checkIsUserBookingAdmin,
+  checkIsUserInOrg,
 } from '../middlewares/checks'
+import { BookingAdminRole, WebsiteAdminRole } from '@/policy'
+import { getUserOrgs } from './users'
 
 /* Retrieves all bookings */
 export async function getAllBookings(
@@ -85,6 +81,40 @@ export type BookingPayload = Pick<
   'eventName' | 'userId' | 'venueId' | 'start' | 'end' | 'userOrgId'
 >
 
+/** Helper function to retrieve the first organisation where the user has a
+ * Booking Admin / Website Admin role.
+ */
+async function getFirstBookingAdminOrgForUser(userId: number) {
+  const adminUser = await prisma.user.findUniqueOrThrow({
+    where: {
+      id: userId,
+    },
+    include: {
+      userOrg: {
+        include: {
+          org: {
+            select: {
+              id: true,
+              name: true,
+              orgRoles: true,
+            },
+          },
+        },
+      },
+    },
+  })
+  const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
+  const adminOrg = adminUserOrgs.find((org) =>
+    org.orgRoles.some(
+      (orgRole) =>
+        orgRole.roleId === BookingAdminRole.id ||
+        orgRole.roleId === WebsiteAdminRole.id
+    )
+  )
+
+  return adminOrg
+}
+
 /* Add a new booking */
 export async function addBooking(booking: BookingPayload): Promise<Booking> {
   const venue = await prisma.venue.findFirst({ where: { id: booking.venueId } })
@@ -102,97 +132,27 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     )
   }
 
+  const isAdminBookingOnBehalfOfAnotherOrg =
+    !(await checkIsUserInOrg(booking.userId, booking.userOrgId)) &&
+    (await checkIsUserBookingAdmin(booking.userId))
+
   // admin users can also make bookings on behalf of other organisations
-  if (await checkIsUserAdmin(booking.userId)) {
-    const adminUser = await prisma.user.findUniqueOrThrow({
-      where: {
-        id: booking.userId,
-      },
-      include: {
-        userOrg: {
-          include: {
-            org: {
-              select: {
-                id: true,
-                isAdminOrg: true,
-              },
-            },
-          },
-        },
-      },
-    })
-    const adminUserOrgs = adminUser.userOrg.map((x) => x.org)
-    const indexOfBookingOrgId = adminUserOrgs.findIndex(
-      (org) => org.id === booking.userOrgId
+  if (isAdminBookingOnBehalfOfAnotherOrg) {
+    console.log(
+      `Admin user ${booking.userId} is booking for another org - ${booking.userOrgId}`
     )
-    if (indexOfBookingOrgId === -1) {
-      const adminOrg = adminUserOrgs.find((org) => org.isAdminOrg)
-      if (!adminOrg) {
-        throw new HttpException(
-          `No admin org found for you`,
-          HttpCode.BadRequest
-        )
-      }
-      // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
-      const bookingToCreate = {
-        ...booking,
-        userOrgId: adminOrg.id,
-        bookedForOrgId: booking.userOrgId,
-      }
-      return prisma.booking.create({ data: bookingToCreate })
+    const adminOrg = await getFirstBookingAdminOrgForUser(booking.userId)
+    if (!adminOrg) {
+      throw new Error('Should not reach - checkIsUserBookingAdmin is broken')
     }
-    const bookingToCreate = { ...booking, userOrgId: booking.userOrgId }
+
+    // userOrgId is the org that the admin user belongs to, bookedForOrgId is the org the booking was made for
+    const bookingToCreate = {
+      ...booking,
+      userOrgId: adminOrg.id,
+      bookedForOrgId: booking.userOrgId,
+    }
     return prisma.booking.create({ data: bookingToCreate })
-  }
-
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: booking.userId, orgId: booking.userOrgId },
-  })
-
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are not a member of this organisation`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (
-    booking.end.getTime() - booking.start.getTime() >
-    DURATION_PER_SLOT * MAX_SLOTS_PER_BOOKING * 1000 * 60
-  ) {
-    throw new HttpException(
-      `Booking duration is too long, please change your booking request.`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (
-    booking.end.getTime() - booking.start.getTime() <
-    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
-  ) {
-    throw new HttpException(
-      `Booking duration is too short, please change your booking request.`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (
-    booking.start.getTime() - new Date().getTime() >
-    14 * 24 * 60 * 60 * 1000
-  ) {
-    throw new HttpException(
-      `You can only book up to 14 days in advance`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (!(await checkStackedBookings(booking))) {
-    throw new HttpException(
-      `Please leave a duration of at least ${
-        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
-      } minutes in between consecutive bookings`,
-      HttpCode.BadRequest
-    )
   }
 
   const bookingToCreate = { ...booking }
@@ -209,10 +169,9 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
  */
 export async function updateBooking(
   bookingId: Booking['id'],
-  updatedBooking: BookingPayload,
-  userId: Booking['userId']
+  updatedBooking: BookingPayload
 ): Promise<Booking> {
-  const bookingToUpdate = await prisma.booking.findUniqueOrThrow({
+  const bookingToUpdate = await prisma.booking.findUnique({
     where: {
       id: bookingId,
     },
@@ -231,72 +190,6 @@ export async function updateBooking(
       HttpCode.BadRequest
     )
   }
-
-  if (await checkIsUserAdmin(userId)) {
-    return prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: updatedBooking,
-    })
-  }
-
-  if (bookingToUpdate.userId !== userId) {
-    throw new HttpException(
-      `You do not have permission to edit this booking`,
-      HttpCode.Forbidden
-    )
-  }
-
-  const userOnOrg = await prisma.userOnOrg.findFirst({
-    where: { userId: userId, orgId: updatedBooking.userOrgId },
-  })
-  if (!userOnOrg) {
-    throw new HttpException(
-      `You are not a member of this organisation`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (
-    updatedBooking.end.getTime() - updatedBooking.start.getTime() >
-    DURATION_PER_SLOT * MAX_SLOTS_PER_BOOKING * 1000 * 60
-  ) {
-    throw new HttpException(
-      `Booking duration is too long, please change your booking request.`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (
-    updatedBooking.start.getTime() - updatedBooking.start.getTime() <
-    DURATION_PER_SLOT * MIN_SLOTS_PER_BOOKING * 1000 * 60
-  ) {
-    throw new HttpException(
-      `Booking duration is too short, please change your booking request.`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (
-    updatedBooking.start.getTime() - new Date().getTime() >
-    14 * 24 * 60 * 60 * 1000
-  ) {
-    throw new HttpException(
-      `You can only book up to 14 days in advance`,
-      HttpCode.BadRequest
-    )
-  }
-
-  if (!(await checkStackedBookings(updatedBooking))) {
-    throw new HttpException(
-      `Please leave a duration of at least ${
-        DURATION_PER_SLOT * MIN_SLOTS_BETWEEN_BOOKINGS
-      } minutes in between consecutive bookings`,
-      HttpCode.BadRequest
-    )
-  }
-
   return prisma.booking.update({
     where: {
       id: bookingId,
@@ -306,7 +199,7 @@ export async function updateBooking(
 }
 
 /* Delete an existing booking */
-export async function deleteBooking(
+export async function destroyBooking(
   bookingId: Booking['id'],
   userId: Booking['userId']
 ): Promise<Booking> {
@@ -322,12 +215,6 @@ export async function deleteBooking(
     )
   }
 
-  if (bookingToDelete.userId !== userId && !(await checkIsUserAdmin(userId))) {
-    throw new HttpException(
-      `You do not have permission to delete this booking`,
-      HttpCode.Forbidden
-    )
-  }
   return prisma.booking.delete({
     where: {
       id: bookingId,

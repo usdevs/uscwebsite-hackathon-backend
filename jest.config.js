@@ -26,9 +26,7 @@ const config = {
   coverageDirectory: 'coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
-  // coveragePathIgnorePatterns: [
-  //   "/node_modules/"
-  // ],
+  coveragePathIgnorePatterns: ['/node_modules/', '\\.interface\\.ts$'],
 
   // Indicates which provider should be used to instrument code for coverage
   // coverageProvider: 'v8',
@@ -90,6 +88,15 @@ const config = {
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@config/(.*)$': '<rootDir>/src/config/$1',
+    '^@controllers/(.*)$': '<rootDir>/src/controllers/$1',
+    '^@exceptions/(.*)$': '<rootDir>/src/exceptions/$1',
+    '^@middlewares/(.*)$': '<rootDir>/src/middlewares/$1',
+    '^@routes/(.*)$': '<rootDir>/src/routes/$1',
+    '^@services/(.*)$': '<rootDir>/src/services/$1',
+    '^@utils/(.*)$': '<rootDir>/src/utils/$1',
+    '^@interfaces/(.*)$': '<rootDir>/src/interfaces/$1',
+    // ... any other path aliases you have ...
   },
 
   modulePaths: ['<rootDir>/src'],
@@ -161,9 +168,7 @@ const config = {
   // ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
-  // testPathIgnorePatterns: [
-  //   "/node_modules/"
-  // ],
+  testPathIgnorePatterns: ['/node_modules/'],
 
   // The regexp pattern or array of patterns that Jest uses to detect test files
   // testRegex: [],

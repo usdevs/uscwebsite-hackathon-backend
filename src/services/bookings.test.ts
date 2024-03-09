@@ -2,7 +2,7 @@ import { prismaMock } from './test/singleton'
 import {
   addBooking,
   BookingPayload,
-  deleteBooking,
+  destroyBooking,
   getBookingById,
 } from './bookings'
 import {
@@ -15,6 +15,7 @@ import { Booking, UserOnOrg } from '@prisma/client'
 import {
   checkConflictingBooking,
   checkIsUserAdmin,
+  checkIsUserBookingAdmin,
   checkStackedBookings,
 } from '../middlewares/checks'
 import { HttpCode, HttpException } from '../exceptions/HttpException'
@@ -22,7 +23,7 @@ import { HttpCode, HttpException } from '../exceptions/HttpException'
 // Mock the bookings checks
 jest.mock('../middlewares/checks', () => ({
   checkConflictingBooking: jest.fn(),
-  checkIsUserAdmin: jest.fn(),
+  checkIsUserBookingAdmin: jest.fn(),
   checkStackedBookings: jest.fn(),
 }))
 
@@ -57,7 +58,7 @@ describe('add bookings', () => {
 
     // Mock middleware checks
     jest.mocked(checkConflictingBooking).mockResolvedValue(false)
-    jest.mocked(checkIsUserAdmin).mockResolvedValue(false)
+    jest.mocked(checkIsUserBookingAdmin).mockResolvedValue(false)
     jest.mocked(checkStackedBookings).mockResolvedValue(true)
 
     const result = addBooking(bookingToAdd)
@@ -86,7 +87,7 @@ describe('delete bookings', () => {
     prismaMock.booking.delete.mockResolvedValue(testBooking)
 
     await expect(
-      deleteBooking(testBooking.id, testBooking.userId)
+      destroyBooking(testBooking.id, testBooking.userId)
     ).resolves.toEqual(testBooking)
     await expect(getBookingById(testBooking.id)).resolves.toEqual(undefined)
   })
@@ -100,7 +101,7 @@ describe('delete bookings', () => {
 
     try {
       // Call the function and expect it to reject with an HttpException
-      await deleteBooking(bookingId, userId)
+      await destroyBooking(bookingId, userId)
     } catch (error) {
       expect(error).toBeInstanceOf(HttpException)
       expect(error).toHaveProperty(
