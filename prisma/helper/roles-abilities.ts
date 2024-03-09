@@ -17,7 +17,7 @@ import {
 export const seedRoles = async () => {
   console.info('Seeding roles and abilities...')
 
-  await Promise.all(AllRoles.map((r) => prisma.role.create({ data: r })))
+  await Promise.allSettled(AllRoles.map((r) => prisma.role.create({ data: r })))
 
   console.info('Seeding roles and abilities finished.')
 }
@@ -25,7 +25,9 @@ export const seedRoles = async () => {
 export const seedAbilities = async () => {
   console.info('Seeding roles and abilities...')
 
-  await Promise.all(AllAbilities.map((a) => prisma.ability.create({ data: a })))
+  await Promise.allSettled(
+    AllAbilities.map((a) => prisma.ability.create({ data: a }))
+  )
 
   console.info('Seeding roles and abilities finished.')
 }

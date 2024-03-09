@@ -11,7 +11,6 @@ import {
   AcadsAdminRole,
   ButteryAdminRole,
   MemberRole,
-  OrganisationHeadRole,
   SpacesAdminRole,
   WebsiteAdminRole,
 } from '@/policy'
@@ -238,16 +237,26 @@ export async function seedProdOrgRoles() {
 
 async function main() {
   const isDevEnv = process.env?.PRISMA_SEED_ENVIRONMENT === 'DEV'
-  await seedAbilities()
-  await seedRoles()
-  await seedRolesAbilities()
-  await seedVenueRoles()
+  try {
+    await seedAbilities()
+    await seedRoles()
+    await seedRolesAbilities()
+    await seedVenueRoles()
+    await seedProdOrgRoles()
+  } catch (err) {
+    console.error(`Error seeding roles and abilities`)
+    console.error(err)
+  }
 
-  await seedCourses()
-  await seedProfessors()
-  await seedStudents()
+  try {
+    await seedCourses()
+    await seedProfessors()
+    await seedStudents()
+  } catch (err) {
+    console.error(`Error seeding submissions`)
+    console.error(err)
+  }
 
-  await seedProdOrgRoles()
   console.log(`Seeding finished.`)
 }
 
