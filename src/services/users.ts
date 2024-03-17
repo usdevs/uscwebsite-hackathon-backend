@@ -1,7 +1,6 @@
 import { prisma } from '../../db'
 import { Prisma, User } from '@prisma/client'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
-import { throwIfNotAdmin } from '@/config/common'
 
 /* Retrieves all users */
 export async function getAllUsers(): Promise<

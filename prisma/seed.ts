@@ -44,8 +44,6 @@ const minSlots = parseEnvToInt('MIN_SLOTS_PER_BOOKING', 1)
 const duration = parseEnvToInt('DURATION_PER_SLOT', 30)
 
 async function main() {
-  const isDevEnv = process.env?.PRISMA_SEED_ENVIRONMENT === 'DEV'
-
   console.log(`Seed initial users...`)
   await readFromExcelandSeedUsers(excelFile, userSheet, userDataSet)
   // grant access to developers even on prod
@@ -75,8 +73,7 @@ async function main() {
   })
 
   await readMain(excelFile, mainSheet, userDataSet)
-  if (isDevEnv)
-    await readMain(excelFile, getDevSheetName(mainSheet), userDataSet)
+  await readMain(excelFile, getDevSheetName(mainSheet), userDataSet)
 
   await prisma.$executeRaw`SELECT setval(pg_get_serial_sequence('"Organisation"', 'id'), coalesce(max(id)+1, 1), false) FROM "Organisation";`
 
@@ -88,11 +85,6 @@ async function main() {
   await seedRoles()
   await seedRolesAbilities()
   await seedOrgRoles(excelFile, orgRoleSheet)
-
-  if (!isDevEnv) {
-    console.log(`Seeding finished.`)
-    return
-  }
 
   console.info('seeding dev data...')
 

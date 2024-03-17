@@ -176,6 +176,8 @@ export const readUserOnOrg = async (excelFile: string, sheetname: string) =>
     }
     const casted: UserOnOrgSchemaType[] = rows as UserOnOrgSchemaType[]
     for (const row of casted) {
+      try {
+
       // we don't need to get the id from prisma again, but just to make sure
       const user = await prisma.user.findUniqueOrThrow({
         where: {
@@ -188,5 +190,11 @@ export const readUserOnOrg = async (excelFile: string, sheetname: string) =>
         },
       })
       await addUserOnOrgToTable(user.id, org.id, row.isIGHead === 1)
+      } catch (err) {
+        console.log(
+          `Failed on user of id ${row.userId} into organisation of id ${row.orgId}`
+        )
+        throw err
+      }
     }
   })
