@@ -2,7 +2,7 @@ import { getMockReq, getMockRes } from '@jest-mock/express'
 import * as Policy from '../../policy'
 import { RequestWithUser } from '../../interfaces/auth.interface'
 import { HttpCode, HttpException } from '../../exceptions/HttpException'
-import { getUserAbilities, updateUser } from '../../services/users'
+import { getUserAbilities } from '../../services/users'
 import { updateSubmission } from '../../services/submissions'
 import {
   generateRandomAbility,

@@ -29,10 +29,10 @@ export const prisma: PrismaClient<Prisma.PrismaClientOptions, 'query'> =
   })
 
 prisma.$on('query', (e) => {
-  console.log(chalk.cyan('Query: ' + e.query))
-  console.log(chalk.blue('Params: ' + e.params))
-  console.log(chalk.yellow('Duration: ' + e.duration + 'ms'))
+  // ? Uncomment the following lines to see the queries in the console
+  // console.log(chalk.cyan('Query: ' + e.query))
+  // console.log(chalk.blue('Params: ' + e.params))
+  // console.log(chalk.yellow('Duration: ' + e.duration + 'ms'))
 })
-
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma

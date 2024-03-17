@@ -7,7 +7,6 @@ import {
   checkIsUserInOrg,
 } from '../middlewares/checks'
 import { BookingAdminRole, WebsiteAdminRole } from '@/policy'
-import { getUserOrgs } from './users'
 
 /* Retrieves all bookings */
 export async function getAllBookings(
