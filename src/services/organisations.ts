@@ -100,12 +100,37 @@ export async function updateOrg(
     orgId: orgId,
     isIGHead: false,
   }))
+
   // Add IG head
   newUserOnOrgRecords.push({
     userId: orgPayload.igHead,
     orgId: orgId,
     isIGHead: true,
   })
+
+  const isCreate = orgId === -1
+  // For creating, we need the orgId first
+  if (isCreate) {
+    // Use an interactive transaction to ensure that database is consistent in event of error
+    return prisma.$transaction(async (tx) => {
+      const org = await tx.organisation.create({
+        data: updatedOrg,
+      })
+
+      const orgId = org.id
+      const newUserOnOrgRecordsWithOrgId = newUserOnOrgRecords.map(
+        (record) => ({
+          ...record,
+          orgId: orgId,
+        })
+      )
+      await tx.userOnOrg.createMany({
+        data: newUserOnOrgRecordsWithOrgId,
+      })
+
+      return org
+    })
+  }
 
   // Use a transaction to ensure that database is consistent in event of error
   const [org] = await prisma.$transaction([
