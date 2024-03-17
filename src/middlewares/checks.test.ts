@@ -12,7 +12,7 @@ import {
 } from '../services/test/utils'
 
 import {
-  checkUserinOrg,
+  checkIsUserInOrg,
   checkStartEndTime,
   checkBookingPrivelege,
   checkConflictingBooking,
@@ -33,18 +33,20 @@ beforeEach(() => {
 
 describe('check user is in organisation', () => {
   test('check succeeds', async () => {
-    prismaMock.userOnOrg.findFirst.mockResolvedValue(normalUserOnOrg)
-    await expect(checkUserinOrg(user, normalOrg)).resolves.toEqual(true)
+    prismaMock.user.findFirst.mockResolvedValue(user)
+    await expect(checkIsUserInOrg(user.id, normalOrg.id)).resolves.toEqual(true)
   })
 
   test('check succeeds for admin', async () => {
-    prismaMock.userOnOrg.findFirst.mockResolvedValue(adminUserOnOrg)
-    await expect(checkUserinOrg(admin, normalOrg)).resolves.toEqual(true)
+    prismaMock.user.findFirst.mockResolvedValue(admin)
+    await expect(checkIsUserInOrg(admin.id, normalOrg.id)).resolves.toEqual(
+      true
+    )
   })
 
   test('check fails', async () => {
-    prismaMock.userOnOrg.findFirst.mockResolvedValue(null)
-    await expect(checkUserinOrg(user, adminOrg)).resolves.toEqual(false)
+    prismaMock.user.findFirst.mockResolvedValue(null)
+    await expect(checkIsUserInOrg(user.id, adminOrg.id)).resolves.toEqual(false)
   })
 })
 

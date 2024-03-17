@@ -11,11 +11,11 @@ import {
   generateRandomUser,
   generateUserOnOrg,
 } from './test/utils'
-import { Booking, UserOnOrg } from '@prisma/client'
+import { Booking } from '@prisma/client'
 import {
   checkConflictingBooking,
-  checkIsUserAdmin,
   checkIsUserBookingAdmin,
+  checkIsUserInOrg,
   checkStackedBookings,
 } from '../middlewares/checks'
 import { HttpCode, HttpException } from '../exceptions/HttpException'
@@ -25,6 +25,7 @@ jest.mock('../middlewares/checks', () => ({
   checkConflictingBooking: jest.fn(),
   checkIsUserBookingAdmin: jest.fn(),
   checkStackedBookings: jest.fn(),
+  checkIsUserInOrg: jest.fn(),
 }))
 
 beforeEach(() => {
@@ -60,6 +61,7 @@ describe('add bookings', () => {
     jest.mocked(checkConflictingBooking).mockResolvedValue(false)
     jest.mocked(checkIsUserBookingAdmin).mockResolvedValue(false)
     jest.mocked(checkStackedBookings).mockResolvedValue(true)
+    jest.mocked(checkIsUserInOrg).mockResolvedValue(true)
 
     const result = addBooking(bookingToAdd)
 
