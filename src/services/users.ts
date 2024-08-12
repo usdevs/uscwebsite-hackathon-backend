@@ -17,9 +17,6 @@ export async function addUser(userPayload: UserPayload): Promise<User> {
     where: {
       OR: [
         {
-          telegramId: userPayload.telegramId,
-        },
-        {
           telegramUserName: {
             equals: userPayload.telegramUserName,
             mode: 'insensitive',
