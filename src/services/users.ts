@@ -13,6 +13,41 @@ export type UserPayload = Pick<User, 'name' | 'telegramUserName' | 'telegramId'>
 
 /* Add a new user */
 export async function addUser(userPayload: UserPayload): Promise<User> {
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          telegramId: userPayload.telegramId,
+        },
+        {
+          telegramUserName: {
+            equals: userPayload.telegramUserName,
+            mode: 'insensitive',
+          },
+        },
+      ],
+    },
+  })
+
+  if (existingUser) {
+    if (
+      existingUser.telegramUserName.toLowerCase() ===
+      userPayload.telegramUserName.toLowerCase()
+    ) {
+      throw new HttpException(
+        `User with telegram username ${userPayload.telegramUserName} already exists!`,
+        HttpCode.BadRequest
+      )
+    }
+
+    if (existingUser.telegramId === userPayload.telegramId) {
+      throw new HttpException(
+        `User with telegram id ${userPayload.telegramId} already exists!`,
+        HttpCode.BadRequest
+      )
+    }
+  }
+
   const userToAdd: Prisma.UserCreateInput = { ...userPayload }
   return prisma.user.create({ data: userToAdd })
 }

@@ -86,7 +86,10 @@ export async function handleLogin(
     ? [
         // In development, we don't have the telegramId
         {
-          telegramUserName: userCredentials.username,
+          telegramUserName: {
+            equals: userCredentials.username,
+            mode: 'insensitive',
+          },
         },
       ]
     : [
@@ -95,7 +98,10 @@ export async function handleLogin(
         },
         {
           telegramId: null,
-          telegramUserName: userCredentials.username,
+          telegramUserName: {
+            equals: userCredentials.username,
+            mode: 'insensitive',
+          },
         },
       ]
 
