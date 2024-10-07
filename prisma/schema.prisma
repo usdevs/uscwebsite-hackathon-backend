@@ -87,6 +87,7 @@ model Booking {
   start          DateTime // start time of booking
   end            DateTime // end time of booking
   bookedAt       DateTime      @default(now())
+  deleted        Boolean       @default(false)
 }
 
 // Ability is a single action that the user can perform
