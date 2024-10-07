@@ -19,6 +19,9 @@ export async function deleteBooking(
   }
 
   const user = req.user
+  console.log(
+    `User: ${user.id} (${user.telegramUserName}) is deleting booking: ${bookingId}`
+  )
   const booking = await getBookingById(bookingId)
 
   await Policy.Authorize(
