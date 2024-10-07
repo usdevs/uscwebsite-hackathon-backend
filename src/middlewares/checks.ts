@@ -170,9 +170,18 @@ export async function checkConflictingBooking(
   const endTime = booking.end
   const conflicting = await prisma.booking.findFirst({
     where: {
-      start: {
-        lt: endTime,
-      },
+      AND: [
+        {
+          start: {
+            lt: endTime,
+          },
+        },
+        {
+          deleted: {
+            not: true,
+          },
+        },
+      ],
       id: typeof exclude !== undefined ? { not: exclude } : {},
       venueId: booking.venueId,
     },
@@ -220,7 +229,16 @@ export async function checkStackedBookings(booking: BookingPayload) {
       },
     ],
     where: {
-      end: { lte: start },
+      AND: [
+        {
+          end: { lte: start },
+        },
+        {
+          deleted: {
+            not: true,
+          },
+        },
+      ],
       venueId,
       userOrgId,
     },
@@ -233,7 +251,16 @@ export async function checkStackedBookings(booking: BookingPayload) {
       },
     ],
     where: {
-      start: { gte: end },
+      AND: [
+        {
+          start: { gte: end },
+        },
+        {
+          deleted: {
+            not: true,
+          },
+        },
+      ],
       venueId,
       userOrgId,
     },

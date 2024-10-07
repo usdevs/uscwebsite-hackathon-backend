@@ -37,6 +37,7 @@ export function generateRandomBooking(booking?: Partial<Booking>): Booking {
     end: faker.datatype.datetime(),
     bookedAt: faker.datatype.datetime(),
     bookedForOrgId: generateRandomTableId(),
+    deleted: false,
     ...booking,
   }
 }

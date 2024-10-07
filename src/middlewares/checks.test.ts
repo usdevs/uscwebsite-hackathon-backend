@@ -159,6 +159,7 @@ describe('check conflicting booking', () => {
     userOrgId: normalOrg.id,
     bookedAt: new Date(),
     bookedForOrgId: null,
+    deleted: false,
   }
 
   const conflictingBooking: Booking = {
@@ -171,6 +172,7 @@ describe('check conflicting booking', () => {
     userOrgId: normalOrg.id,
     bookedAt: new Date(),
     bookedForOrgId: null,
+    deleted: false,
   }
 
   test('check returns true for conflictingBooking', async () => {
@@ -202,6 +204,7 @@ describe('check stacked bookings', () => {
     venueId: venue.id,
     bookedAt: new Date(),
     bookedForOrgId: null,
+    deleted: false,
   }
 
   const validNewBooking: BookingPayload = {
@@ -232,6 +235,7 @@ describe('check stacked bookings', () => {
     venueId: venue.id,
     bookedAt: new Date(),
     bookedForOrgId: null,
+    deleted: false,
   }
 
   const validAdminBooking: BookingPayload = {

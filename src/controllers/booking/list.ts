@@ -38,14 +38,19 @@ export async function getUserBookingsController(
   req: Request,
   res: Response
 ): Promise<void> {
-  const userId = req.query.userId as string | undefined
+  const userIdString = req.query.userId as string | undefined
 
-  if (!userId) {
+  if (!userIdString) {
     throw new HttpException('Query missing userId', HttpCode.BadRequest)
+  }
+
+  const userId = parseInt(userIdString)
+  if (Number.isNaN(userId)) {
+    throw new HttpException('Query userId is not a number', HttpCode.BadRequest)
   }
 
   await Policy.Authorize(listBookingsAction, Policy.viewBookingPolicy())
 
-  const bookings = await getUserBookings(parseInt(userId))
+  const bookings = await getUserBookings(userId)
   res.json(bookings)
 }
