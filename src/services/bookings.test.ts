@@ -86,11 +86,17 @@ describe('delete bookings', () => {
     })
 
     prismaMock.booking.findFirst.mockResolvedValueOnce(testBooking)
-    prismaMock.booking.delete.mockResolvedValue(testBooking)
+    prismaMock.booking.update.mockResolvedValue({
+      ...testBooking,
+      deleted: true,
+    })
 
     await expect(
       destroyBooking(testBooking.id, testBooking.userId)
-    ).resolves.toEqual(testBooking)
+    ).resolves.toEqual({
+      ...testBooking,
+      deleted: true,
+    })
     await expect(getBookingById(testBooking.id)).resolves.toEqual(undefined)
   })
 

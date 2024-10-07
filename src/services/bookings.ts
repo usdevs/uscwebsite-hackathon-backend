@@ -15,15 +15,24 @@ export async function getAllBookings(
 ): Promise<Booking[]> {
   return prisma.booking.findMany({
     where: {
-      OR: [
+      AND: [
         {
-          start: {
-            gte: start,
-            lte: end,
-          },
-          end: {
-            gte: start,
-            lte: end,
+          OR: [
+            {
+              start: {
+                gte: start,
+                lte: end,
+              },
+              end: {
+                gte: start,
+                lte: end,
+              },
+            },
+          ],
+        },
+        {
+          deleted: {
+            not: true,
           },
         },
       ],
@@ -53,7 +62,18 @@ export async function getUserBookings(
   userId: Booking['userId']
 ): Promise<Booking[]> {
   return prisma.booking.findMany({
-    where: { userId: userId },
+    where: {
+      AND: [
+        {
+          userId: userId,
+        },
+        {
+          deleted: {
+            not: true,
+          },
+        },
+      ],
+    },
   })
 }
 
@@ -67,7 +87,12 @@ export async function getBookingById(
   bookingId: Booking['id']
 ): Promise<Booking> {
   return prisma.booking.findFirstOrThrow({
-    where: { id: { equals: bookingId } },
+    where: {
+      AND: [
+        { id: { equals: bookingId } },
+        { deleted: { not: true } }
+      ]
+    },
     include: {
       venue: true,
       bookedBy: true,
@@ -170,9 +195,12 @@ export async function updateBooking(
   bookingId: Booking['id'],
   updatedBooking: BookingPayload
 ): Promise<Booking> {
-  const bookingToUpdate = await prisma.booking.findUnique({
+  const bookingToUpdate = await prisma.booking.findFirst({
     where: {
-      id: bookingId,
+      AND: [
+        { id: { equals: bookingId } },
+        { deleted: { not: true } }
+      ]
     },
   })
 
@@ -204,7 +232,10 @@ export async function destroyBooking(
 ): Promise<Booking> {
   const bookingToDelete = await prisma.booking.findFirst({
     where: {
-      id: bookingId,
+      AND: [
+        { id: { equals: bookingId } },
+        { deleted: { not: true } }
+      ]
     },
   })
   if (!bookingToDelete) {
@@ -214,9 +245,12 @@ export async function destroyBooking(
     )
   }
 
-  return prisma.booking.delete({
+  return prisma.booking.update({
     where: {
       id: bookingId,
+    },
+    data: {
+      deleted: true,
     },
   })
 }
