@@ -2,7 +2,7 @@ import { getVenueRoles } from './../../services/venues'
 import { getMockReq, getMockRes } from '@jest-mock/express'
 import * as Policy from '../../policy'
 import { RequestWithUser } from '../../interfaces/auth.interface'
-import { UnauthorizedException } from '../../exceptions/'
+import { HttpCode, HttpException, UnauthorizedException } from '../../exceptions/'
 import {
   getUserAbilities,
   getUserOrgs,
@@ -81,9 +81,14 @@ describe('Test create booking handler', () => {
       },
     })
 
-    await expect(createBooking(req, res)).rejects.toBeInstanceOf(
-      UnauthorizedException
-    )
+    try {
+      await createBooking(req, res)
+    } catch (e) {
+      const exception = e as HttpException
+      expect(exception).toBeInstanceOf(HttpException)
+      expect(exception.status).toBe(HttpCode.Unauthorized)
+      expect(exception.message).toMatch(/Requires authentication/i)
+    }
   })
 
   test('Should return 401 not authorized', async () => {
