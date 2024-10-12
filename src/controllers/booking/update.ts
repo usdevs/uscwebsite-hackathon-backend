@@ -29,6 +29,12 @@ export async function editBooking(
     userOrgId: booking.orgId,
   }
 
+  // Logging event of updating a Booking
+  const user = req.user
+  console.log(
+    `User: ${user.id} (${user.telegramUserName}) is updating booking: ${bookingId}`
+  )
+
   await Policy.Authorize(
     updateBookingAction,
     Policy.updateBookingPolicy(bookingPayload, req.user),
