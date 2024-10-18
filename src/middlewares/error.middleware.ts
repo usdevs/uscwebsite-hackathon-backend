@@ -1,6 +1,7 @@
-import { Request, Response, NextFunction } from 'express'
+import { Response, NextFunction } from 'express'
 import { HttpCode, HttpException } from '@exceptions/HttpException'
 import { ZodError } from 'zod'
+import { RequestWithUser } from '@/interfaces/auth.interface'
 
 /**
  * Custom error handler to standardize error objects returned to
@@ -13,7 +14,7 @@ import { ZodError } from 'zod'
  */
 function errorHandler(
   err: Error,
-  req: Request,
+  req: RequestWithUser,
   res: Response,
   next: NextFunction
 ) {
@@ -30,6 +31,15 @@ function errorHandler(
     customError = new HttpException(err.message)
     console.log(err)
   }
+
+  // Detailed request and error logging
+  console.error({
+    message: customError.message,
+    status: (customError as HttpException).status,
+    requestBody: req.body,
+    requestUser: req.user,
+    stack: err.stack,
+  })
 
   res.status((customError as HttpException).status).send(customError)
 }
