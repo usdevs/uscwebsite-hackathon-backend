@@ -3,7 +3,9 @@ import {
   addBooking,
   BookingPayload,
   destroyBooking,
+  getAllBookings,
   getBookingById,
+  getUserBookings,
 } from './bookings'
 import {
   generateRandomBooking,
@@ -30,6 +32,131 @@ jest.mock('../middlewares/checks', () => ({
 
 beforeEach(() => {
   jest.resetAllMocks()
+})
+
+describe('Test getAllBookings', () => {
+  test('should return all bookings within the date range', async () => {
+    const startDate = new Date(2022, 11, 1)
+    const endDate = new Date(2022, 11, 31)
+
+    const bookings = [
+      generateRandomBooking({ start: startDate, end: endDate }),
+      generateRandomBooking({ start: startDate, end: endDate }),
+    ]
+
+    prismaMock.booking.findMany.mockResolvedValue(bookings)
+
+    const result = await getAllBookings(startDate, endDate)
+
+    expect(result).toEqual(bookings)
+    expect(prismaMock.booking.findMany).toHaveBeenCalledWith({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                start: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+                end: {
+                  gte: startDate,
+                  lte: endDate,
+                },
+              },
+            ],
+          },
+          {
+            deleted: { not: true },
+          },
+        ],
+      },
+      orderBy: { start: 'asc' },
+      include: {
+        venue: true,
+        bookedBy: {
+          include: {
+            org: true,
+            user: true,
+          },
+        },
+        bookedForOrg: true,
+      },
+    })
+  })
+
+  test('should return an empty array when no bookings exist', async () => {
+    const startDate = new Date(2022, 11, 1)
+    const endDate = new Date(2022, 11, 31)
+
+    prismaMock.booking.findMany.mockResolvedValue([])
+
+    const result = await getAllBookings(startDate, endDate)
+
+    expect(result).toEqual([])
+    expect(prismaMock.booking.findMany).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Test getUserBookings', () => {
+  test('should return all bookings for a given user', async () => {
+    const userId = 1
+
+    const bookings = [
+      generateRandomBooking({ userId }),
+      generateRandomBooking({ userId }),
+    ]
+
+    prismaMock.booking.findMany.mockResolvedValue(bookings)
+
+    const result = await getUserBookings(userId)
+
+    expect(result).toEqual(bookings)
+    expect(prismaMock.booking.findMany).toHaveBeenCalledWith({
+      where: {
+        AND: [
+          { userId },
+          { deleted: { not: true } },
+        ],
+      },
+    })
+  })
+
+  test('should return an empty array when no bookings exist for the user', async () => {
+    const userId = 1
+
+    prismaMock.booking.findMany.mockResolvedValue([])
+
+    const result = await getUserBookings(userId)
+
+    expect(result).toEqual([])
+    expect(prismaMock.booking.findMany).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Test getBookingById', () => {
+  test('should return a booking by id', async () => {
+    const bookingId = 1
+    const booking = generateRandomBooking({ id: bookingId })
+
+    prismaMock.booking.findFirstOrThrow.mockResolvedValue(booking)
+
+    const result = await getBookingById(bookingId)
+
+    expect(result).toEqual(booking)
+    expect(prismaMock.booking.findFirstOrThrow).toHaveBeenCalledWith({
+      where: {
+        AND: [
+          { id: { equals: bookingId } },
+          { deleted: { not: true } },
+        ],
+      },
+      include: {
+        venue: true,
+        bookedBy: true,
+      },
+    })
+  })
 })
 
 describe('add bookings', () => {
@@ -70,6 +197,37 @@ describe('add bookings', () => {
       id: expect.any(Number),
       bookedAt: expect.any(Date),
     })
+  })
+
+  test('should handle database error during booking creation', async () => {
+    const user = generateRandomUser()
+    const org = generateRandomOrganisation()
+    const bookingToAdd: BookingPayload = {
+      eventName: 'db error test',
+      venueId: 1,
+      userId: user.id,
+      userOrgId: org.id,
+      start: new Date(2024, 9, 20, 10, 0),
+      end: new Date(2024, 9, 20, 12, 0),
+    }
+
+    // Mock the UserOnOrg and venue lookup
+    prismaMock.userOnOrg.findFirst.mockResolvedValue(generateUserOnOrg(user, org))
+    prismaMock.venue.findFirst.mockResolvedValue({
+      id: 1,
+      name: 'test venue',
+    })
+
+    // Mock middleware checks
+    jest.mocked(checkConflictingBooking).mockResolvedValue(false)
+    jest.mocked(checkIsUserBookingAdmin).mockResolvedValue(false)
+    jest.mocked(checkStackedBookings).mockResolvedValue(true)
+    jest.mocked(checkIsUserInOrg).mockResolvedValue(true)
+
+    // Mock Prisma to throw an error
+    prismaMock.booking.create.mockRejectedValue(new Error('Database error'))
+
+    await expect(addBooking(bookingToAdd)).rejects.toThrow('Database error')
   })
 })
 
