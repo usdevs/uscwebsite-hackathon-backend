@@ -180,8 +180,8 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
       const booking = await prisma.booking.create({ data: bookingToCreate })
       console.log(`Booking created in DB with ID: ${booking.id}`)
       return booking
-    } catch (error) {
-      console.log(`Prisma booking insertion failed: $(error.message)`, {
+    } catch (error : any) {
+      console.log(`Prisma booking insertion failed: ${error.message}`, {
         payload: bookingToCreate,
         prismaError: error,
       })
@@ -194,8 +194,8 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
     const booking = await prisma.booking.create({ data: bookingToCreate })
     console.log(`Booking created in DB with ID: ${booking.id}`)
     return booking
-  } catch (error) {
-    console.log(`Prisma booking insertion failed: $(error.message)`, {
+  } catch (error : any) {
+    console.log(`Prisma booking insertion failed: ${error.message}`, {
       payload: bookingToCreate,
       prismaError: error,
     })
