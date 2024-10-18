@@ -176,11 +176,31 @@ export async function addBooking(booking: BookingPayload): Promise<Booking> {
       userOrgId: adminOrg.id,
       bookedForOrgId: booking.userOrgId,
     }
-    return prisma.booking.create({ data: bookingToCreate })
+    try {
+      const booking = await prisma.booking.create({ data: bookingToCreate })
+      console.log(`Booking created in DB with ID: ${booking.id}`)
+      return booking
+    } catch (error : any) {
+      console.log(`Prisma booking insertion failed: ${error.message}`, {
+        payload: bookingToCreate,
+        prismaError: error,
+      })
+      throw error
+    }
   }
 
   const bookingToCreate = { ...booking }
-  return prisma.booking.create({ data: bookingToCreate })
+  try {
+    const booking = await prisma.booking.create({ data: bookingToCreate })
+    console.log(`Booking created in DB with ID: ${booking.id}`)
+    return booking
+  } catch (error : any) {
+    console.log(`Prisma booking insertion failed: ${error.message}`, {
+      payload: bookingToCreate,
+      prismaError: error,
+    })
+    throw error
+  }
 }
 
 /**

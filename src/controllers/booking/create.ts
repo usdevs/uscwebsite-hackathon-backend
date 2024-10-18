@@ -30,13 +30,15 @@ export async function createBooking(
     req.user
   )
 
-  const inserted = await addBooking(bookingPayload)
-
-  // Logging event of a new Booking
-  const user = req.user
-  console.log(
-    `User: ${user.id} (${user.telegramUserName}) is creating booking: ${inserted.id}`
-  )
+  let inserted
+  
+  try {
+    inserted = await addBooking(bookingPayload)
+    console.log(`Booking ${inserted.id} inserted successfully`)
+  } catch (error : any) {
+    console.log(`Booking failed: ${error.message}`)
+    throw new HttpException('Failed to create booking', HttpCode.InternalServerError)
+  }
 
   res.status(200).json({ result: [inserted] })
 }
